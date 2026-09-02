@@ -45,7 +45,13 @@ export function Preloader() {
   return (
     <div
       role="status" aria-label="Carregando"
-      className="fixed inset-0 z-[100] grid place-items-center bg-brasa motion-safe:animate-pulse"
+      // pointer-events-none: os listeners de dismiss ficam em `window`, entao
+      // o painel nao precisa ser o alvo do ponteiro para se fechar — e nao
+      // pode ser, senao ele engole o primeiro toque do visitante (ex.: um
+      // tap em "Pedir no WhatsApp" durante os ~1,2s do preloader fecharia o
+      // painel em vez de abrir o WhatsApp). Com pointer-events-none, o mesmo
+      // tap alcanca o elemento por baixo E dispara o pointerdown em window.
+      className="pointer-events-none fixed inset-0 z-[100] grid place-items-center bg-brasa motion-safe:animate-pulse"
     >
       <Chama className="h-24 w-24 text-branco" />
       <span className="sr-only">Acendendo a brasa…</span>
