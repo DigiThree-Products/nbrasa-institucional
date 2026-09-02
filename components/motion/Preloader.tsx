@@ -7,10 +7,17 @@ const CHAVE = "nbrasa:preloader";
 const TETO_MS = 1200;
 
 export function Preloader() {
-  const [visivel, setVisivel] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try { return sessionStorage.getItem(CHAVE) === null; } catch { return false; }
-  });
+  // Estado inicial fixo em `false` nos dois lados: o servidor não tem acesso
+  // ao sessionStorage, então ler a chave já na inicialização do useState
+  // divergiria do HTML estático e quebraria a hidratação. A checagem real
+  // acontece no efeito abaixo, que só roda no cliente após montar.
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(CHAVE) === null) setVisivel(true);
+    } catch { /* modo privado: mantém oculto */ }
+  }, []);
 
   useEffect(() => {
     if (!visivel) return;
