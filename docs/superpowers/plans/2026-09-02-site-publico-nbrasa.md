@@ -2419,7 +2419,12 @@ export default defineConfig({
   webServer: {
     command: "npm run build && npm start",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    // Nunca reaproveitar um servidor já em pé: um dev server parado ou uma
+    // build antiga na porta 3000 seria silenciosamente reaproveitado aqui,
+    // e a suíte inteira validaria código velho sem avisar. Já aconteceu
+    // neste projeto — o custo de rebuildar a cada rodada é trivial perto
+    // disso.
+    reuseExistingServer: false,
     timeout: 180_000,
   },
   use: { baseURL: "http://localhost:3000" },
@@ -2430,12 +2435,47 @@ export default defineConfig({
 });
 ```
 
+(Revisão da Task 14: o `reuseExistingServer` condicional a `!process.env.CI` do rascunho original foi trocado por `false` incondicional depois de um achado de code review — o controlador já tinha sofrido exatamente esse problema mais cedo no projeto, um servidor parado na porta 3000 sendo reaproveitado silenciosamente por essa mesma opção.)
+
 - [ ] **Step 2: Escrever os testes de ponta a ponta**
 
 Criar `tests/e2e/home.spec.ts`:
 
 ```ts
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
+
+type AlvoRota = { topo: number; altura: number };
+
+/** Encontra, no DOM, a posição absoluta e a altura da seção da rota de entrega. */
+async function localizarSecaoDaRota(page: Page): Promise<AlvoRota | null> {
+  return page.evaluate(() => {
+    const linha = document.getElementById("rota-entrega");
+    const wrap = linha ? linha.closest("div") : null;
+    if (!wrap) return null;
+    const retangulo = wrap.getBoundingClientRect();
+    return { topo: retangulo.top + window.scrollY, altura: wrap.clientHeight };
+  });
+}
+
+/** Lê o transform aplicado pelo GSAP (via style ou, em navegadores que
+ *  preferem o atributo de apresentação, via `transform`). */
+function lerTransform(mascote: Locator) {
+  return mascote.evaluate((el) => el.getAttribute("style") ?? el.getAttribute("transform"));
+}
+
+/**
+ * Rola em passos, via wheel real, até o meio da seção da rota. A distância é
+ * contada a partir do topo real da página (não só da altura da própria
+ * seção) — em telas estreitas o cardápio empilhado antes dela é bem mais
+ * alto, então essa distância muda por viewport.
+ */
+async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
+  const distanciaAteOMeio = alvo.topo + alvo.altura * 0.5;
+  const passos = 10;
+  for (let i = 0; i < passos; i++) {
+    await page.mouse.wheel(0, distanciaAteOMeio / passos);
+  }
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("nbrasa:preloader", "1"));
@@ -2464,7 +2504,9 @@ test("lista as seis categorias", async ({ page }) => {
 });
 
 test("mostra os horários agrupados corretamente", async ({ page }) => {
-  await expect(page.getByText("Terça a quinta")).toBeVisible();
+  // "Terça a quinta" aparece duas vezes na página (resumo do herói e lista
+  // de horários na faixa creme); .first() evita a falha do strict mode.
+  await expect(page.getByText("Terça a quinta").first()).toBeVisible();
   await expect(page.getByText("16h — 03h").first()).toBeVisible();
 });
 
@@ -2480,11 +2522,52 @@ test("publica dados estruturados de Restaurant", async ({ page }) => {
 });
 
 test.describe("com movimento reduzido", () => {
-  test.use({ reducedMotion: "reduce" });
+  // `test.use({ reducedMotion: "reduce" })` foi a primeira tentativa, mas
+  // uma reprodução isolada (config mínima, sem nenhuma customização deste
+  // projeto) mostrou que essa opção de contexto não faz
+  // window.matchMedia("(prefers-reduced-motion: reduce)") reportar `true`
+  // neste ambiente — fica `false` mesmo com o contexto configurado.
+  // page.emulateMedia() aplica de fato (confirmado na mesma reprodução), e
+  // é o que usamos aqui. Por isso este describe navega de novo, depois de
+  // emular: RotaMascote só lê a preferência uma vez, no mount, e o
+  // beforeEach do topo do arquivo já tinha navegado antes desta preferência
+  // existir.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+  });
 
   test("nenhum conteúdo depende de animação", async ({ page }) => {
     await expect(page.getByText("Mambucaba")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+
+  // Espelho do teste "o mascote se move..." abaixo: aquele prova que a
+  // animação roda; este prova que o guard de reduced-motion realmente a
+  // desliga. Sem este teste, o de cima passaria mesmo que o
+  // matchMedia("(prefers-reduced-motion: reduce)") de RotaMascote.tsx fosse
+  // apagado — nada aqui checava o comportamento que a asserção alegava
+  // cobrir. (Verificado: apagar o guard faz este teste falhar; restaurá-lo
+  // faz passar de novo.)
+  test("o mascote não se move com prefers-reduced-motion", async ({ page }) => {
+    const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
+    await expect(mascote).toBeAttached();
+
+    const alvo = await localizarSecaoDaRota(page);
+    expect(alvo).not.toBeNull();
+
+    const antes = await lerTransform(mascote);
+
+    await rolarAteOMeioDaRota(page, alvo!);
+
+    // Asserção negativa: não dá para "esperar até nunca acontecer". Uma
+    // espera fixa é legítima aqui, mas curta — o bastante para o
+    // ScrollTrigger reagir *se* o guard não estivesse funcionando (o teste
+    // irmão, com o mesmo scroll, converge bem dentro de poucos segundos).
+    await page.waitForTimeout(2_500);
+
+    const depois = await lerTransform(mascote);
+    expect(depois).toBe(antes);
   });
 });
 
@@ -2494,6 +2577,42 @@ test("o menu mobile abre e fecha", async ({ page, viewport }) => {
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
+});
+
+// Guarda de regressão adicional (não faz parte da lista original do brief):
+// a Task 6 nunca viu o SmoothScrollProvider rodar num browser real, e a
+// animação do mascote (Task 9) só foi conferida manualmente uma vez. Aqui
+// confirmamos barato que o GSAP MotionPath realmente está mexendo o mascote
+// ao rolar — sem isso, uma regressão silenciosa no wiring do cliente não
+// quebraria nenhum teste automatizado.
+test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
+  const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
+  await expect(mascote).toBeAttached();
+
+  const alvo = await localizarSecaoDaRota(page);
+  expect(alvo).not.toBeNull();
+
+  const antes = await lerTransform(mascote);
+  const scrollAntes = await page.evaluate(() => window.scrollY);
+
+  await rolarAteOMeioDaRota(page, alvo!);
+
+  // Prova direta (não inferência) de que o Lenis está de fato aplicando o
+  // scroll: smoothWheel intercepta o evento de wheel e só move a página via
+  // lenis.raf(), alimentado pelo ticker do GSAP em SmoothScrollProvider. Se
+  // esse wiring quebrar — Lenis não montar, o ticker não rodar —
+  // window.scrollY nunca avança, mesmo com o wheel disparado.
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 8_000 })
+    .toBeGreaterThan(scrollAntes);
+
+  // O scrub do ScrollTrigger (scrub: 1) converge suavemente até o progresso
+  // alvo; poll em vez de sleep fixo — mais rápido quando a máquina está
+  // livre, sem flakar quando não está.
+  await expect.poll(() => lerTransform(mascote), { timeout: 8_000 }).not.toBe(antes);
+
+  const depois = await lerTransform(mascote);
+  expect(depois).not.toBeNull();
 });
 ```
 

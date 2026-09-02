@@ -1,4 +1,37 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
+
+type AlvoRota = { topo: number; altura: number };
+
+/** Encontra, no DOM, a posição absoluta e a altura da seção da rota de entrega. */
+async function localizarSecaoDaRota(page: Page): Promise<AlvoRota | null> {
+  return page.evaluate(() => {
+    const linha = document.getElementById("rota-entrega");
+    const wrap = linha ? linha.closest("div") : null;
+    if (!wrap) return null;
+    const retangulo = wrap.getBoundingClientRect();
+    return { topo: retangulo.top + window.scrollY, altura: wrap.clientHeight };
+  });
+}
+
+/** Lê o transform aplicado pelo GSAP (via style ou, em navegadores que
+ *  preferem o atributo de apresentação, via `transform`). */
+function lerTransform(mascote: Locator) {
+  return mascote.evaluate((el) => el.getAttribute("style") ?? el.getAttribute("transform"));
+}
+
+/**
+ * Rola em passos, via wheel real, até o meio da seção da rota. A distância é
+ * contada a partir do topo real da página (não só da altura da própria
+ * seção) — em telas estreitas o cardápio empilhado antes dela é bem mais
+ * alto, então essa distância muda por viewport.
+ */
+async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
+  const distanciaAteOMeio = alvo.topo + alvo.altura * 0.5;
+  const passos = 10;
+  for (let i = 0; i < passos; i++) {
+    await page.mouse.wheel(0, distanciaAteOMeio / passos);
+  }
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("nbrasa:preloader", "1"));
@@ -45,11 +78,51 @@ test("publica dados estruturados de Restaurant", async ({ page }) => {
 });
 
 test.describe("com movimento reduzido", () => {
-  test.use({ reducedMotion: "reduce" });
+  // `test.use({ reducedMotion: "reduce" })` foi a primeira tentativa, mas
+  // uma reprodução isolada (config mínima, sem nenhuma customização deste
+  // projeto) mostrou que essa opção de contexto não faz
+  // window.matchMedia("(prefers-reduced-motion: reduce)") reportar `true`
+  // neste ambiente — fica `false` mesmo com o contexto configurado.
+  // page.emulateMedia() aplica de fato (confirmado na mesma reprodução), e
+  // é o que usamos aqui. Por isso este describe navega de novo, depois de
+  // emular: RotaMascote só lê a preferência uma vez, no mount, e o
+  // beforeEach do topo do arquivo já tinha navegado antes desta preferência
+  // existir.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+  });
 
   test("nenhum conteúdo depende de animação", async ({ page }) => {
     await expect(page.getByText("Mambucaba")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+
+  // Espelho do teste "o mascote se move..." abaixo: aquele prova que a
+  // animação roda; este prova que o guard de reduced-motion realmente a
+  // desliga. Sem este teste, o de cima passaria (e passou, numa versão
+  // anterior) mesmo que o matchMedia("(prefers-reduced-motion: reduce)")
+  // de RotaMascote.tsx fosse apagado — nada aqui checava o comportamento
+  // que a asserção alegava cobrir.
+  test("o mascote não se move com prefers-reduced-motion", async ({ page }) => {
+    const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
+    await expect(mascote).toBeAttached();
+
+    const alvo = await localizarSecaoDaRota(page);
+    expect(alvo).not.toBeNull();
+
+    const antes = await lerTransform(mascote);
+
+    await rolarAteOMeioDaRota(page, alvo!);
+
+    // Asserção negativa: não dá para "esperar até nunca acontecer". Uma
+    // espera fixa é legítima aqui, mas curta — o bastante para o
+    // ScrollTrigger reagir *se* o guard não estivesse funcionando (o teste
+    // irmão, com o mesmo scroll, converge bem dentro de poucos segundos).
+    await page.waitForTimeout(2_500);
+
+    const depois = await lerTransform(mascote);
+    expect(depois).toBe(antes);
   });
 });
 
@@ -71,33 +144,28 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
   const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
   await expect(mascote).toBeAttached();
 
-  const alvo = await page.evaluate(() => {
-    const linha = document.getElementById("rota-entrega");
-    const wrap = linha ? linha.closest("div") : null;
-    if (!wrap) return null;
-    const retangulo = wrap.getBoundingClientRect();
-    return { topo: retangulo.top + window.scrollY, altura: wrap.clientHeight };
-  });
+  const alvo = await localizarSecaoDaRota(page);
   expect(alvo).not.toBeNull();
 
-  const antes = await mascote.evaluate((el) => el.getAttribute("style") ?? el.getAttribute("transform"));
+  const antes = await lerTransform(mascote);
+  const scrollAntes = await page.evaluate(() => window.scrollY);
 
-  // distância até o meio da rota, contada a partir do topo real da página
-  // (não só da altura da seção) — em telas estreitas o cardápio empilhado
-  // antes dela é bem mais alto, então essa distância muda por viewport.
-  const distanciaAteOMeio = alvo!.topo + alvo!.altura * 0.5;
+  await rolarAteOMeioDaRota(page, alvo!);
 
-  // rola em passos, via wheel real, para que o Lenis (que intercepta o
-  // scroll) e o ScrollTrigger (scrub) tenham tempo de convergir.
-  const passos = 10;
-  for (let i = 0; i < passos; i++) {
-    await page.mouse.wheel(0, distanciaAteOMeio / passos);
-    await page.waitForTimeout(300);
-  }
-  await page.waitForTimeout(1200);
+  // Prova direta (não inferência) de que o Lenis está de fato aplicando o
+  // scroll: smoothWheel intercepta o evento de wheel e só move a página via
+  // lenis.raf(), alimentado pelo ticker do GSAP em SmoothScrollProvider. Se
+  // esse wiring quebrar — Lenis não montar, o ticker não rodar —
+  // window.scrollY nunca avança, mesmo com o wheel disparado.
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 8_000 })
+    .toBeGreaterThan(scrollAntes);
 
-  const depois = await mascote.evaluate((el) => el.getAttribute("style") ?? el.getAttribute("transform"));
+  // O scrub do ScrollTrigger (scrub: 1) converge suavemente até o progresso
+  // alvo; poll em vez de sleep fixo — mais rápido quando a máquina está
+  // livre, sem flakar quando não está.
+  await expect.poll(() => lerTransform(mascote), { timeout: 8_000 }).not.toBe(antes);
 
-  expect(depois).not.toBe(antes);
+  const depois = await lerTransform(mascote);
   expect(depois).not.toBeNull();
 });

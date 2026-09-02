@@ -7,7 +7,12 @@ export default defineConfig({
   webServer: {
     command: "npm run build && npm start",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    // Nunca reaproveitar um servidor já em pé: um dev server parado ou uma
+    // build antiga na porta 3000 seria silenciosamente reaproveitado aqui,
+    // e a suíte inteira validaria código velho sem avisar. Já aconteceu
+    // neste projeto — o custo de rebuildar a cada rodada é trivial perto
+    // disso.
+    reuseExistingServer: false,
     timeout: 180_000,
   },
   use: { baseURL: "http://localhost:3000" },
