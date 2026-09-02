@@ -21,6 +21,13 @@ export const categoriasSeed: Categoria[] = [
   { slug: "sobremesas", nome: "Sobremesas", kicker: "O final perfeito",
     descricao: "Petit gâteau com recheio quente escorrendo e sorvete cremoso. O final feliz que a sua noite merece.",
     fotoPath: null, ordem: 6, ativo: true },
+  // Inativa de propósito: dobra como fixture do painel de admin (ex.: testar
+  // que "ativo=false" some da home) e registra uma categoria que o mockup
+  // inicial exibiu no lugar de Carnes Nobres/Sobremesas (ver §10 do spec) —
+  // não adotada na versão final, mas mantida aqui em vez de apagada.
+  { slug: "chopp", nome: "Chopp", kicker: "Descontinuada nesta versão",
+    descricao: "Categoria do mockup inicial, substituída por Carnes Nobres e Sobremesas na versão final do spec.",
+    fotoPath: null, ordem: 7, ativo: false },
 ];
 
 export const programacaoSeed: ItemProgramacao[] = [
@@ -39,14 +46,18 @@ export const programacaoSeed: ItemProgramacao[] = [
 ];
 
 // diaSemana: 0=domingo … 6=sábado. ordem: semana começa na segunda.
+// Declarado FORA da ordem de exibição de propósito (domingo primeiro,
+// segunda por último) — se ficasse por acaso na mesma sequência de `ordem`,
+// apagar o `.sort(porOrdem)` de getHorarios() não quebraria nenhum teste,
+// porque o array já sairia "ordenado" sem ajuda nenhuma da função.
 export const horariosSeed: Horario[] = [
+  { diaSemana: 0, abre: "14:00", fecha: "22:00", fechado: false, ordem: 7 },
   { diaSemana: 1, abre: null,    fecha: null,    fechado: true,  ordem: 1 },
   { diaSemana: 2, abre: "14:00", fecha: "22:00", fechado: false, ordem: 2 },
   { diaSemana: 3, abre: "14:00", fecha: "22:00", fechado: false, ordem: 3 },
   { diaSemana: 4, abre: "14:00", fecha: "22:00", fechado: false, ordem: 4 },
   { diaSemana: 5, abre: "16:00", fecha: "03:00", fechado: false, ordem: 5 },
   { diaSemana: 6, abre: "16:00", fecha: "03:00", fechado: false, ordem: 6 },
-  { diaSemana: 0, abre: "14:00", fecha: "22:00", fechado: false, ordem: 7 },
 ];
 
 export const depoimentosSeed: Depoimento[] = [
@@ -56,6 +67,10 @@ export const depoimentosSeed: Depoimento[] = [
     texto: "Pratos excelentes, chopp gelado e ótimo atendimento. Voltarei com certeza." },
   { id: "d3", nota: 5, autor: "Cliente Google", ordem: 3, ativo: true,
     texto: "Ambiente acolhedor e música ao vivo. Viramos clientes da casa." },
+  // Inativo de propósito: fixture do painel de admin (esconder um depoimento
+  // sem apagar o registro) e prova de que getDepoimentos() de fato filtra.
+  { id: "d4", nota: 2, autor: "Depoimento antigo", ordem: 4, ativo: false,
+    texto: "Registro de antes da reforma da casa, mantido desativado — não deve aparecer no site." },
 ];
 
 export const conteudoSeed: Conteudo = {

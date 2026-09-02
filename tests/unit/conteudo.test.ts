@@ -12,7 +12,12 @@ describe("getCategorias", () => {
   });
 
   it("omite categorias inativas", async () => {
-    expect((await getCategorias()).every((c) => c.ativo)).toBe(true);
+    const cats = await getCategorias();
+    // O seed inclui "chopp" (ativo: false) exatamente para este teste: sem
+    // uma linha inativa de verdade, `every(ativo)` passa mesmo se o filtro
+    // de getCategorias() for apagado.
+    expect(cats.find((c) => c.slug === "chopp")).toBeUndefined();
+    expect(cats.every((c) => c.ativo)).toBe(true);
   });
 });
 
@@ -37,8 +42,11 @@ describe("getHorarios", () => {
   });
 
   it("ordena com a semana começando na segunda", async () => {
-    const dias = (await getHorarios())
-      .sort((a, b) => a.ordem - b.ordem).map((h) => h.diaSemana);
+    // Sem `.sort()` aqui: getHorarios() já promete devolver ordenado por
+    // `ordem` (ver Task 2 do plano). Ordenar de novo no teste mascarava um
+    // `.sort()` apagado dentro de getHorarios() — o teste passava do mesmo
+    // jeito porque ele mesmo reordenava o resultado antes de comparar.
+    const dias = (await getHorarios()).map((h) => h.diaSemana);
     expect(dias).toEqual([1, 2, 3, 4, 5, 6, 0]);
   });
 });
@@ -66,6 +74,10 @@ describe("getProgramacao e getDepoimentos", () => {
 
   it("trazem depoimentos ativos com nota entre 1 e 5", async () => {
     const d = await getDepoimentos();
+    // O seed inclui "d4" (ativo: false) exatamente para este teste: sem um
+    // depoimento inativo de verdade, `every(ativo)` passa mesmo se o filtro
+    // de getDepoimentos() for apagado.
+    expect(d.find((x) => x.id === "d4")).toBeUndefined();
     expect(d.length).toBeGreaterThan(0);
     expect(d.every((x) => x.nota >= 1 && x.nota <= 5 && x.ativo)).toBe(true);
   });

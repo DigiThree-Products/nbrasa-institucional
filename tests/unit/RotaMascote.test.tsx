@@ -24,7 +24,13 @@ describe("RotaMascote", () => {
   });
 
   it("marca a arte da rota como decorativa", () => {
+    // Escopado ao <svg> que é ANCESTRAL de #rota-entrega: um querySelector
+    // solto por "svg[aria-hidden='true']" também casa com o <Mascote>, que
+    // tem o mesmo atributo — o teste passaria mesmo se o SVG da rota não
+    // fosse decorativo, contanto que o mascote continuasse sendo.
     const { container } = render(<RotaMascote paradas={paradas} />);
-    expect(container.querySelector("svg[aria-hidden='true']")).toBeInTheDocument();
+    const rota = container.querySelector("#rota-entrega");
+    const svgDaRota = rota?.closest("svg");
+    expect(svgDaRota).toHaveAttribute("aria-hidden", "true");
   });
 });
