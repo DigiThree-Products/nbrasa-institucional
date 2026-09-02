@@ -144,6 +144,26 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
   const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
   await expect(mascote).toBeAttached();
 
+  // Lenis adiciona a classe "lenis" a <html> ao montar — o mesmo gancho que
+  // app/globals.css (linhas 19-21) usa para o CSS oficial do Lenis
+  // funcionar (html.lenis, .lenis.lenis-smooth). Isso discrimina a presença
+  // do Lenis de um jeito que window.scrollY, sozinho, não discrimina:
+  // SmoothScrollProvider usa Lenis sobre `window` sem `wrapper` customizado,
+  // não há scroll-lock de CSS como fallback, e o ScrollTrigger de
+  // RotaMascote não define `scroller` — ambos escutam scroll nativo. Se o
+  // <SmoothScrollProvider> inteiro fosse removido do layout, o wheel nativo
+  // ainda avançaria window.scrollY e o ScrollTrigger ainda moveria o
+  // mascote, e as duas asserções abaixo passariam do mesmo jeito sem o
+  // Lenis existir. A classe + o scrollY, juntos, estabelecem "o Lenis está
+  // montado E o scroll avança" — não isolam especificamente o binding
+  // gsap.ticker.add(tick) → lenis.raf(), e não devem ser lidos como se
+  // provassem isso.
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.classList.contains("lenis")), {
+      timeout: 3_000,
+    })
+    .toBe(true);
+
   const alvo = await localizarSecaoDaRota(page);
   expect(alvo).not.toBeNull();
 
@@ -152,11 +172,6 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
 
   await rolarAteOMeioDaRota(page, alvo!);
 
-  // Prova direta (não inferência) de que o Lenis está de fato aplicando o
-  // scroll: smoothWheel intercepta o evento de wheel e só move a página via
-  // lenis.raf(), alimentado pelo ticker do GSAP em SmoothScrollProvider. Se
-  // esse wiring quebrar — Lenis não montar, o ticker não rodar —
-  // window.scrollY nunca avança, mesmo com o wheel disparado.
   await expect
     .poll(() => page.evaluate(() => window.scrollY), { timeout: 8_000 })
     .toBeGreaterThan(scrollAntes);
