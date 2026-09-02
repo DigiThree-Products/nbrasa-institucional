@@ -2147,10 +2147,17 @@ const CHAVE = "nbrasa:preloader";
 const TETO_MS = 1200;
 
 export function Preloader() {
-  const [visivel, setVisivel] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try { return sessionStorage.getItem(CHAVE) === null; } catch { return false; }
-  });
+  // Estado inicial fixo em `false` nos dois lados: o servidor não tem acesso
+  // ao sessionStorage, então ler a chave já na inicialização do useState
+  // divergiria do HTML estático e quebraria a hidratação. A checagem real
+  // acontece no efeito abaixo, que só roda no cliente após montar.
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(CHAVE) === null) setVisivel(true);
+    } catch { /* modo privado: mantém oculto */ }
+  }, []);
 
   useEffect(() => {
     if (!visivel) return;
@@ -2247,6 +2254,14 @@ describe("montarSchemaRestaurant", () => {
     expect(dias).not.toContain("Monday");
   });
 
+  it("omite um dia marcado fechado mesmo com horário preenchido", () => {
+    const diaFechadoComHorario = [
+      { diaSemana: 3, abre: "14:00", fecha: "22:00", fechado: true, ordem: 1 },
+    ];
+    const schemaFixture = montarSchemaRestaurant(conteudoSeed, diaFechadoComHorario) as any;
+    expect(schemaFixture.openingHoursSpecification).toHaveLength(0);
+  });
+
   it("declara sábado abrindo 16:00 e fechando 03:00", () => {
     const sab = schema.openingHoursSpecification
       .find((s: any) => s.dayOfWeek.includes("Saturday"));
@@ -2315,7 +2330,7 @@ export async function DadosEstruturados() {
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- dadosEstruturados`
-Expected: PASS — 4 testes verdes.
+Expected: PASS — 5 testes verdes.
 
 - [ ] **Step 5: Ligar e criar as telas de erro**
 
@@ -2326,7 +2341,11 @@ Criar `app/error.tsx`:
 ```tsx
 "use client";
 
-export default function Erro({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from "react";
+
+export default function Erro({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => { console.error(error); }, [error]);
+
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
       <h1 className="font-display text-5xl uppercase">Algo saiu do ponto</h1>
@@ -2334,7 +2353,7 @@ export default function Erro({ reset }: { error: Error; reset: () => void }) {
         Não conseguimos carregar esta parte da página. Tente de novo.
       </p>
       <button onClick={reset}
-              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest">
+              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest text-branco">
         Tentar de novo
       </button>
     </main>
@@ -2345,19 +2364,25 @@ export default function Erro({ reset }: { error: Error; reset: () => void }) {
 Criar `app/not-found.tsx`:
 
 ```tsx
+import Link from "next/link";
+
 export default function NaoEncontrado() {
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
       <h1 className="font-display text-5xl uppercase">Página não encontrada</h1>
       <p className="mt-4 text-cinza">O link que você abriu não existe por aqui.</p>
-      <a href="/"
-         className="mt-8 inline-block rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest">
+      <Link href="/"
+            className="mt-8 inline-block rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest text-branco">
         Voltar para a home
-      </a>
+      </Link>
     </main>
   );
 }
 ```
+
+Nota: usamos `Link` de `next/link` em vez de `<a>` porque a regra do ESLint do
+Next.js (`@next/next/no-html-link-for-pages`) trata um `<a href="/">` como
+erro de build, não aviso — `npm run build` não compila com `<a>` aqui.
 
 - [ ] **Step 6: Commit**
 

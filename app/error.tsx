@@ -1,6 +1,10 @@
 "use client";
 
-export default function Erro({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from "react";
+
+export default function Erro({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => { console.error(error); }, [error]);
+
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
       <h1 className="font-display text-5xl uppercase">Algo saiu do ponto</h1>
@@ -8,7 +12,7 @@ export default function Erro({ reset }: { error: Error; reset: () => void }) {
         Não conseguimos carregar esta parte da página. Tente de novo.
       </p>
       <button onClick={reset}
-              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest">
+              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest text-branco">
         Tentar de novo
       </button>
     </main>

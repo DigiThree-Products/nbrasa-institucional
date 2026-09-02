@@ -22,6 +22,14 @@ describe("montarSchemaRestaurant", () => {
     expect(dias).not.toContain("Monday");
   });
 
+  it("omite um dia marcado fechado mesmo com horário preenchido", () => {
+    const diaFechadoComHorario = [
+      { diaSemana: 3, abre: "14:00", fecha: "22:00", fechado: true, ordem: 1 },
+    ];
+    const schemaFixture = montarSchemaRestaurant(conteudoSeed, diaFechadoComHorario) as any;
+    expect(schemaFixture.openingHoursSpecification).toHaveLength(0);
+  });
+
   it("declara sábado abrindo 16:00 e fechando 03:00", () => {
     const sab = schema.openingHoursSpecification
       .find((s: any) => s.dayOfWeek.includes("Saturday"));
