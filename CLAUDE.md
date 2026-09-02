@@ -30,7 +30,7 @@ bio do Instagram):
 | Sexta e sábado | 16h–03h |
 | Domingo | 14h–22h |
 
-O folder impresso (`apresentação - folder - nbrasa.pdf`) traz horários
+O folder impresso (`apresentação site/apresentação - folder - nbrasa.pdf`) traz horários
 diferentes (16h–00h / 16h–02h30 / 16h–00h) — está **desatualizado**. Use sempre
 a tabela acima; não "corrija" o site com base no folder.
 
@@ -54,7 +54,7 @@ Elementos gráficos recorrentes:
   saindo do topo. Existe em branco sobre carvão, preto sobre vermelho e preto
   sobre branco.
 - **Mascote:** chama antropomórfica de traço vermelho, com óculos escuros — em
-  duas poses (sorrindo; cantando ao microfone). Fonte editável em `mascote.cdr`.
+  duas poses (sorrindo; cantando ao microfone). Fonte editável em `apresentação site/mascote.cdr`.
 - **Grafismo:** curvas de nível concêntricas (estilo topográfico) em vermelho
   sobre preto; texturas de tecido amassado em vermelho.
 
@@ -90,9 +90,9 @@ Nenhum arquivo aqui é texto. O que funciona nesta máquina:
 - **PDFs:** `pdftoppm`/poppler **não** está instalado, mas o Python 3.13 tem
   **PyMuPDF (`fitz`)**, `pypdf`, `pdfminer` e **Pillow**. Use `fitz` para extrair
   texto e rasterizar páginas, depois leia os PNGs gerados.
-- **`IMG_3643.png`:** foto da fachada, 4892×7732 px (32 MB) — grande demais para
+- **`apresentação site/IMG_3643.png`:** foto da fachada, 4892×7732 px (32 MB) — grande demais para
   leitura direta. Reduza com Pillow antes de abrir.
-- **`mascote.cdr`:** binário proprietário do CorelDRAW. Nenhuma ferramenta local
+- **`apresentação site/mascote.cdr`:** binário proprietário do CorelDRAW. Nenhuma ferramenta local
   abre. Peça ao usuário um export em SVG/PNG em vez de tentar parsear.
 
 Grave arquivos intermediários fora do repositório (use o diretório temporário da
@@ -100,13 +100,16 @@ sessão), não ao lado dos ativos.
 
 ### Inventário
 
+Todos os arquivos-fonte de marca ficam em `apresentação site/`, fora do
+controle de versão (~85 MB, ver `.gitignore`).
+
 | Arquivo | O que contém |
 |---|---|
-| `moodboard-nbrasa-2025.pdf` | 6 pág. — manual de marca: logo, paleta, tipografia, grafismos, mascote, adesivos e a estrutura de navegação |
-| `apresentação - folder - nbrasa.pdf` | 5 pág. — folder impresso com endereço, horários, fotos de produto e copy |
-| `N'brasa adesivos.pdf` | 1 pág. — cartela de adesivos |
-| `IMG_3643.png` | Foto da fachada da loja ao entardecer |
-| `mascote.cdr` | Arte vetorial editável do mascote |
+| `apresentação site/moodboard-nbrasa-2025.pdf` | 6 pág. — manual de marca: logo, paleta, tipografia, grafismos, mascote, adesivos e a estrutura de navegação |
+| `apresentação site/apresentação - folder - nbrasa.pdf` | 5 pág. — folder impresso com endereço, horários, fotos de produto e copy |
+| `apresentação site/N'brasa adesivos.pdf` | 1 pág. — cartela de adesivos |
+| `apresentação site/IMG_3643.png` | Foto da fachada da loja ao entardecer |
+| `apresentação site/mascote.cdr` | Arte vetorial editável do mascote |
 
 ## Antes de criar o projeto
 

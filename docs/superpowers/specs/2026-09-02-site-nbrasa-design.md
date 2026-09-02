@@ -70,8 +70,8 @@ autenticada. Astro foi considerado e descartado — exigiria um backend separado
 que vive de busca local.
 
 **A regra que mantém o site leve.** Tudo é Server Component por padrão. Apenas
-quatro componentes são cliente: o provider do Lenis, o menu mobile, o `<Reveal>` e a
-`<RotaMascote>`. Cardápio, horários, programação, depoimentos, contato e rodapé
+cinco componentes são cliente: o provider do Lenis, o menu mobile, o `<Reveal>`, a
+`<RotaMascote>` e o `<Preloader>` de §8. Cardápio, horários, programação, depoimentos, contato e rodapé
 chegam ao navegador como HTML puro, com zero JavaScript. Se essa fronteira vazar, o
 site engorda — por isso ela é medida (§8).
 
@@ -110,7 +110,7 @@ por uma razão de acessibilidade documentada em §9.
   Latinotype e exige licença de webfont. Até a decisão, o display usa **Anton** como
   substituta, carregada por `next/font`.
 - O wordmark `n'Brasa` é reproduzido em fonte script no mockup; no site final deve
-  ser o **logo vetorial oficial**, exportado do `mascote.cdr` / material de marca.
+  ser o **logo vetorial oficial**, exportado de `apresentação site/mascote.cdr`.
 
 ### Copy da marca
 
@@ -239,7 +239,8 @@ estático. É barato e não ameaça o orçamento de peso.
 ### 7.4 Fronteira cliente/servidor
 
 Componentes cliente, e apenas estes: `<SmoothScrollProvider>` (Lenis),
-`<MenuMobile>`, `<Reveal>`, `<RotaMascote>`. Todo o restante é Server Component.
+`<MenuMobile>`, `<Reveal>`, `<RotaMascote>` e `<Preloader>`. Todo o restante é
+Server Component.
 
 ## 8. Movimento e performance
 
@@ -356,4 +357,4 @@ Commits locais acontecem normalmente ao longo do caminho.
 - Estrutura: `behance.net/gallery/251801463/Food-Delivery-Restaurant-Website`
 - Movimento: `cravburgers.shop`
 - Lenis: `github.com/darkroomengineering/lenis`
-- Manual de marca, folder e fotografia: arquivos na raiz deste repositório
+- Manual de marca, folder e fotografia: pasta `apresentação site/`, fora do controle de versão
