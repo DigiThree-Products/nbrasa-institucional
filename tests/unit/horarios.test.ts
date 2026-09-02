@@ -59,4 +59,12 @@ describe("agruparHorarios", () => {
   it("devolve lista vazia para entrada vazia", () => {
     expect(agruparHorarios([])).toEqual([]);
   });
+
+  it("preenche a hora com zero à esquerda quando o horário vem sem padding (ex.: digitado no admin)", () => {
+    // "9:00" tem 4 caracteres, não 5 — slice(0,2) sozinho leria "9:" e
+    // renderizaria "9:h". Inalcançável pelo seed atual (sempre "HH:MM"),
+    // mas alcançável assim que um form de admin deixar o dono digitar livre.
+    expect(agruparHorarios([h(2, 1, "9:00", "22:00")]))
+      .toEqual([{ label: "Terça-feira", texto: "09h — 22h" }]);
+  });
 });

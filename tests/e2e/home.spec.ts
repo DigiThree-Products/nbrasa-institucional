@@ -68,7 +68,7 @@ test("mostra os horários agrupados corretamente", async ({ page }) => {
 
 test("expõe os cinco bairros da rota de entrega", async ({ page }) => {
   for (const b of ["Centro", "Praia do Anil", "Japuíba", "Praia Grande", "Mambucaba"]) {
-    await expect(page.getByText(b, { exact: true })).toBeAttached();
+    await expect(page.getByText(b, { exact: true })).toBeVisible();
   }
 });
 

@@ -13,6 +13,10 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
 
   useEffect(() => {
     if (!aberto) return;
+    // Copiado para uma local: o cleanup roda depois que React já pode ter
+    // desmontado/trocado o ref, e o lint (react-hooks/exhaustive-deps)
+    // alerta exatamente sobre ler `alternar.current` de novo no cleanup.
+    const botaoAlternar = alternar.current;
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -41,7 +45,7 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
-      alternar.current?.focus();
+      botaoAlternar?.focus();
     };
   }, [aberto]);
 

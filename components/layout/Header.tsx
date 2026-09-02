@@ -15,7 +15,7 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-[60] border-b border-fumaca bg-carvao/85 backdrop-blur-md">
       <div className="mx-auto flex h-[74px] max-w-[1280px] items-center gap-5 px-6">
-        <a href="#" className="flex flex-none items-center gap-3">
+        <a href="#conteudo" className="flex flex-none items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-full border-[2.5px] border-branco">
             <Chama className="h-[19px] w-[19px] text-brasa" />
           </span>

@@ -17,12 +17,12 @@ export async function Footer() {
             <p className="mt-4 text-lg">O sabor que encontra, o som.</p>
           </div>
           <div>
-            <h4 className="text-[.7rem] font-bold uppercase tracking-[.18em] text-cinza">Endereço</h4>
+            <h3 className="text-[.7rem] font-bold uppercase tracking-[.18em] text-cinza">Endereço</h3>
             <p className="mt-3">{c.endereco}</p>
             <p>{c.cidadeUf} · {c.cep}</p>
           </div>
           <div>
-            <h4 className="text-[.7rem] font-bold uppercase tracking-[.18em] text-cinza">Contato</h4>
+            <h3 className="text-[.7rem] font-bold uppercase tracking-[.18em] text-cinza">Contato</h3>
             <p className="mt-3">{c.telefone}</p>
             <p>{c.instagram}</p>
           </div>

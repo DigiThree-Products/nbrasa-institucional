@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# N'Brasa Angra — site institucional
 
-## Getting Started
+Site público do N'Brasa, bar/choperia e casa de carnes na Av. Júlio Maria,
+Centro, Angra dos Reis (RJ). Next.js 15 (App Router) rodando hoje contra dados
+semeados em `lib/conteudo.seed.ts`, atrás de uma única fachada tipada
+(`lib/conteudo.ts`) — a ligação com Supabase e o painel de admin vêm num
+plano seguinte, sem que nenhuma seção da página precise mudar.
 
-First, run the development server:
+Ver `docs/superpowers/specs/2026-09-02-site-nbrasa-design.md` para o
+documento de design completo e `docs/superpowers/plans/2026-09-02-site-publico-nbrasa.md`
+para o plano de implementação.
+
+## Rodando localmente
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre em `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test        # Vitest — unitários (lib/ e componentes)
+npm run e2e      # Playwright — end-to-end contra o build local
+npm run lint      # ESLint
+npm run build    # build de produção (confere o orçamento de JS de primeira carga)
+```
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+Next.js 15 · TypeScript · Tailwind CSS v4 · Lenis (scroll suave) · GSAP +
+ScrollTrigger + MotionPathPlugin · Vitest + Testing Library · Playwright.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tudo é Server Component por padrão. Só cinco componentes são cliente:
+`SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `Preloader`
+(mais `app/error.tsx`, que o Next exige).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pendências do cliente
 
-## Deploy on Vercel
+Levantadas no spec (§10) e ainda abertas:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Licença da fonte Owners** (display, comercial da Latinotype). Enquanto
+   não decidida, o display usa **Anton** como substituta.
+2. **Fotografia limpa.** O material atual tem copy sobreposta; os chips de
+   categoria e as paradas da rota de entrega ficam sem foto até o cliente
+   enviar os arquivos originais ou um ensaio novo.
+3. **Logo vetorial oficial**, para substituir a reprodução em fonte no
+   wordmark `n'Brasa`.
+4. **Categorias do cardápio:** confirmar se as 6 do site atual (Burgers,
+   Espetinhos, Carnes Nobres, Petiscos, Drinks, Sobremesas) prevalecem sobre
+   o conjunto ligeiramente diferente que o mockup inicial mostrou.
+5. **URL do iFood.** `Conteudo.ifoodUrl` aponta hoje para a home nacional do
+   iFood (`ifood.com.br`), não para a página da loja — aguardando confirmação
+   do cliente antes de trocar.
+6. **Domínio de produção.** `metadataBase`, `robots.ts` e `sitemap.ts` usam
+   `https://nbrasa.vercel.app` como placeholder — trocar pelo domínio
+   real antes do deploy.

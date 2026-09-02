@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { Reveal } from "@/components/motion/Reveal";
 
 const { fromToMock, registerPluginMock } = vi.hoisted(() => ({
-  fromToMock: vi.fn((..._args: unknown[]) => ({ scrollTrigger: { kill: vi.fn() }, kill: vi.fn() })),
+  fromToMock: vi.fn(() => ({ scrollTrigger: { kill: vi.fn() }, kill: vi.fn() })),
   registerPluginMock: vi.fn(),
 }));
 

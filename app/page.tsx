@@ -18,7 +18,7 @@ export default function Home() {
         <ChipsCategorias />
         <Cardapio />
         <Delivery />
-        <DivisoriaCurva corDestino="#f0e6dc" />
+        <DivisoriaCurva corDestino="var(--color-creme)" />
         <HorariosProgramacao />
         <Depoimentos />
         <OndeEstamos />

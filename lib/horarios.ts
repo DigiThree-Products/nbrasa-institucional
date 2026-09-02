@@ -13,7 +13,11 @@ const NOMES = [
 /** Forma curta usada dentro de faixas: "Terça a quinta", não "Terça-feira a quinta-feira". */
 const CURTOS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
-const hhmm = (v: string) => `${v.slice(0, 2)}h`;
+// padStart antes do slice: sem ele, um horário não-preenchido em zero (ex.:
+// digitado como "9:00" num futuro form de admin) renderiza "9:h" em vez de
+// "09h". Inalcançável a partir do seed de hoje (sempre "HH:MM"), mas
+// alcançável assim que o painel deixar o dono digitar o horário.
+const hhmm = (v: string) => `${v.padStart(5, "0").slice(0, 2)}h`;
 
 function texto(h: Horario): string {
   if (h.fechado || !h.abre || !h.fecha) return FECHADO;
