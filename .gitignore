@@ -1,0 +1,22 @@
+# dependências e build
+node_modules/
+.next/
+out/
+dist/
+.vercel/
+
+# ambiente — segredo nunca vai para o git
+.env
+.env.local
+.env*.local
+
+# sistema
+.DS_Store
+Thumbs.db
+
+# material de marca: arquivos-fonte pesados (~85 MB no total).
+# Ficam locais de propósito — inflariam o clone permanentemente.
+# Ver CLAUDE.md para o inventário e como abrir cada um.
+*.cdr
+*.pdf
+IMG_*.png
