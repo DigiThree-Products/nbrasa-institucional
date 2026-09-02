@@ -228,8 +228,16 @@ pé da letra pelo movimento.
 - Um ScrollTrigger com `scrub` amarra o progresso à rolagem; a linha se desenha junto.
 - GSAP entra por `next/dynamic` com `ssr: false`, carregado ao aproximar da seção.
 
-**Responsividade.** Um único componente, adaptado por breakpoint: rota mais curta e
-três paradas no mobile em vez de cinco. A referência duplica a seção em versões
+**Responsividade.** Um único componente, adaptado por breakpoint: as **cinco**
+paradas aparecem em todas as larguras, mudando apenas dimensões e espaçamento.
+
+> **Emenda de 2026-09-02.** A redação original previa três paradas no mobile. Foi
+> revertida: esconder dois bairros no celular é perda de conteúdo justamente na
+> plataforma de maior tráfego, e é o mesmo modo de falha que este spec proíbe em
+> §9 para movimento reduzido — conteúdo sumindo conforme o contexto de
+> apresentação. Verificado em render a 375px: as cinco paradas cabem, são legíveis
+> e não causam rolagem horizontal. Se a densidade incomodar, a saída é ritmo
+> vertical mais apertado, não apagar bairros. A referência duplica a seção em versões
 desktop e mobile; **não replicamos isso** — duplicar markup dobra a manutenção e
 envia HTML morto para os dois lados.
 

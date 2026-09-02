@@ -1779,7 +1779,7 @@ export async function Delivery() {
 Adicionar `<Delivery />` em `app/page.tsx` depois de `<Cardapio />`.
 
 Run: `npm run dev` e rolar até a seção.
-Expected: o mascote percorre a rota pontilhada e **gira acompanhando a curva**; a linha se desenha conforme a rolagem; os cinco bairros aparecem.
+Expected: o mascote percorre a rota pontilhada e **gira acompanhando a curva**; os pontos do tracejado marcham ao longo da rota conforme a rolagem; os cinco bairros aparecem.
 
 - [ ] **Step 7: Conferir com movimento reduzido**
 
