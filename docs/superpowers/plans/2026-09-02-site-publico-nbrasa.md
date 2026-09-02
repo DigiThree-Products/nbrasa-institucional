@@ -637,6 +637,16 @@ describe("agruparHorarios", () => {
     ]);
   });
 
+  it("não junta horários iguais quando há um buraco na ordem (não adjacentes)", () => {
+    // ordem 2 e 5, mesmo horário, mas sem nada preenchendo 3-4: não deve virar uma faixa
+    expect(agruparHorarios([
+      h(2, 2, "14:00", "22:00"), h(5, 5, "14:00", "22:00"),
+    ])).toEqual([
+      { label: "Terça-feira", texto: "14h — 22h" },
+      { label: "Sexta-feira", texto: "14h — 22h" },
+    ]);
+  });
+
   it("devolve lista vazia para entrada vazia", () => {
     expect(agruparHorarios([])).toEqual([]);
   });
