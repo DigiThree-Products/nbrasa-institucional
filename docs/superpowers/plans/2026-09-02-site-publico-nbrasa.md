@@ -934,6 +934,41 @@ describe("MenuMobile", () => {
     await userEvent.click(screen.getByRole("link", { name: "Delivery" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("prende o foco: Tab a partir do último elemento volta ao primeiro", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    const fechar = screen.getByRole("button", { name: /fechar menu/i });
+    const delivery = screen.getByRole("link", { name: "Delivery" });
+
+    delivery.focus();
+    expect(document.activeElement).toBe(delivery);
+
+    await userEvent.tab();
+    expect(document.activeElement).toBe(fechar);
+  });
+
+  it("devolve o foco ao botão de alternância ao fechar com Esc", async () => {
+    render(<MenuMobile links={links} />);
+    const alternar = screen.getByRole("button", { name: /abrir menu/i });
+    await userEvent.click(alternar);
+    await userEvent.keyboard("{Escape}");
+    expect(document.activeElement).toBe(alternar);
+  });
+
+  it("só há um botão acessível 'Fechar menu' enquanto o painel está aberto", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(screen.getAllByRole("button", { name: /fechar menu/i })).toHaveLength(1);
+  });
+
+  it("trava o scroll do body enquanto aberto e libera ao fechar", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(document.body.style.overflow).toBe("hidden");
+    await userEvent.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("");
+  });
 });
 ```
 
@@ -953,28 +988,64 @@ import { useEffect, useRef, useState } from "react";
 
 export type LinkNav = { href: string; rotulo: string };
 
+const FOCAVEIS = "a[href], button:not([disabled])";
+
 export function MenuMobile({ links }: { links: LinkNav[] }) {
   const [aberto, setAberto] = useState(false);
   const painel = useRef<HTMLDivElement>(null);
+  const alternar = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setAberto(false); };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setAberto(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const focaveis = painel.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
+        if (!focaveis || focaveis.length === 0) return;
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+          e.preventDefault();
+          ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault();
+          primeiro.focus();
+        }
+      }
+    };
+
     document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     painel.current?.querySelector<HTMLElement>("a")?.focus();
-    return () => document.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      alternar.current?.focus();
+    };
   }, [aberto]);
 
   return (
     <>
       <button
+        ref={alternar}
         type="button"
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
         aria-expanded={aberto}
+        aria-hidden={aberto || undefined}
+        tabIndex={aberto ? -1 : undefined}
         onClick={() => setAberto((v) => !v)}
         className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-fumaca md:hidden"
       >
-        <span className="block h-0.5 w-[18px] bg-branco shadow-[0_-6px_0_#fff,0_6px_0_#fff]" />
+        <span className="flex flex-col items-center gap-[6px]">
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+        </span>
       </button>
 
       {aberto && (
@@ -999,10 +1070,12 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
 }
 ```
 
+O painel `role="dialog"` prende o foco de fato: `Tab`/`Shift+Tab` giram entre o primeiro e o último elemento focável dentro do painel (fecho, depois os links); o botão de alternância fica fora da árvore de acessibilidade e da ordem de tabulação enquanto o painel está aberto (`aria-hidden` + `tabIndex={-1}`), o que também resolve o nome acessível duplicado "Fechar menu"; o foco retorna ao botão de alternância ao fechar por qualquer via (Esc, botão de fechar, clique num link), via cleanup do efeito; e o scroll do `body` é travado enquanto o painel está aberto e liberado ao fechar.
+
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- MenuMobile`
-Expected: PASS — 4 testes verdes.
+Expected: PASS — 8 testes verdes.
 
 - [ ] **Step 5: Implementar o Header**
 

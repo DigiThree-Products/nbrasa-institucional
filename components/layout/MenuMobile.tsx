@@ -4,28 +4,64 @@ import { useEffect, useRef, useState } from "react";
 
 export type LinkNav = { href: string; rotulo: string };
 
+const FOCAVEIS = "a[href], button:not([disabled])";
+
 export function MenuMobile({ links }: { links: LinkNav[] }) {
   const [aberto, setAberto] = useState(false);
   const painel = useRef<HTMLDivElement>(null);
+  const alternar = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setAberto(false); };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setAberto(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const focaveis = painel.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
+        if (!focaveis || focaveis.length === 0) return;
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+          e.preventDefault();
+          ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault();
+          primeiro.focus();
+        }
+      }
+    };
+
     document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     painel.current?.querySelector<HTMLElement>("a")?.focus();
-    return () => document.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      alternar.current?.focus();
+    };
   }, [aberto]);
 
   return (
     <>
       <button
+        ref={alternar}
         type="button"
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
         aria-expanded={aberto}
+        aria-hidden={aberto || undefined}
+        tabIndex={aberto ? -1 : undefined}
         onClick={() => setAberto((v) => !v)}
         className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-fumaca md:hidden"
       >
-        <span className="block h-0.5 w-[18px] bg-branco shadow-[0_-6px_0_#fff,0_6px_0_#fff]" />
+        <span className="flex flex-col items-center gap-[6px]">
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+        </span>
       </button>
 
       {aberto && (

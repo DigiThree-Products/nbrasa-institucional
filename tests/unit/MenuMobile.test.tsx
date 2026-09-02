@@ -34,4 +34,39 @@ describe("MenuMobile", () => {
     await userEvent.click(screen.getByRole("link", { name: "Delivery" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("prende o foco: Tab a partir do último elemento volta ao primeiro", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    const fechar = screen.getByRole("button", { name: /fechar menu/i });
+    const delivery = screen.getByRole("link", { name: "Delivery" });
+
+    delivery.focus();
+    expect(document.activeElement).toBe(delivery);
+
+    await userEvent.tab();
+    expect(document.activeElement).toBe(fechar);
+  });
+
+  it("devolve o foco ao botão de alternância ao fechar com Esc", async () => {
+    render(<MenuMobile links={links} />);
+    const alternar = screen.getByRole("button", { name: /abrir menu/i });
+    await userEvent.click(alternar);
+    await userEvent.keyboard("{Escape}");
+    expect(document.activeElement).toBe(alternar);
+  });
+
+  it("só há um botão acessível 'Fechar menu' enquanto o painel está aberto", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(screen.getAllByRole("button", { name: /fechar menu/i })).toHaveLength(1);
+  });
+
+  it("trava o scroll do body enquanto aberto e libera ao fechar", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(document.body.style.overflow).toBe("hidden");
+    await userEvent.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("");
+  });
 });
