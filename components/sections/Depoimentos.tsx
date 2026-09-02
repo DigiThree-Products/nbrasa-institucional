@@ -13,7 +13,7 @@ export async function Depoimentos() {
         {itens.map((d) => (
           <Reveal key={d.id} className="h-full">
             <figure className="h-full rounded-[22px] border border-fumaca bg-fumaca p-6">
-              <div aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
+              <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
                 {"★".repeat(d.nota)}
               </div>
               <blockquote className="mt-3 text-cinza">“{d.texto}”</blockquote>

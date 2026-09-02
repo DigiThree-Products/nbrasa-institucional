@@ -27,7 +27,7 @@ export async function Footer() {
             <p>{c.instagram}</p>
           </div>
         </div>
-        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-[#7d6f70]">
+        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-cinza">
           © 2026 N&apos;Brasa Angra · Todos os direitos reservados
         </p>
       </div>

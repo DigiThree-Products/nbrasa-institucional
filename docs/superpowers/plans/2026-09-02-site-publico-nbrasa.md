@@ -22,7 +22,7 @@ Cobre os passos 1 a 3 do §11 do spec: scaffold, site público completo contra s
 
 Requisitos válidos para **todas** as tarefas. Valores copiados literalmente do spec.
 
-- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #e8505f` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc`
+- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #e8505f` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc` · `--creme-texto: #6b5c55` · `--creme-borda: #e3d5c8`
 - **Regra de contraste, inegociável.** `#cf2434` só em preenchimento, botão, rota e display grande. **Texto pequeno vermelho sobre fundo escuro usa `#e8505f`.** O `#cf2434` sobre `#241e1f` dá 3,1:1 e reprova texto normal.
 - **Tipografia.** Corpo e interface: **Hanken Grotesk**. Display: **Anton** (substituta provisória da Owners, que é comercial). Ambas via `next/font`.
 - **Fronteira cliente.** Levam `"use client"` apenas: `SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `Preloader`. Qualquer outro componente cliente é violação e deve ser rejeitado na revisão.
@@ -192,6 +192,8 @@ Substituir todo o conteúdo de `app/globals.css`:
   --color-fumaca: #2f2728;
   --color-cinza: #a39596;
   --color-creme: #f0e6dc;
+  --color-creme-texto: #6b5c55;
+  --color-creme-borda: #e3d5c8;
   --color-branco: #ffffff;
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
@@ -1823,7 +1825,7 @@ export async function HorariosProgramacao() {
       <div className="mx-auto max-w-[1280px] px-6 py-20">
         <div className="grid gap-14 md:grid-cols-2">
           <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-[#7a6a63]">
+            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Horário de funcionamento
             </p>
             <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
@@ -1832,8 +1834,8 @@ export async function HorariosProgramacao() {
             <ul className="list-none p-0">
               {faixas.map((f) => (
                 <li key={f.label}
-                    className="flex justify-between gap-5 border-b border-[#e3d5c8] py-4">
-                  <span className={f.texto === "Fechado" ? "text-[#8b7c75]" : ""}>{f.label}</span>
+                    className="flex justify-between gap-5 border-b border-creme-borda py-4">
+                  <span className={f.texto === "Fechado" ? "text-creme-texto" : ""}>{f.label}</span>
                   <b className="font-extrabold tabular-nums">{f.texto}</b>
                 </li>
               ))}
@@ -1841,7 +1843,7 @@ export async function HorariosProgramacao() {
           </div>
 
           <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-[#7a6a63]">
+            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Programação da semana
             </p>
             <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
@@ -1920,7 +1922,7 @@ export async function Depoimentos() {
         {itens.map((d) => (
           <Reveal key={d.id}>
             <figure className="h-full rounded-[22px] border border-fumaca bg-fumaca p-6">
-              <div aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
+              <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
                 {"★".repeat(d.nota)}
               </div>
               <blockquote className="mt-3 text-cinza">“{d.texto}”</blockquote>
@@ -2014,7 +2016,7 @@ export async function Footer() {
             <p>{c.instagram}</p>
           </div>
         </div>
-        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-[#7d6f70]">
+        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-cinza">
           © 2026 N&apos;Brasa Angra · Todos os direitos reservados
         </p>
       </div>
