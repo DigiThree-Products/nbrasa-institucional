@@ -106,12 +106,11 @@ npx playwright install chromium
 
 - [ ] **Step 3: Configurar o Vitest**
 
-Criar `vitest.config.ts`:
+Criar `vitest.config.mts` (extensão `.mts` para declarar ESM explicitamente e evitar o aviso do Vitest 4 sobre `configLoader: 'native'`; usa `import.meta.dirname`, disponível a partir do Node 20.11/21.2):
 
 ```ts
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
@@ -120,7 +119,7 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
   },
-  resolve: { alias: { "@": path.resolve(__dirname, ".") } },
+  resolve: { alias: { "@": import.meta.dirname } },
 });
 ```
 
@@ -160,7 +159,7 @@ describe("tokens de marca", () => {
     ["--color-creme", "#f0e6dc"],
     ["--color-branco", "#ffffff"],
   ])("declara %s como %s", (token, valor) => {
-    expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`, "i"));
+    expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`));
   });
 });
 ```
