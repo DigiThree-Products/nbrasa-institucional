@@ -2,6 +2,33 @@ import { getConteudo, getHorarios } from "@/lib/conteudo";
 import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { Botao } from "@/components/ui/Botao";
 
+/**
+ * Quebra `heroTitulo` em duas linhas com a última palavra destacada em
+ * `text-brasa` — a apresentação exata do mockup ("A fome" / "acende
+ * aqui.") — mas dirigida pelas palavras do dado, não hardcoded na JSX.
+ * Assim o painel de admin continua podendo trocar o texto do herói: a
+ * última palavra sempre ganha o destaque, e o resto se distribui em duas
+ * linhas de tamanho parecido, reproduzindo a quebra atual para o texto de
+ * hoje sem prender o componente a um título de 4 palavras específico.
+ */
+function TituloHero({ texto }: { texto: string }) {
+  const palavras = texto.trim().split(/\s+/);
+  const destaque = palavras.at(-1) ?? "";
+  const resto = palavras.slice(0, -1);
+  const meio = Math.ceil(resto.length / 2);
+  const linha1 = resto.slice(0, meio).join(" ");
+  const linha2 = resto.slice(meio).join(" ");
+
+  return (
+    <>
+      {linha1}
+      {linha1 && <br />}
+      {linha2 && `${linha2} `}
+      <span className="text-brasa">{destaque}</span>
+    </>
+  );
+}
+
 export async function Hero() {
   const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
   const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
@@ -14,7 +41,7 @@ export async function Hero() {
             Angra dos Reis · Chopperia | Carnes
           </p>
           <h1 className="mt-4 text-balance font-display text-[clamp(3.2rem,9.2vw,7.6rem)] uppercase leading-[.86]">
-            A fome<br />acende <span className="text-brasa">aqui.</span>
+            <TituloHero texto={c.heroTitulo} />
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg text-cinza">{c.heroSubtitulo}</p>
 
