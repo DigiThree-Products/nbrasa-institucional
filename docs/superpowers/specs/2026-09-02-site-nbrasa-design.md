@@ -94,7 +94,7 @@ sobrescrevendo cor ou tipografia.
 | `--carvao` | `#241e1f` | fundo padrão |
 | `--brasa` | `#cf2434` | preenchimento, botões, rota, display grande |
 | `--branco` | `#ffffff` | texto principal |
-| `--brasa-texto` | `#e8505f` | **texto pequeno vermelho sobre fundo escuro** |
+| `--brasa-texto` | `#ee6b76` | **texto pequeno vermelho sobre fundo escuro** (corrigido em 2026-09-02 — ver §9) |
 | `--fumaca` | `#2f2728` | superfície elevada |
 | `--cinza` | `#a39596` | texto secundário |
 | `--creme` | `#f0e6dc` | faixa clara de respiro |
@@ -225,8 +225,18 @@ pé da letra pelo movimento.
 - O mascote é movido pelo **GSAP MotionPathPlugin** ao longo desse mesmo path, com
   `autoRotate` — ele inclina para acompanhar a tangente, que é o que faz o movimento
   parecer trajeto e não deslize.
-- Um ScrollTrigger com `scrub` amarra o progresso à rolagem; a linha se desenha junto.
-- GSAP entra por `next/dynamic` com `ssr: false`, carregado ao aproximar da seção.
+- Um ScrollTrigger com `scrub` amarra o progresso à rolagem. **Correção de
+  2026-09-02:** a linha não "se desenha junto" — o traço inteiro (`stroke-dasharray`)
+  já está visível desde o primeiro quadro; o que o scrub anima é o
+  `strokeDashoffset`, fazendo os tracinhos marcharem ao longo do path conforme
+  a rolagem avança. Redação anterior sugeria um efeito de desenho progressivo
+  que o componente implementado não tem.
+- **Correção de 2026-09-02:** GSAP entra por `import()` dinâmico dentro de um
+  `useEffect`, não por `next/dynamic` — `next/dynamic` com `ssr: false` não é
+  válido dentro de um Server Component, e `Delivery.tsx` (que renderiza
+  `<RotaMascote>`) é Server Component. O `import()` dinâmico roda só no
+  cliente, dentro do componente cliente `RotaMascote`, o que já evita o custo
+  do GSAP no primeiro paint sem precisar de `next/dynamic`.
 
 **Responsividade.** Um único componente, adaptado por breakpoint: as **cinco**
 paradas aparecem em todas as larguras, mudando apenas dimensões e espaçamento.
@@ -277,6 +287,18 @@ pulável ao primeiro toque ou scroll, exibido apenas na primeira visita da sess�
 | CLS | < 0,05 |
 | Lighthouse mobile (Performance) | ≥ 90 |
 
+> **Nota de 2026-09-02 — a meta de LCP não nomeia instrumento.** "4G simulado"
+> não diz o dispositivo, o método de throttling nem se a medição é de
+> laboratório ou de campo — nesse estado a meta não é reprovável por
+> ninguém. Registrar aqui: dispositivo e ambiente devem ser explícitos (ex.:
+> "Lighthouse mobile, throttling `devtools`, contra `npm start` local" vs.
+> contra a URL de produção). Medições já feitas contra um `npm start` local
+> (não contra o alvo de deploy, que ainda não existe): **3,2–3,3 s** no
+> Lighthouse mobile com o throttling simulado padrão, e **2,5 s** rodando com
+> `--throttling-method=devtools`. Ambas ficam acima da meta de 2,0 s — a meta
+> segue válida, a medição contra o ambiente de deploy real fica pendente do
+> §11.6 (push e deploy na Vercel).
+
 **Imagens e vídeo.** `next/image` com AVIF e WebP, `sizes` correto e `priority`
 apenas na foto do herói. Vídeo com `poster` e `preload="none"`; se houver autoplay
 algum dia, será `muted` + `playsinline` e apenas acima de um breakpoint.
@@ -302,12 +324,43 @@ derrube a tela inteira.
 
 ### Acessibilidade
 
-**Contraste — decisão registrada.** O vermelho `#cf2434` sobre o carvão `#241e1f` dá
-razão de contraste de **3,1:1**. Isso atende texto grande (mínimo 3:1) e **reprova
-texto normal** (mínimo 4,5:1). Portanto: `#cf2434` fica restrito a preenchimentos,
-botões, a rota e o display grande. Texto pequeno vermelho sobre fundo escuro usa
-`--brasa-texto: #e8505f`, que atinge **4,5:1**. Sobre a faixa creme, o `#cf2434`
-original passa com folga. A variante deve ser confirmada com o responsável pela marca.
+**Contraste — decisão registrada, corrigida em 2026-09-02.** O vermelho `#cf2434`
+sobre o carvão `#241e1f` dá razão de contraste de **3,1:1**. Isso atende texto
+grande (mínimo 3:1) e **reprova texto normal** (mínimo 4,5:1). Portanto: `#cf2434`
+fica restrito a preenchimentos, botões, a rota e o display grande.
+
+Texto pequeno vermelho sobre fundo escuro usa `--brasa-texto`. A redação original
+fixava esse token em `#e8505f`, medido apenas contra o carvão (**4,49:1** — já
+abaixo do próprio mínimo por 0,01) e nunca contra a superfície onde os dois
+consumidores reais do token de fato se sentam (o `--fumaca`, onde dá **3,98:1** —
+reprovado). Corrigido para **`#ee6b76`**, que atinge **4,86:1 sobre fumaça** e
+**5,47:1 sobre carvão**.
+
+A frase "sobre a faixa creme, o `#cf2434` original passa com folga" também estava
+errada: **`#cf2434` sobre `--creme` (`#f0e6dc`) dá 4,31:1 — reprova** texto normal.
+O único motivo de isso não ter quebrado nada em produção é que, na faixa creme, o
+vermelho de marca só aparece como texto sobre **cards brancos** (`--branco`), onde
+dá 5,31:1 e passa. `#cf2434` continua sem nenhuma superfície onde seja seguro como
+texto pequeno — a regra do parágrafo anterior (preenchimento/botão/rota/display
+grande) vale sem exceção de "faixa clara".
+
+**Tabela de contraste — todo par de superfície realmente usado no site**, medido
+pela fórmula de luminância relativa sRGB (ver `tests/unit/contraste.test.ts`,
+que reproduz esta tabela como asserção):
+
+| Par | Razão | AA texto normal (≥4,5:1) |
+|---|---|---|
+| `brasa-texto` (`#ee6b76`) sobre `carvao` | 5,47:1 | passa |
+| `brasa-texto` (`#ee6b76`) sobre `fumaca` | 4,86:1 | passa |
+| `cinza` sobre `carvao` | 5,70:1 | passa |
+| `creme-texto` sobre `creme` | 5,19:1 | passa |
+| `brasa` (`#cf2434`) sobre `branco` | 5,31:1 | passa (uso: card na faixa creme) |
+| `brasa` (`#cf2434`) sobre `creme` | 4,31:1 | **reprova** — por isso não é usado como texto ali |
+| `branco` sobre `carvao` | 16,40:1 | passa |
+| `branco` sobre `brasa` | 5,31:1 | passa |
+
+A variante `--brasa-texto` deve ser confirmada com o responsável pela marca antes
+de virar peça gráfica oficial (o site já usa o valor corrigido).
 
 Demais requisitos: marcos semânticos e um único `h1`; foco visível em tudo navegável;
 link de pular para o conteúdo; menu mobile com foco preso e fechamento no `Esc`;

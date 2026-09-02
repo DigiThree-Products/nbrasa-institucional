@@ -22,8 +22,8 @@ Cobre os passos 1 a 3 do §11 do spec: scaffold, site público completo contra s
 
 Requisitos válidos para **todas** as tarefas. Valores copiados literalmente do spec.
 
-- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #e8505f` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc` · `--creme-texto: #6b5c55` · `--creme-borda: #e3d5c8`
-- **Regra de contraste, inegociável.** `#cf2434` só em preenchimento, botão, rota e display grande. **Texto pequeno vermelho sobre fundo escuro usa `#e8505f`.** O `#cf2434` sobre `#241e1f` dá 3,1:1 e reprova texto normal.
+- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #ee6b76` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc` · `--creme-texto: #6b5c55` · `--creme-borda: #e3d5c8`
+- **Regra de contraste, inegociável.** `#cf2434` só em preenchimento, botão, rota e display grande — inclusive sobre a faixa creme, onde também reprova (4,31:1). **Texto pequeno vermelho sobre fundo escuro usa `#ee6b76`.** O `#cf2434` sobre `#241e1f` dá 3,1:1 e reprova texto normal. **Correção de 2026-09-02:** o valor original de `--brasa-texto` (`#e8505f`) tinha sido medido só contra `--carvao` (4,49:1, já abaixo do mínimo) e reprovava também contra `--fumaca` (3,98:1) — a superfície onde os dois usos reais do token estão. Ver §9 do spec e `tests/unit/contraste.test.ts`.
 - **Tipografia.** Corpo e interface: **Hanken Grotesk**. Display: **Anton** (substituta provisória da Owners, que é comercial). Ambas via `next/font`.
 - **Fronteira cliente.** Levam `"use client"` apenas: `SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `Preloader`. Qualquer outro componente cliente é violação e deve ser rejeitado na revisão.
 - **Orçamento.** JS de primeira carga na home ≤ **130 KB gzip**, com o GSAP fora desse total. LCP ≤ **2,0 s** em 4G simulado. CLS < **0,05**. Lighthouse mobile Performance ≥ **90**.
@@ -148,7 +148,7 @@ Adicionar em `package.json`, dentro de `"scripts"`:
 
 - [ ] **Step 4: Escrever o teste que falha — tokens de marca**
 
-O teste lê o CSS e confirma que os sete tokens do spec estão declarados com os valores exatos, protegendo contra alguém "ajustar" a cor da marca sem passar pelo spec.
+O teste lê o CSS e confirma que os tokens do spec estão declarados com os valores exatos, protegendo contra alguém "ajustar" a cor da marca sem passar pelo spec.
 
 Criar `tests/unit/tokens.test.ts`:
 
@@ -162,16 +162,26 @@ describe("tokens de marca", () => {
   it.each([
     ["--color-carvao", "#241e1f"],
     ["--color-brasa", "#cf2434"],
-    ["--color-brasa-texto", "#e8505f"],
+    ["--color-brasa-texto", "#ee6b76"],
     ["--color-fumaca", "#2f2728"],
     ["--color-cinza", "#a39596"],
     ["--color-creme", "#f0e6dc"],
+    ["--color-creme-texto", "#6b5c55"],
+    ["--color-creme-borda", "#e3d5c8"],
     ["--color-branco", "#ffffff"],
   ])("declara %s como %s", (token, valor) => {
     expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`));
   });
 });
 ```
+
+> **Correção de 2026-09-02.** Duas mudanças em relação à redação original: (1)
+> `--color-brasa-texto` mudou de `#e8505f` para `#ee6b76` — o valor original
+> reprovava contraste AA nas duas superfícies onde é usado (ver §9 do spec);
+> (2) `--color-creme-texto` e `--color-creme-borda` entraram na tabela — eram
+> Global Constraints do spec sem cobertura de teste. `tests/unit/contraste.test.ts`
+> foi criado na mesma leva para medir contraste de verdade, não só a presença
+> do token.
 
 - [ ] **Step 5: Rodar e confirmar que falha**
 
@@ -188,7 +198,7 @@ Substituir todo o conteúdo de `app/globals.css`:
 @theme {
   --color-carvao: #241e1f;
   --color-brasa: #cf2434;
-  --color-brasa-texto: #e8505f;
+  --color-brasa-texto: #ee6b76;
   --color-fumaca: #2f2728;
   --color-cinza: #a39596;
   --color-creme: #f0e6dc;
@@ -1731,17 +1741,20 @@ Expected: PASS — 3 testes verdes.
 
 - [ ] **Step 5: Envolver numa seção de servidor**
 
-O GSAP entra por `next/dynamic` com `ssr: false`, para não pesar no primeiro paint. Criar `components/sections/Delivery.tsx`:
+**Correção de 2026-09-02:** este passo previa `next/dynamic` com `ssr: false`
+para o GSAP não pesar no primeiro paint. Isso não chega a compilar:
+`Delivery.tsx` é Server Component (`export async function Delivery()`), e
+`ssr: false` em `next/dynamic` só é aceito dentro de um Client Component — usá-lo
+aqui derruba o build. O que de fato foi implementado é um import estático de
+`RotaMascote` em `Delivery.tsx`; o adiamento do custo do GSAP para depois do
+primeiro paint já acontece dentro do próprio `RotaMascote.tsx` (Client
+Component), via `import()` dinâmico dentro do `useEffect` — ver o corpo do
+componente abaixo e §7.3 do spec. Criar `components/sections/Delivery.tsx`:
 
 ```tsx
-import dynamic from "next/dynamic";
 import { getConteudo } from "@/lib/conteudo";
 import { Botao } from "@/components/ui/Botao";
-
-const RotaMascote = dynamic(
-  () => import("./RotaMascote").then((m) => m.RotaMascote),
-  { ssr: false },
-);
+import { RotaMascote } from "./RotaMascote";
 
 const PARADAS = [
   { id: "centro", bairro: "Centro" },
@@ -1809,7 +1822,11 @@ git commit -m "feat: rota do mascote com GSAP MotionPath e scrub de scroll"
 
 - [ ] **Step 1: Implementar a seção**
 
-Faixa clara do site. Sobre creme o `#cf2434` passa em contraste — aqui `text-brasa` é correto. Criar `components/sections/HorariosProgramacao.tsx`:
+Faixa clara do site. **Correção de 2026-09-02:** "`#cf2434` passa em contraste
+sobre creme" está errado — dá 4,31:1, reprovado para texto normal (ver §9 do
+spec, corrigido na mesma data). O `text-brasa` usado nesta seção (no rótulo de
+dia da programação) está sobre um card **branco** (`bg-branco`), não direto
+sobre o creme — aí sim passa, com 5,31:1. Criar `components/sections/HorariosProgramacao.tsx`:
 
 ```tsx
 import { getHorarios, getProgramacao } from "@/lib/conteudo";
