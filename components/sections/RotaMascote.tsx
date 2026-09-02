@@ -73,7 +73,15 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
 
       <Mascote
         ref={mascote}
-        className="absolute left-[8%] top-[2%] z-[4] h-16 w-16 md:h-[72px] md:w-[72px] lg:h-24 lg:w-24"
+        // Posição padrão: início da rota ("M120 40" no viewBox 1200×1900 —
+        // ~8%/2%), de onde o GSAP MotionPath assume o controle via scrub.
+        // Sob prefers-reduced-motion o efeito acima nunca monta (early
+        // return), então sem o par motion-reduce: abaixo o mascote ficaria
+        // parado no início da rota — o spec (§8) pede que ele repouse no
+        // FIM. ~55%/98% é o ponto final do path ("660 1860"), convertido em
+        // porcentagem do viewBox; -translate-1/2 centraliza o ícone sobre o
+        // ponto, reproduzindo o alignOrigin:[0.5,0.5] do MotionPath.
+        className="absolute left-[8%] top-[2%] z-[4] h-16 w-16 motion-reduce:left-[55%] motion-reduce:top-[98%] motion-reduce:-translate-x-1/2 motion-reduce:-translate-y-1/2 md:h-[72px] md:w-[72px] lg:h-24 lg:w-24"
       />
 
       {paradas.map((p, i) => (
