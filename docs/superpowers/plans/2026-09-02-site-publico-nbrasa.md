@@ -596,7 +596,7 @@ git commit -m "feat: camada de dados com tipos, seed e fachada tipada"
 
 **Interfaces:**
 - Consumes: `Horario` de `lib/conteudo.tipos`
-- Produces: `type FaixaHorario = { label: string; texto: string }`; `agruparHorarios(horarios: Horario[]): FaixaHorario[]`
+- Produces: `type FaixaHorario = { label: string; texto: string }`; `agruparHorarios(horarios: Horario[]): FaixaHorario[]`; `FECHADO` (constante com o texto usado para dia fechado — consumida fora deste módulo, ex.: Task 7)
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -604,7 +604,7 @@ Criar `tests/unit/horarios.test.ts`:
 
 ```ts
 import { describe, it, expect } from "vitest";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { horariosSeed } from "@/lib/conteudo.seed";
 import type { Horario } from "@/lib/conteudo.tipos";
 
@@ -634,6 +634,11 @@ describe("agruparHorarios", () => {
   it("escreve 'Fechado' para dia fechado", () => {
     expect(agruparHorarios([h(1, 1, null, null, true)]))
       .toEqual([{ label: "Segunda-feira", texto: "Fechado" }]);
+  });
+
+  it("usa exatamente a constante FECHADO para dia fechado", () => {
+    const [faixa] = agruparHorarios([h(1, 1, null, null, true)]);
+    expect(faixa.texto).toBe(FECHADO);
   });
 
   it("NÃO junta dias de mesmo horário que não são consecutivos", () => {
@@ -676,6 +681,9 @@ import type { Horario } from "./conteudo.tipos";
 
 export type FaixaHorario = { label: string; texto: string };
 
+/** Texto usado quando o dia está fechado. Consumido também fora deste módulo (ex.: Hero). */
+export const FECHADO = "Fechado";
+
 const NOMES = [
   "Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira",
   "Quinta-feira", "Sexta-feira", "Sábado",
@@ -687,7 +695,7 @@ const CURTOS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "S�
 const hhmm = (v: string) => `${v.slice(0, 2)}h`;
 
 function texto(h: Horario): string {
-  if (h.fechado || !h.abre || !h.fecha) return "Fechado";
+  if (h.fechado || !h.abre || !h.fecha) return FECHADO;
   return `${hhmm(h.abre)} — ${hhmm(h.fecha)}`;
 }
 
@@ -724,7 +732,7 @@ export function agruparHorarios(horarios: Horario[]): FaixaHorario[] {
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- horarios`
-Expected: PASS — 6 testes verdes, inclusive o de dias não-consecutivos.
+Expected: PASS — 7 testes verdes, inclusive o de dias não-consecutivos e o que fixa `FECHADO`.
 
 - [ ] **Step 5: Commit**
 
@@ -1143,7 +1151,7 @@ git commit -m "feat: header com navegacao e menu mobile acessivel"
 
 **Interfaces:**
 - Consumes: nada
-- Produces: `<SmoothScrollProvider>{children}</SmoothScrollProvider>` (CLIENTE); `<Reveal delay?>{children}</Reveal>` (CLIENTE)
+- Produces: `<SmoothScrollProvider>{children}</SmoothScrollProvider>` (CLIENTE); `<Reveal delay? className?>{children}</Reveal>` (CLIENTE)
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -1243,7 +1251,9 @@ Criar `components/motion/Reveal.tsx`:
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+type Props = { children: ReactNode; delay?: number; className?: string };
+
+export function Reveal({ children, delay = 0, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1276,7 +1286,7 @@ export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: n
     return () => { vivo = false; matar?.(); };
   }, [delay]);
 
-  return <div ref={ref}>{children}</div>;
+  return <div ref={ref} className={className}>{children}</div>;
 }
 ```
 
@@ -1366,7 +1376,7 @@ git commit -m "feat: scroll suave com Lenis e componente Reveal"
 - Modify: `app/page.tsx`
 
 **Interfaces:**
-- Consumes: `getConteudo()`, `getHorarios()`, `agruparHorarios()`, `Botao`
+- Consumes: `getConteudo()`, `getHorarios()`, `agruparHorarios()`, `FECHADO`, `Botao`
 - Produces: `<Hero />` (server, async)
 
 - [ ] **Step 1: Implementar o Hero**
@@ -1375,12 +1385,12 @@ Abrir `docs/superpowers/specs/mockup-direcao-visual.html` como referência de pr
 
 ```tsx
 import { getConteudo, getHorarios } from "@/lib/conteudo";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { Botao } from "@/components/ui/Botao";
 
 export async function Hero() {
   const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
-  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== "Fechado");
+  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
 
   return (
     <section className="mx-auto max-w-[1280px] px-6 pb-10 pt-16">
@@ -1516,9 +1526,9 @@ export async function Cardapio() {
 
       <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-4">
         {cats.map((c, i) => (
-          <Reveal key={c.slug}>
+          <Reveal key={c.slug} className={VAOS[i] ?? ""}>
             <article
-              className={`flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa ${VAOS[i] ?? ""}`}
+              className="flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa"
             >
               {/* brasa-texto, nao brasa: rotulo pequeno sobre fundo escuro (§9 do spec) */}
               <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-texto">

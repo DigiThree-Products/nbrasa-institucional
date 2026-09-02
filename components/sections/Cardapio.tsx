@@ -23,9 +23,9 @@ export async function Cardapio() {
 
       <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-4">
         {cats.map((c, i) => (
-          <Reveal key={c.slug}>
+          <Reveal key={c.slug} className={VAOS[i] ?? ""}>
             <article
-              className={`flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa ${VAOS[i] ?? ""}`}
+              className="flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa"
             >
               {/* brasa-texto, nao brasa: rotulo pequeno sobre fundo escuro (§9 do spec) */}
               <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-texto">

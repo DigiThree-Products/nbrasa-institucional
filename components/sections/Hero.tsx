@@ -1,10 +1,10 @@
 import { getConteudo, getHorarios } from "@/lib/conteudo";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { Botao } from "@/components/ui/Botao";
 
 export async function Hero() {
   const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
-  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== "Fechado");
+  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
 
   return (
     <section className="mx-auto max-w-[1280px] px-6 pb-10 pt-16">

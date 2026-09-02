@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+type Props = { children: ReactNode; delay?: number; className?: string };
+
+export function Reveal({ children, delay = 0, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,5 +37,5 @@ export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: n
     return () => { vivo = false; matar?.(); };
   }, [delay]);
 
-  return <div ref={ref}>{children}</div>;
+  return <div ref={ref} className={className}>{children}</div>;
 }

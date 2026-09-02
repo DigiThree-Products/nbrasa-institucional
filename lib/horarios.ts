@@ -2,6 +2,9 @@ import type { Horario } from "./conteudo.tipos";
 
 export type FaixaHorario = { label: string; texto: string };
 
+/** Texto usado quando o dia está fechado. Consumido também fora deste módulo (ex.: Hero). */
+export const FECHADO = "Fechado";
+
 const NOMES = [
   "Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira",
   "Quinta-feira", "Sexta-feira", "Sábado",
@@ -13,7 +16,7 @@ const CURTOS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "S�
 const hhmm = (v: string) => `${v.slice(0, 2)}h`;
 
 function texto(h: Horario): string {
-  if (h.fechado || !h.abre || !h.fecha) return "Fechado";
+  if (h.fechado || !h.abre || !h.fecha) return FECHADO;
   return `${hhmm(h.abre)} — ${hhmm(h.fecha)}`;
 }
 

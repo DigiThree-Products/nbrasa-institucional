@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { horariosSeed } from "@/lib/conteudo.seed";
 import type { Horario } from "@/lib/conteudo.tipos";
 
@@ -29,6 +29,11 @@ describe("agruparHorarios", () => {
   it("escreve 'Fechado' para dia fechado", () => {
     expect(agruparHorarios([h(1, 1, null, null, true)]))
       .toEqual([{ label: "Segunda-feira", texto: "Fechado" }]);
+  });
+
+  it("usa exatamente a constante FECHADO para dia fechado", () => {
+    const [faixa] = agruparHorarios([h(1, 1, null, null, true)]);
+    expect(faixa.texto).toBe(FECHADO);
   });
 
   it("NÃO junta dias de mesmo horário que não são consecutivos", () => {
