@@ -48,4 +48,10 @@ export type Conteudo = {
   instagram: string;
   campanhaAtiva: boolean;
   campanhaTitulo: string;
+  /** Título da seção de depoimentos. Editável no painel — não deixar uma
+   *  reprovação de marketing hardcoded no componente. */
+  depoimentosTitulo: string;
+  /** Título acima da lista de horários. Deve ser um texto que os próprios
+   *  horários não possam contradizer (ex.: não citar um horário específico). */
+  horariosTitulo: string;
 };

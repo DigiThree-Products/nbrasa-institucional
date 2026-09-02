@@ -71,4 +71,8 @@ export const conteudoSeed: Conteudo = {
   instagram: "@nbrasaangra",
   campanhaAtiva: false,
   campanhaTitulo: "",
+  depoimentosTitulo: "4,2 estrelas e quase 300 avaliações",
+  // Não cita um horário específico: os horários mudam por edição no painel e
+  // este título não pode ficar contradizendo a lista logo abaixo dele.
+  horariosTitulo: "A casa abre à tarde",
 };

@@ -1,13 +1,13 @@
-import { getDepoimentos } from "@/lib/conteudo";
+import { getConteudo, getDepoimentos } from "@/lib/conteudo";
 import { Reveal } from "@/components/motion/Reveal";
 
 export async function Depoimentos() {
-  const itens = await getDepoimentos();
+  const [c, itens] = await Promise.all([getConteudo(), getDepoimentos()]);
   return (
     <section className="mx-auto max-w-[1280px] px-6 py-20">
       <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">Quem veio, volta</p>
-      <h2 className="mb-10 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
-        4,2 estrelas e quase<br />300 avaliações
+      <h2 className="mb-10 mt-3 text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+        {c.depoimentosTitulo}
       </h2>
       <div className="grid gap-[18px] md:grid-cols-3">
         {itens.map((d) => (

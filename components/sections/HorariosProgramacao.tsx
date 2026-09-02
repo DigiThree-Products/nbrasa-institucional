@@ -1,9 +1,11 @@
-import { getHorarios, getProgramacao } from "@/lib/conteudo";
+import { getConteudo, getHorarios, getProgramacao } from "@/lib/conteudo";
 import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { Reveal } from "@/components/motion/Reveal";
 
 export async function HorariosProgramacao() {
-  const [horarios, prog] = await Promise.all([getHorarios(), getProgramacao()]);
+  const [c, horarios, prog] = await Promise.all([
+    getConteudo(), getHorarios(), getProgramacao(),
+  ]);
   const faixas = agruparHorarios(horarios);
 
   return (
@@ -14,8 +16,8 @@ export async function HorariosProgramacao() {
             <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Horário de funcionamento
             </p>
-            <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
-              A casa abre às 14h
+            <h2 className="mb-7 mt-3 text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+              {c.horariosTitulo}
             </h2>
             <ul className="list-none p-0">
               {faixas.map((f) => (
@@ -42,7 +44,10 @@ export async function HorariosProgramacao() {
                     <span className="flex-none basis-[108px] text-[.68rem] font-extrabold uppercase tracking-[.14em] text-brasa">
                       {p.diasLabel}
                     </span>
-                    <span className="font-display text-lg uppercase leading-tight">{p.titulo}</span>
+                    <span>
+                      <span className="block font-display text-lg uppercase leading-tight">{p.titulo}</span>
+                      <span className="mt-1 block text-sm text-creme-texto">{p.descricao}</span>
+                    </span>
                   </article>
                 </Reveal>
               ))}
