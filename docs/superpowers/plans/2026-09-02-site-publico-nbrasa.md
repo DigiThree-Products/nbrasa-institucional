@@ -123,10 +123,19 @@ export default defineConfig({
 });
 ```
 
-Criar `tests/setup.ts`:
+Criar `tests/setup.ts`. O `afterEach(cleanup)` é obrigatório: o Testing Library só
+registra a limpeza automática sozinho quando encontra um `afterEach` global, e esta
+config não liga `test.globals`. Sem ele o DOM vaza entre testes do mesmo arquivo e
+qualquer arquivo com mais de um `render()` falha com `getMultipleElementsFoundError`.
 
 ```ts
 import "@testing-library/jest-dom/vitest";
+import { afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() => {
+  cleanup();
+});
 ```
 
 Adicionar em `package.json`, dentro de `"scripts"`:
