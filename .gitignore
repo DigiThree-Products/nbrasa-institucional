@@ -27,3 +27,6 @@ nbrasa-*.png
 
 # artefato de build do TypeScript
 *.tsbuildinfo
+
+# plano de implementacao: fica local, fora do repositorio
+docs/superpowers/plans/
