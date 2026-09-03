@@ -6,6 +6,9 @@ export type Categoria = {
   fotoPath: string | null;
   ordem: number;
   ativo: boolean;
+  /** Marca a categoria que ocupa o tile grande do bento. Substitui a escolha
+   *  por posição no array, que fazia reordenar mover o destaque sem intenção. */
+  destaque: boolean;
 };
 
 export type ItemProgramacao = {
