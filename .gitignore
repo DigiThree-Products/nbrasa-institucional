@@ -38,3 +38,7 @@ docs/superpowers/specs/mockup-direcao-visual.html
 
 # artefato local do CLI do Supabase
 supabase/.temp/
+
+# artefatos de execucao do Playwright
+test-results/
+playwright-report/

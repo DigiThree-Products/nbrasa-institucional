@@ -11,5 +11,11 @@ export default defineConfig({
     include: ["tests/integracao/**/*.test.ts"],
     testTimeout: 20_000,
   },
-  resolve: { alias: { "@": path.resolve(import.meta.dirname, ".") } },
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "."),
+      // ver o comentario em tests/stubs/next-cache.ts
+      "next/cache": path.resolve(import.meta.dirname, "tests/stubs/next-cache.ts"),
+    },
+  },
 });
