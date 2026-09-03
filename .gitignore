@@ -5,10 +5,13 @@ out/
 dist/
 .vercel/
 
-# ambiente — segredo nunca vai para o git
+# ambiente — segredo nunca vai para o git.
+# Os padroes sao amplos de proposito: o Bloco de Notas do Windows acrescenta
+# .txt sem avisar, e .env*.local NAO cobre .env.local.txt.
 .env
-.env.local
-.env*.local
+.env.*
+*.env
+!.env.example
 
 # sistema
 .DS_Store
