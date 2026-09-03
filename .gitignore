@@ -35,3 +35,6 @@ nbrasa-*.png
 docs/superpowers/plans/
 docs/superpowers/decisoes/
 docs/superpowers/specs/mockup-direcao-visual.html
+
+# artefato local do CLI do Supabase
+supabase/.temp/
