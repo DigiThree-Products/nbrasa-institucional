@@ -12,6 +12,11 @@ de performance e critérios de acessibilidade.
 
 ## Rodando localmente
 
+### Variáveis de ambiente
+
+Copie `.env.example` para `.env.local` e preencha com os valores do painel do
+Supabase (Project Settings > API). O arquivo `.env.local` não é versionado.
+
 ```bash
 npm install
 npm run dev
