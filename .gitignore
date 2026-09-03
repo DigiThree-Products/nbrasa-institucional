@@ -20,3 +20,10 @@ Thumbs.db
 *.cdr
 *.pdf
 IMG_*.png
+
+# artefatos de screenshot do Playwright
+.playwright-mcp/
+nbrasa-*.png
+
+# artefato de build do TypeScript
+*.tsbuildinfo

@@ -22,8 +22,8 @@ Cobre os passos 1 a 3 do §11 do spec: scaffold, site público completo contra s
 
 Requisitos válidos para **todas** as tarefas. Valores copiados literalmente do spec.
 
-- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #e8505f` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc`
-- **Regra de contraste, inegociável.** `#cf2434` só em preenchimento, botão, rota e display grande. **Texto pequeno vermelho sobre fundo escuro usa `#e8505f`.** O `#cf2434` sobre `#241e1f` dá 3,1:1 e reprova texto normal.
+- **Cores.** `--carvao: #241e1f` · `--brasa: #cf2434` · `--branco: #ffffff` · `--brasa-texto: #ee6b76` · `--fumaca: #2f2728` · `--cinza: #a39596` · `--creme: #f0e6dc` · `--creme-texto: #6b5c55` · `--creme-borda: #e3d5c8`
+- **Regra de contraste, inegociável.** `#cf2434` só em preenchimento, botão, rota e display grande — inclusive sobre a faixa creme, onde também reprova (4,31:1). **Texto pequeno vermelho sobre fundo escuro usa `#ee6b76`.** O `#cf2434` sobre `#241e1f` dá 3,1:1 e reprova texto normal. **Correção de 2026-09-02:** o valor original de `--brasa-texto` (`#e8505f`) tinha sido medido só contra `--carvao` (4,49:1, já abaixo do mínimo) e reprovava também contra `--fumaca` (3,98:1) — a superfície onde os dois usos reais do token estão. Ver §9 do spec e `tests/unit/contraste.test.ts`.
 - **Tipografia.** Corpo e interface: **Hanken Grotesk**. Display: **Anton** (substituta provisória da Owners, que é comercial). Ambas via `next/font`.
 - **Fronteira cliente.** Levam `"use client"` apenas: `SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `Preloader`. Qualquer outro componente cliente é violação e deve ser rejeitado na revisão.
 - **Orçamento.** JS de primeira carga na home ≤ **130 KB gzip**, com o GSAP fora desse total. LCP ≤ **2,0 s** em 4G simulado. CLS < **0,05**. Lighthouse mobile Performance ≥ **90**.
@@ -106,12 +106,11 @@ npx playwright install chromium
 
 - [ ] **Step 3: Configurar o Vitest**
 
-Criar `vitest.config.ts`:
+Criar `vitest.config.mts` (extensão `.mts` para declarar ESM explicitamente e evitar o aviso do Vitest 4 sobre `configLoader: 'native'`; usa `import.meta.dirname`, disponível a partir do Node 20.11/21.2):
 
 ```ts
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
@@ -120,14 +119,23 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
   },
-  resolve: { alias: { "@": path.resolve(__dirname, ".") } },
+  resolve: { alias: { "@": import.meta.dirname } },
 });
 ```
 
-Criar `tests/setup.ts`:
+Criar `tests/setup.ts`. O `afterEach(cleanup)` é obrigatório: o Testing Library só
+registra a limpeza automática sozinho quando encontra um `afterEach` global, e esta
+config não liga `test.globals`. Sem ele o DOM vaza entre testes do mesmo arquivo e
+qualquer arquivo com mais de um `render()` falha com `getMultipleElementsFoundError`.
 
 ```ts
 import "@testing-library/jest-dom/vitest";
+import { afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() => {
+  cleanup();
+});
 ```
 
 Adicionar em `package.json`, dentro de `"scripts"`:
@@ -140,7 +148,7 @@ Adicionar em `package.json`, dentro de `"scripts"`:
 
 - [ ] **Step 4: Escrever o teste que falha — tokens de marca**
 
-O teste lê o CSS e confirma que os sete tokens do spec estão declarados com os valores exatos, protegendo contra alguém "ajustar" a cor da marca sem passar pelo spec.
+O teste lê o CSS e confirma que os tokens do spec estão declarados com os valores exatos, protegendo contra alguém "ajustar" a cor da marca sem passar pelo spec.
 
 Criar `tests/unit/tokens.test.ts`:
 
@@ -154,16 +162,26 @@ describe("tokens de marca", () => {
   it.each([
     ["--color-carvao", "#241e1f"],
     ["--color-brasa", "#cf2434"],
-    ["--color-brasa-texto", "#e8505f"],
+    ["--color-brasa-texto", "#ee6b76"],
     ["--color-fumaca", "#2f2728"],
     ["--color-cinza", "#a39596"],
     ["--color-creme", "#f0e6dc"],
+    ["--color-creme-texto", "#6b5c55"],
+    ["--color-creme-borda", "#e3d5c8"],
     ["--color-branco", "#ffffff"],
   ])("declara %s como %s", (token, valor) => {
-    expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`, "i"));
+    expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`));
   });
 });
 ```
+
+> **Correção de 2026-09-02.** Duas mudanças em relação à redação original: (1)
+> `--color-brasa-texto` mudou de `#e8505f` para `#ee6b76` — o valor original
+> reprovava contraste AA nas duas superfícies onde é usado (ver §9 do spec);
+> (2) `--color-creme-texto` e `--color-creme-borda` entraram na tabela — eram
+> Global Constraints do spec sem cobertura de teste. `tests/unit/contraste.test.ts`
+> foi criado na mesma leva para medir contraste de verdade, não só a presença
+> do token.
 
 - [ ] **Step 5: Rodar e confirmar que falha**
 
@@ -180,10 +198,12 @@ Substituir todo o conteúdo de `app/globals.css`:
 @theme {
   --color-carvao: #241e1f;
   --color-brasa: #cf2434;
-  --color-brasa-texto: #e8505f;
+  --color-brasa-texto: #ee6b76;
   --color-fumaca: #2f2728;
   --color-cinza: #a39596;
   --color-creme: #f0e6dc;
+  --color-creme-texto: #6b5c55;
+  --color-creme-borda: #e3d5c8;
   --color-branco: #ffffff;
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
@@ -588,7 +608,7 @@ git commit -m "feat: camada de dados com tipos, seed e fachada tipada"
 
 **Interfaces:**
 - Consumes: `Horario` de `lib/conteudo.tipos`
-- Produces: `type FaixaHorario = { label: string; texto: string }`; `agruparHorarios(horarios: Horario[]): FaixaHorario[]`
+- Produces: `type FaixaHorario = { label: string; texto: string }`; `agruparHorarios(horarios: Horario[]): FaixaHorario[]`; `FECHADO` (constante com o texto usado para dia fechado — consumida fora deste módulo, ex.: Task 7)
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -596,7 +616,7 @@ Criar `tests/unit/horarios.test.ts`:
 
 ```ts
 import { describe, it, expect } from "vitest";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { horariosSeed } from "@/lib/conteudo.seed";
 import type { Horario } from "@/lib/conteudo.tipos";
 
@@ -628,6 +648,11 @@ describe("agruparHorarios", () => {
       .toEqual([{ label: "Segunda-feira", texto: "Fechado" }]);
   });
 
+  it("usa exatamente a constante FECHADO para dia fechado", () => {
+    const [faixa] = agruparHorarios([h(1, 1, null, null, true)]);
+    expect(faixa.texto).toBe(FECHADO);
+  });
+
   it("NÃO junta dias de mesmo horário que não são consecutivos", () => {
     // segunda fechada separa domingo de terça, mesmo com horário igual
     expect(agruparHorarios(horariosSeed)).toEqual([
@@ -635,6 +660,16 @@ describe("agruparHorarios", () => {
       { label: "Terça a quinta",  texto: "14h — 22h" },
       { label: "Sexta e sábado",  texto: "16h — 03h" },
       { label: "Domingo",         texto: "14h — 22h" },
+    ]);
+  });
+
+  it("não junta horários iguais quando há um buraco na ordem (não adjacentes)", () => {
+    // ordem 2 e 5, mesmo horário, mas sem nada preenchendo 3-4: não deve virar uma faixa
+    expect(agruparHorarios([
+      h(2, 2, "14:00", "22:00"), h(5, 5, "14:00", "22:00"),
+    ])).toEqual([
+      { label: "Terça-feira", texto: "14h — 22h" },
+      { label: "Sexta-feira", texto: "14h — 22h" },
     ]);
   });
 
@@ -658,6 +693,9 @@ import type { Horario } from "./conteudo.tipos";
 
 export type FaixaHorario = { label: string; texto: string };
 
+/** Texto usado quando o dia está fechado. Consumido também fora deste módulo (ex.: Hero). */
+export const FECHADO = "Fechado";
+
 const NOMES = [
   "Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira",
   "Quinta-feira", "Sexta-feira", "Sábado",
@@ -669,7 +707,7 @@ const CURTOS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "S�
 const hhmm = (v: string) => `${v.slice(0, 2)}h`;
 
 function texto(h: Horario): string {
-  if (h.fechado || !h.abre || !h.fecha) return "Fechado";
+  if (h.fechado || !h.abre || !h.fecha) return FECHADO;
   return `${hhmm(h.abre)} — ${hhmm(h.fecha)}`;
 }
 
@@ -706,7 +744,7 @@ export function agruparHorarios(horarios: Horario[]): FaixaHorario[] {
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- horarios`
-Expected: PASS — 6 testes verdes, inclusive o de dias não-consecutivos.
+Expected: PASS — 7 testes verdes, inclusive o de dias não-consecutivos e o que fixa `FECHADO`.
 
 - [ ] **Step 5: Commit**
 
@@ -916,6 +954,41 @@ describe("MenuMobile", () => {
     await userEvent.click(screen.getByRole("link", { name: "Delivery" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("prende o foco: Tab a partir do último elemento volta ao primeiro", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    const fechar = screen.getByRole("button", { name: /fechar menu/i });
+    const delivery = screen.getByRole("link", { name: "Delivery" });
+
+    delivery.focus();
+    expect(document.activeElement).toBe(delivery);
+
+    await userEvent.tab();
+    expect(document.activeElement).toBe(fechar);
+  });
+
+  it("devolve o foco ao botão de alternância ao fechar com Esc", async () => {
+    render(<MenuMobile links={links} />);
+    const alternar = screen.getByRole("button", { name: /abrir menu/i });
+    await userEvent.click(alternar);
+    await userEvent.keyboard("{Escape}");
+    expect(document.activeElement).toBe(alternar);
+  });
+
+  it("só há um botão acessível 'Fechar menu' enquanto o painel está aberto", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(screen.getAllByRole("button", { name: /fechar menu/i })).toHaveLength(1);
+  });
+
+  it("trava o scroll do body enquanto aberto e libera ao fechar", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(document.body.style.overflow).toBe("hidden");
+    await userEvent.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("");
+  });
 });
 ```
 
@@ -935,28 +1008,64 @@ import { useEffect, useRef, useState } from "react";
 
 export type LinkNav = { href: string; rotulo: string };
 
+const FOCAVEIS = "a[href], button:not([disabled])";
+
 export function MenuMobile({ links }: { links: LinkNav[] }) {
   const [aberto, setAberto] = useState(false);
   const painel = useRef<HTMLDivElement>(null);
+  const alternar = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setAberto(false); };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setAberto(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const focaveis = painel.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
+        if (!focaveis || focaveis.length === 0) return;
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+          e.preventDefault();
+          ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault();
+          primeiro.focus();
+        }
+      }
+    };
+
     document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     painel.current?.querySelector<HTMLElement>("a")?.focus();
-    return () => document.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      alternar.current?.focus();
+    };
   }, [aberto]);
 
   return (
     <>
       <button
+        ref={alternar}
         type="button"
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
         aria-expanded={aberto}
+        aria-hidden={aberto || undefined}
+        tabIndex={aberto ? -1 : undefined}
         onClick={() => setAberto((v) => !v)}
         className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-fumaca md:hidden"
       >
-        <span className="block h-0.5 w-[18px] bg-branco shadow-[0_-6px_0_#fff,0_6px_0_#fff]" />
+        <span className="flex flex-col items-center gap-[6px]">
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-branco" />
+        </span>
       </button>
 
       {aberto && (
@@ -981,10 +1090,12 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
 }
 ```
 
+O painel `role="dialog"` prende o foco de fato: `Tab`/`Shift+Tab` giram entre o primeiro e o último elemento focável dentro do painel (fecho, depois os links); o botão de alternância fica fora da árvore de acessibilidade e da ordem de tabulação enquanto o painel está aberto (`aria-hidden` + `tabIndex={-1}`), o que também resolve o nome acessível duplicado "Fechar menu"; o foco retorna ao botão de alternância ao fechar por qualquer via (Esc, botão de fechar, clique num link), via cleanup do efeito; e o scroll do `body` é travado enquanto o painel está aberto e liberado ao fechar.
+
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- MenuMobile`
-Expected: PASS — 4 testes verdes.
+Expected: PASS — 8 testes verdes.
 
 - [ ] **Step 5: Implementar o Header**
 
@@ -1052,7 +1163,7 @@ git commit -m "feat: header com navegacao e menu mobile acessivel"
 
 **Interfaces:**
 - Consumes: nada
-- Produces: `<SmoothScrollProvider>{children}</SmoothScrollProvider>` (CLIENTE); `<Reveal delay?>{children}</Reveal>` (CLIENTE)
+- Produces: `<SmoothScrollProvider>{children}</SmoothScrollProvider>` (CLIENTE); `<Reveal delay? className?>{children}</Reveal>` (CLIENTE)
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -1061,11 +1172,39 @@ O primeiro teste é o que importa: sem `immediateRender: false`, o ScrollTrigger
 Criar `tests/unit/Reveal.test.tsx`:
 
 ```tsx
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import { Reveal } from "@/components/motion/Reveal";
 
+const { fromToMock, registerPluginMock } = vi.hoisted(() => ({
+  fromToMock: vi.fn((..._args: unknown[]) => ({ scrollTrigger: { kill: vi.fn() }, kill: vi.fn() })),
+  registerPluginMock: vi.fn(),
+}));
+
+vi.mock("gsap", () => ({
+  gsap: { fromTo: fromToMock, registerPlugin: registerPluginMock },
+}));
+
+vi.mock("gsap/ScrollTrigger", () => ({
+  ScrollTrigger: {},
+}));
+
 describe("Reveal", () => {
+  beforeEach(() => {
+    fromToMock.mockClear();
+    registerPluginMock.mockClear();
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+  });
+
   it("renderiza o conteúdo visível, sem depender de animação", () => {
     render(<Reveal><p>Cardápio da casa</p></Reveal>);
     expect(screen.getByText("Cardápio da casa")).toBeVisible();
@@ -1075,6 +1214,37 @@ describe("Reveal", () => {
     const { container } = render(<Reveal><p>Visível</p></Reveal>);
     const wrapper = container.firstElementChild as HTMLElement;
     expect(wrapper.style.opacity).not.toBe("0");
+  });
+
+  it("anima com immediateRender: false, para não esconder o conteúdo até o scroll chegar", async () => {
+    render(<Reveal><p>Cardápio</p></Reveal>);
+
+    await waitFor(() => expect(fromToMock).toHaveBeenCalled());
+
+    const vars = fromToMock.mock.calls[0][2] as Record<string, unknown>;
+    expect(vars.immediateRender).toBe(false);
+  });
+
+  it("não monta a animação quando o usuário prefere movimento reduzido", async () => {
+    window.matchMedia = ((query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+
+    render(<Reveal><p>Cardápio</p></Reveal>);
+
+    // dá tempo suficiente para os imports dinâmicos (mockados) resolverem,
+    // caso o early-return de reduced-motion não esteja funcionando
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(fromToMock).not.toHaveBeenCalled();
+    expect(registerPluginMock).not.toHaveBeenCalled();
   });
 });
 ```
@@ -1093,7 +1263,9 @@ Criar `components/motion/Reveal.tsx`:
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+type Props = { children: ReactNode; delay?: number; className?: string };
+
+export function Reveal({ children, delay = 0, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1126,14 +1298,14 @@ export function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: n
     return () => { vivo = false; matar?.(); };
   }, [delay]);
 
-  return <div ref={ref}>{children}</div>;
+  return <div ref={ref} className={className}>{children}</div>;
 }
 ```
 
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- Reveal`
-Expected: PASS — 2 testes verdes.
+Expected: PASS — 4 testes verdes.
 
 - [ ] **Step 5: Implementar o SmoothScrollProvider**
 
@@ -1216,7 +1388,7 @@ git commit -m "feat: scroll suave com Lenis e componente Reveal"
 - Modify: `app/page.tsx`
 
 **Interfaces:**
-- Consumes: `getConteudo()`, `getHorarios()`, `agruparHorarios()`, `Botao`
+- Consumes: `getConteudo()`, `getHorarios()`, `agruparHorarios()`, `FECHADO`, `Botao`
 - Produces: `<Hero />` (server, async)
 
 - [ ] **Step 1: Implementar o Hero**
@@ -1225,12 +1397,12 @@ Abrir `docs/superpowers/specs/mockup-direcao-visual.html` como referência de pr
 
 ```tsx
 import { getConteudo, getHorarios } from "@/lib/conteudo";
-import { agruparHorarios } from "@/lib/horarios";
+import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { Botao } from "@/components/ui/Botao";
 
 export async function Hero() {
   const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
-  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== "Fechado");
+  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
 
   return (
     <section className="mx-auto max-w-[1280px] px-6 pb-10 pt-16">
@@ -1366,9 +1538,9 @@ export async function Cardapio() {
 
       <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-4">
         {cats.map((c, i) => (
-          <Reveal key={c.slug}>
+          <Reveal key={c.slug} className={VAOS[i] ?? ""}>
             <article
-              className={`flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa ${VAOS[i] ?? ""}`}
+              className="flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa"
             >
               {/* brasa-texto, nao brasa: rotulo pequeno sobre fundo escuro (§9 do spec) */}
               <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-texto">
@@ -1569,17 +1741,20 @@ Expected: PASS — 3 testes verdes.
 
 - [ ] **Step 5: Envolver numa seção de servidor**
 
-O GSAP entra por `next/dynamic` com `ssr: false`, para não pesar no primeiro paint. Criar `components/sections/Delivery.tsx`:
+**Correção de 2026-09-02:** este passo previa `next/dynamic` com `ssr: false`
+para o GSAP não pesar no primeiro paint. Isso não chega a compilar:
+`Delivery.tsx` é Server Component (`export async function Delivery()`), e
+`ssr: false` em `next/dynamic` só é aceito dentro de um Client Component — usá-lo
+aqui derruba o build. O que de fato foi implementado é um import estático de
+`RotaMascote` em `Delivery.tsx`; o adiamento do custo do GSAP para depois do
+primeiro paint já acontece dentro do próprio `RotaMascote.tsx` (Client
+Component), via `import()` dinâmico dentro do `useEffect` — ver o corpo do
+componente abaixo e §7.3 do spec. Criar `components/sections/Delivery.tsx`:
 
 ```tsx
-import dynamic from "next/dynamic";
 import { getConteudo } from "@/lib/conteudo";
 import { Botao } from "@/components/ui/Botao";
-
-const RotaMascote = dynamic(
-  () => import("./RotaMascote").then((m) => m.RotaMascote),
-  { ssr: false },
-);
+import { RotaMascote } from "./RotaMascote";
 
 const PARADAS = [
   { id: "centro", bairro: "Centro" },
@@ -1619,7 +1794,7 @@ export async function Delivery() {
 Adicionar `<Delivery />` em `app/page.tsx` depois de `<Cardapio />`.
 
 Run: `npm run dev` e rolar até a seção.
-Expected: o mascote percorre a rota pontilhada e **gira acompanhando a curva**; a linha se desenha conforme a rolagem; os cinco bairros aparecem.
+Expected: o mascote percorre a rota pontilhada e **gira acompanhando a curva**; os pontos do tracejado marcham ao longo da rota conforme a rolagem; os cinco bairros aparecem.
 
 - [ ] **Step 7: Conferir com movimento reduzido**
 
@@ -1647,7 +1822,11 @@ git commit -m "feat: rota do mascote com GSAP MotionPath e scrub de scroll"
 
 - [ ] **Step 1: Implementar a seção**
 
-Faixa clara do site. Sobre creme o `#cf2434` passa em contraste — aqui `text-brasa` é correto. Criar `components/sections/HorariosProgramacao.tsx`:
+Faixa clara do site. **Correção de 2026-09-02:** "`#cf2434` passa em contraste
+sobre creme" está errado — dá 4,31:1, reprovado para texto normal (ver §9 do
+spec, corrigido na mesma data). O `text-brasa` usado nesta seção (no rótulo de
+dia da programação) está sobre um card **branco** (`bg-branco`), não direto
+sobre o creme — aí sim passa, com 5,31:1. Criar `components/sections/HorariosProgramacao.tsx`:
 
 ```tsx
 import { getHorarios, getProgramacao } from "@/lib/conteudo";
@@ -1663,7 +1842,7 @@ export async function HorariosProgramacao() {
       <div className="mx-auto max-w-[1280px] px-6 py-20">
         <div className="grid gap-14 md:grid-cols-2">
           <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-[#7a6a63]">
+            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Horário de funcionamento
             </p>
             <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
@@ -1672,8 +1851,8 @@ export async function HorariosProgramacao() {
             <ul className="list-none p-0">
               {faixas.map((f) => (
                 <li key={f.label}
-                    className="flex justify-between gap-5 border-b border-[#e3d5c8] py-4">
-                  <span className={f.texto === "Fechado" ? "text-[#8b7c75]" : ""}>{f.label}</span>
+                    className="flex justify-between gap-5 border-b border-creme-borda py-4">
+                  <span className={f.texto === "Fechado" ? "text-creme-texto" : ""}>{f.label}</span>
                   <b className="font-extrabold tabular-nums">{f.texto}</b>
                 </li>
               ))}
@@ -1681,7 +1860,7 @@ export async function HorariosProgramacao() {
           </div>
 
           <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-[#7a6a63]">
+            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Programação da semana
             </p>
             <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
@@ -1760,7 +1939,7 @@ export async function Depoimentos() {
         {itens.map((d) => (
           <Reveal key={d.id}>
             <figure className="h-full rounded-[22px] border border-fumaca bg-fumaca p-6">
-              <div aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
+              <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-texto">
                 {"★".repeat(d.nota)}
               </div>
               <blockquote className="mt-3 text-cinza">“{d.texto}”</blockquote>
@@ -1854,7 +2033,7 @@ export async function Footer() {
             <p>{c.instagram}</p>
           </div>
         </div>
-        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-[#7d6f70]">
+        <p className="mt-12 border-t border-fumaca pt-6 text-[.75rem] uppercase tracking-[.09em] text-cinza">
           © 2026 N&apos;Brasa Angra · Todos os direitos reservados
         </p>
       </div>
@@ -1985,10 +2164,17 @@ const CHAVE = "nbrasa:preloader";
 const TETO_MS = 1200;
 
 export function Preloader() {
-  const [visivel, setVisivel] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try { return sessionStorage.getItem(CHAVE) === null; } catch { return false; }
-  });
+  // Estado inicial fixo em `false` nos dois lados: o servidor não tem acesso
+  // ao sessionStorage, então ler a chave já na inicialização do useState
+  // divergiria do HTML estático e quebraria a hidratação. A checagem real
+  // acontece no efeito abaixo, que só roda no cliente após montar.
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(CHAVE) === null) setVisivel(true);
+    } catch { /* modo privado: mantém oculto */ }
+  }, []);
 
   useEffect(() => {
     if (!visivel) return;
@@ -2085,6 +2271,14 @@ describe("montarSchemaRestaurant", () => {
     expect(dias).not.toContain("Monday");
   });
 
+  it("omite um dia marcado fechado mesmo com horário preenchido", () => {
+    const diaFechadoComHorario = [
+      { diaSemana: 3, abre: "14:00", fecha: "22:00", fechado: true, ordem: 1 },
+    ];
+    const schemaFixture = montarSchemaRestaurant(conteudoSeed, diaFechadoComHorario) as any;
+    expect(schemaFixture.openingHoursSpecification).toHaveLength(0);
+  });
+
   it("declara sábado abrindo 16:00 e fechando 03:00", () => {
     const sab = schema.openingHoursSpecification
       .find((s: any) => s.dayOfWeek.includes("Saturday"));
@@ -2153,7 +2347,7 @@ export async function DadosEstruturados() {
 - [ ] **Step 4: Rodar e confirmar que passa**
 
 Run: `npm test -- dadosEstruturados`
-Expected: PASS — 4 testes verdes.
+Expected: PASS — 5 testes verdes.
 
 - [ ] **Step 5: Ligar e criar as telas de erro**
 
@@ -2164,7 +2358,11 @@ Criar `app/error.tsx`:
 ```tsx
 "use client";
 
-export default function Erro({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from "react";
+
+export default function Erro({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => { console.error(error); }, [error]);
+
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
       <h1 className="font-display text-5xl uppercase">Algo saiu do ponto</h1>
@@ -2172,7 +2370,7 @@ export default function Erro({ reset }: { error: Error; reset: () => void }) {
         Não conseguimos carregar esta parte da página. Tente de novo.
       </p>
       <button onClick={reset}
-              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest">
+              className="mt-8 rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest text-branco">
         Tentar de novo
       </button>
     </main>
@@ -2183,19 +2381,25 @@ export default function Erro({ reset }: { error: Error; reset: () => void }) {
 Criar `app/not-found.tsx`:
 
 ```tsx
+import Link from "next/link";
+
 export default function NaoEncontrado() {
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
       <h1 className="font-display text-5xl uppercase">Página não encontrada</h1>
       <p className="mt-4 text-cinza">O link que você abriu não existe por aqui.</p>
-      <a href="/"
-         className="mt-8 inline-block rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest">
+      <Link href="/"
+            className="mt-8 inline-block rounded-full bg-brasa px-6 py-3 font-bold uppercase tracking-widest text-branco">
         Voltar para a home
-      </a>
+      </Link>
     </main>
   );
 }
 ```
+
+Nota: usamos `Link` de `next/link` em vez de `<a>` porque a regra do ESLint do
+Next.js (`@next/next/no-html-link-for-pages`) trata um `<a href="/">` como
+erro de build, não aviso — `npm run build` não compila com `<a>` aqui.
 
 - [ ] **Step 6: Commit**
 
@@ -2232,7 +2436,12 @@ export default defineConfig({
   webServer: {
     command: "npm run build && npm start",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    // Nunca reaproveitar um servidor já em pé: um dev server parado ou uma
+    // build antiga na porta 3000 seria silenciosamente reaproveitado aqui,
+    // e a suíte inteira validaria código velho sem avisar. Já aconteceu
+    // neste projeto — o custo de rebuildar a cada rodada é trivial perto
+    // disso.
+    reuseExistingServer: false,
     timeout: 180_000,
   },
   use: { baseURL: "http://localhost:3000" },
@@ -2243,12 +2452,47 @@ export default defineConfig({
 });
 ```
 
+(Revisão da Task 14: o `reuseExistingServer` condicional a `!process.env.CI` do rascunho original foi trocado por `false` incondicional depois de um achado de code review — o controlador já tinha sofrido exatamente esse problema mais cedo no projeto, um servidor parado na porta 3000 sendo reaproveitado silenciosamente por essa mesma opção.)
+
 - [ ] **Step 2: Escrever os testes de ponta a ponta**
 
 Criar `tests/e2e/home.spec.ts`:
 
 ```ts
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
+
+type AlvoRota = { topo: number; altura: number };
+
+/** Encontra, no DOM, a posição absoluta e a altura da seção da rota de entrega. */
+async function localizarSecaoDaRota(page: Page): Promise<AlvoRota | null> {
+  return page.evaluate(() => {
+    const linha = document.getElementById("rota-entrega");
+    const wrap = linha ? linha.closest("div") : null;
+    if (!wrap) return null;
+    const retangulo = wrap.getBoundingClientRect();
+    return { topo: retangulo.top + window.scrollY, altura: wrap.clientHeight };
+  });
+}
+
+/** Lê o transform aplicado pelo GSAP (via style ou, em navegadores que
+ *  preferem o atributo de apresentação, via `transform`). */
+function lerTransform(mascote: Locator) {
+  return mascote.evaluate((el) => el.getAttribute("style") ?? el.getAttribute("transform"));
+}
+
+/**
+ * Rola em passos, via wheel real, até o meio da seção da rota. A distância é
+ * contada a partir do topo real da página (não só da altura da própria
+ * seção) — em telas estreitas o cardápio empilhado antes dela é bem mais
+ * alto, então essa distância muda por viewport.
+ */
+async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
+  const distanciaAteOMeio = alvo.topo + alvo.altura * 0.5;
+  const passos = 10;
+  for (let i = 0; i < passos; i++) {
+    await page.mouse.wheel(0, distanciaAteOMeio / passos);
+  }
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("nbrasa:preloader", "1"));
@@ -2277,7 +2521,9 @@ test("lista as seis categorias", async ({ page }) => {
 });
 
 test("mostra os horários agrupados corretamente", async ({ page }) => {
-  await expect(page.getByText("Terça a quinta")).toBeVisible();
+  // "Terça a quinta" aparece duas vezes na página (resumo do herói e lista
+  // de horários na faixa creme); .first() evita a falha do strict mode.
+  await expect(page.getByText("Terça a quinta").first()).toBeVisible();
   await expect(page.getByText("16h — 03h").first()).toBeVisible();
 });
 
@@ -2293,11 +2539,52 @@ test("publica dados estruturados de Restaurant", async ({ page }) => {
 });
 
 test.describe("com movimento reduzido", () => {
-  test.use({ reducedMotion: "reduce" });
+  // `test.use({ reducedMotion: "reduce" })` foi a primeira tentativa, mas
+  // uma reprodução isolada (config mínima, sem nenhuma customização deste
+  // projeto) mostrou que essa opção de contexto não faz
+  // window.matchMedia("(prefers-reduced-motion: reduce)") reportar `true`
+  // neste ambiente — fica `false` mesmo com o contexto configurado.
+  // page.emulateMedia() aplica de fato (confirmado na mesma reprodução), e
+  // é o que usamos aqui. Por isso este describe navega de novo, depois de
+  // emular: RotaMascote só lê a preferência uma vez, no mount, e o
+  // beforeEach do topo do arquivo já tinha navegado antes desta preferência
+  // existir.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+  });
 
   test("nenhum conteúdo depende de animação", async ({ page }) => {
     await expect(page.getByText("Mambucaba")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+
+  // Espelho do teste "o mascote se move..." abaixo: aquele prova que a
+  // animação roda; este prova que o guard de reduced-motion realmente a
+  // desliga. Sem este teste, o de cima passaria mesmo que o
+  // matchMedia("(prefers-reduced-motion: reduce)") de RotaMascote.tsx fosse
+  // apagado — nada aqui checava o comportamento que a asserção alegava
+  // cobrir. (Verificado: apagar o guard faz este teste falhar; restaurá-lo
+  // faz passar de novo.)
+  test("o mascote não se move com prefers-reduced-motion", async ({ page }) => {
+    const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
+    await expect(mascote).toBeAttached();
+
+    const alvo = await localizarSecaoDaRota(page);
+    expect(alvo).not.toBeNull();
+
+    const antes = await lerTransform(mascote);
+
+    await rolarAteOMeioDaRota(page, alvo!);
+
+    // Asserção negativa: não dá para "esperar até nunca acontecer". Uma
+    // espera fixa é legítima aqui, mas curta — o bastante para o
+    // ScrollTrigger reagir *se* o guard não estivesse funcionando (o teste
+    // irmão, com o mesmo scroll, converge bem dentro de poucos segundos).
+    await page.waitForTimeout(2_500);
+
+    const depois = await lerTransform(mascote);
+    expect(depois).toBe(antes);
   });
 });
 
@@ -2307,6 +2594,57 @@ test("o menu mobile abre e fecha", async ({ page, viewport }) => {
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
+});
+
+// Guarda de regressão adicional (não faz parte da lista original do brief):
+// a Task 6 nunca viu o SmoothScrollProvider rodar num browser real, e a
+// animação do mascote (Task 9) só foi conferida manualmente uma vez. Aqui
+// confirmamos barato que o GSAP MotionPath realmente está mexendo o mascote
+// ao rolar — sem isso, uma regressão silenciosa no wiring do cliente não
+// quebraria nenhum teste automatizado.
+test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
+  const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
+  await expect(mascote).toBeAttached();
+
+  // Lenis adiciona a classe "lenis" a <html> ao montar — o mesmo gancho que
+  // app/globals.css (linhas 19-21) usa para o CSS oficial do Lenis
+  // funcionar (html.lenis, .lenis.lenis-smooth). Isso discrimina a presença
+  // do Lenis de um jeito que window.scrollY, sozinho, não discrimina:
+  // SmoothScrollProvider usa Lenis sobre `window` sem `wrapper` customizado,
+  // não há scroll-lock de CSS como fallback, e o ScrollTrigger de
+  // RotaMascote não define `scroller` — ambos escutam scroll nativo. Se o
+  // <SmoothScrollProvider> inteiro fosse removido do layout, o wheel nativo
+  // ainda avançaria window.scrollY e o ScrollTrigger ainda moveria o
+  // mascote, e as duas asserções abaixo passariam do mesmo jeito sem o
+  // Lenis existir. A classe + o scrollY, juntos, estabelecem "o Lenis está
+  // montado E o scroll avança" — não isolam especificamente o binding
+  // gsap.ticker.add(tick) → lenis.raf(), e não devem ser lidos como se
+  // provassem isso.
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.classList.contains("lenis")), {
+      timeout: 3_000,
+    })
+    .toBe(true);
+
+  const alvo = await localizarSecaoDaRota(page);
+  expect(alvo).not.toBeNull();
+
+  const antes = await lerTransform(mascote);
+  const scrollAntes = await page.evaluate(() => window.scrollY);
+
+  await rolarAteOMeioDaRota(page, alvo!);
+
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 8_000 })
+    .toBeGreaterThan(scrollAntes);
+
+  // O scrub do ScrollTrigger (scrub: 1) converge suavemente até o progresso
+  // alvo; poll em vez de sleep fixo — mais rápido quando a máquina está
+  // livre, sem flakar quando não está.
+  await expect.poll(() => lerTransform(mascote), { timeout: 8_000 }).not.toBe(antes);
+
+  const depois = await lerTransform(mascote);
+  expect(depois).not.toBeNull();
 });
 ```
 
