@@ -1,84 +1,36 @@
-import { describe, it, expect } from "vitest";
-import {
-  getCategorias, getProgramacao, getHorarios, getDepoimentos, getConteudo,
-} from "@/lib/conteudo";
+import { describe, it, expect, vi } from "vitest";
 
-describe("getCategorias", () => {
-  it("devolve as 6 categorias do spec, na ordem", async () => {
-    const cats = await getCategorias();
-    expect(cats.map((c) => c.nome)).toEqual([
-      "Burgers", "Espetinhos", "Carnes Nobres", "Petiscos", "Drinks", "Sobremesas",
-    ]);
+// `lib/supabase/servidor.ts` valida NEXT_PUBLIC_SUPABASE_* no topo do modulo,
+// de proposito — o contrato esta em tests/unit/supabaseConfig.test.ts. Como a
+// fachada agora importa aquele modulo, importa-la aqui explodiria: a suite
+// unitaria roda offline e sem .env.local.
+//
+// vi.hoisted roda antes dos imports, entao os valores sinteticos abaixo ja
+// estao no ambiente quando a fachada e avaliada. Nenhum teste deste arquivo
+// faz rede: porOrdem e ativos sao funcoes puras, e as cinco funcoes get* sao
+// exercidas contra o banco real em tests/integracao/conteudo.test.ts.
+vi.hoisted(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://teste.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "chave-de-teste";
+});
+
+import { porOrdem, ativos } from "@/lib/conteudo";
+
+describe("porOrdem", () => {
+  it("ordena crescente pelo campo ordem", () => {
+    const itens = [{ ordem: 3 }, { ordem: 1 }, { ordem: 2 }];
+    expect([...itens].sort(porOrdem).map((i) => i.ordem)).toEqual([1, 2, 3]);
   });
 
-  it("omite categorias inativas", async () => {
-    const cats = await getCategorias();
-    // O seed inclui "chopp" (ativo: false) exatamente para este teste: sem
-    // uma linha inativa de verdade, `every(ativo)` passa mesmo se o filtro
-    // de getCategorias() for apagado.
-    expect(cats.find((c) => c.slug === "chopp")).toBeUndefined();
-    expect(cats.every((c) => c.ativo)).toBe(true);
+  it("não muda a ordem de itens com o mesmo valor", () => {
+    const a = { ordem: 1, id: "a" }, b = { ordem: 1, id: "b" };
+    expect([a, b].sort(porOrdem).map((i) => i.id)).toEqual(["a", "b"]);
   });
 });
 
-describe("getHorarios", () => {
-  it("devolve os 7 dias da semana", async () => {
-    expect(await getHorarios()).toHaveLength(7);
-  });
-
-  it("marca segunda como fechado", async () => {
-    const seg = (await getHorarios()).find((h) => h.diaSemana === 1)!;
-    expect(seg.fechado).toBe(true);
-  });
-
-  it("abre terça às 14h e fecha às 22h", async () => {
-    const ter = (await getHorarios()).find((h) => h.diaSemana === 2)!;
-    expect(ter).toMatchObject({ abre: "14:00", fecha: "22:00", fechado: false });
-  });
-
-  it("fecha sábado às 03h da manhã seguinte", async () => {
-    const sab = (await getHorarios()).find((h) => h.diaSemana === 6)!;
-    expect(sab).toMatchObject({ abre: "16:00", fecha: "03:00" });
-  });
-
-  it("ordena com a semana começando na segunda", async () => {
-    // Sem `.sort()` aqui: getHorarios() já promete devolver ordenado por
-    // `ordem` (ver Task 2 do plano). Ordenar de novo no teste mascarava um
-    // `.sort()` apagado dentro de getHorarios() — o teste passava do mesmo
-    // jeito porque ele mesmo reordenava o resultado antes de comparar.
-    const dias = (await getHorarios()).map((h) => h.diaSemana);
-    expect(dias).toEqual([1, 2, 3, 4, 5, 6, 0]);
-  });
-});
-
-describe("getConteudo", () => {
-  it("traz o contato real do estabelecimento", async () => {
-    const c = await getConteudo();
-    expect(c.telefone).toBe("(24) 3364-5253");
-    expect(c.endereco).toBe("Av. Júlio Maria, 235 — Centro");
-    expect(c.cep).toBe("23900-504");
-    expect(c.instagram).toBe("@nbrasaangra");
-  });
-
-  it("nasce com a campanha desligada", async () => {
-    expect((await getConteudo()).campanhaAtiva).toBe(false);
-  });
-});
-
-describe("getProgramacao e getDepoimentos", () => {
-  it("trazem os quatro dias temáticos, ordenados", async () => {
-    expect((await getProgramacao()).map((i) => i.titulo)).toEqual([
-      "Noite do Espetinho", "Burger Preço Único", "DJ na Casa", "Tarde na Orla",
-    ]);
-  });
-
-  it("trazem depoimentos ativos com nota entre 1 e 5", async () => {
-    const d = await getDepoimentos();
-    // O seed inclui "d4" (ativo: false) exatamente para este teste: sem um
-    // depoimento inativo de verdade, `every(ativo)` passa mesmo se o filtro
-    // de getDepoimentos() for apagado.
-    expect(d.find((x) => x.id === "d4")).toBeUndefined();
-    expect(d.length).toBeGreaterThan(0);
-    expect(d.every((x) => x.nota >= 1 && x.nota <= 5 && x.ativo)).toBe(true);
+describe("ativos", () => {
+  it("mantém apenas itens com ativo true", () => {
+    const itens = [{ ativo: true, id: "x" }, { ativo: false, id: "y" }];
+    expect(itens.filter(ativos).map((i) => i.id)).toEqual(["x"]);
   });
 });

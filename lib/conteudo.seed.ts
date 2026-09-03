@@ -5,29 +5,29 @@ import type {
 export const categoriasSeed: Categoria[] = [
   { slug: "burgers", nome: "Burgers", kicker: "O mais pedido da casa",
     descricao: "Blend suculento selado na chapa, pão com a marca da casa e a nossa geleia de pimenta que vira assunto na mesa.",
-    fotoPath: null, ordem: 1, ativo: true },
+    fotoPath: null, ordem: 1, ativo: true, destaque: true },
   { slug: "espetinhos", nome: "Espetinhos", kicker: "Combina com chopp gelado",
     descricao: "Cortes selecionados e grelhados, farofa artesanal e vinagrete fresquinho. Simples, generoso e perfeito com chopp.",
-    fotoPath: null, ordem: 2, ativo: true },
+    fotoPath: null, ordem: 2, ativo: true, destaque: false },
   { slug: "carnes-nobres", nome: "Carnes Nobres", kicker: "Nossa porção premium",
     descricao: "Iscas de carne nobre na chapa, fritas douradas e molho de blue cheese cremoso. Porção farta servida na tábua.",
-    fotoPath: null, ordem: 3, ativo: true },
+    fotoPath: null, ordem: 3, ativo: true, destaque: false },
   { slug: "petiscos", nome: "Petiscos", kicker: "Feito para compartilhar",
     descricao: "Porções fartas para dividir (ou não): carne na chapa, fritas douradas e acompanhamentos que ninguém deixa sobrar.",
-    fotoPath: null, ordem: 4, ativo: true },
+    fotoPath: null, ordem: 4, ativo: true, destaque: false },
   { slug: "drinks", nome: "Drinks", kicker: "Autorais da casa",
     descricao: "Coquetelaria autoral com gin, frutas frescas e especiarias. Bonito de ver, difícil de tomar só um.",
-    fotoPath: null, ordem: 5, ativo: true },
+    fotoPath: null, ordem: 5, ativo: true, destaque: false },
   { slug: "sobremesas", nome: "Sobremesas", kicker: "O final perfeito",
     descricao: "Petit gâteau com recheio quente escorrendo e sorvete cremoso. O final feliz que a sua noite merece.",
-    fotoPath: null, ordem: 6, ativo: true },
+    fotoPath: null, ordem: 6, ativo: true, destaque: false },
   // Inativa de propósito: dobra como fixture do painel de admin (ex.: testar
   // que "ativo=false" some da home) e registra uma categoria que o mockup
   // inicial exibiu no lugar de Carnes Nobres/Sobremesas (ver §10 do spec) —
   // não adotada na versão final, mas mantida aqui em vez de apagada.
   { slug: "chopp", nome: "Chopp", kicker: "Descontinuada nesta versão",
     descricao: "Categoria do mockup inicial, substituída por Carnes Nobres e Sobremesas na versão final do spec.",
-    fotoPath: null, ordem: 7, ativo: false },
+    fotoPath: null, ordem: 7, ativo: false, destaque: false },
 ];
 
 export const programacaoSeed: ItemProgramacao[] = [
