@@ -63,6 +63,29 @@ revoke all on function public.e_admin() from public, anon;
 grant execute on function public.e_admin() to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- REENTRANCIA — remove as policies destas cinco tabelas antes de recria-las.
+--
+-- Existe porque esta migration ja foi aplicada uma vez pela metade: as
+-- CAMADAS 1 e 2 pegaram, a 3 e as policies nao. O resultado foi RLS ligado
+-- sem nenhuma policy, ou seja, banco trancado — anon lia zero linhas ate de
+-- `horarios`, cuja policy e `using (true)`. Sem esta guarda, reaplicar o
+-- arquivo inteiro falharia no primeiro `create policy` ja existente e
+-- deixaria o banco pela metade de novo.
+-- ---------------------------------------------------------------------------
+do $$
+declare r record;
+begin
+  for r in
+    select policyname, tablename
+      from pg_policies
+     where schemaname = 'public'
+       and tablename in ('categorias','programacao','horarios','depoimentos','conteudo')
+  loop
+    execute format('drop policy %I on public.%I', r.policyname, r.tablename);
+  end loop;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- POLICIES DE LEITURA — públicas, restritas a linhas ativas.
 -- ---------------------------------------------------------------------------
 create policy "leitura publica de categorias ativas"
