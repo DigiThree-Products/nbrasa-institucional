@@ -34,7 +34,8 @@ export async function Hero() {
   const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
 
   return (
-    <section className="mx-auto max-w-[1280px] px-6 pb-10 pt-16">
+    <section className="flex min-h-[calc(100dvh-74px)] items-center">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-16">
       <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_.85fr]">
         <div>
           <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">
@@ -57,6 +58,7 @@ export async function Hero() {
 
         {/* A foto da fachada entra quando o cliente enviar o arquivo limpo (§10.2 do spec). */}
         <div className="aspect-[4/3.2] rotate-2 rounded-[26px] border-[3px] border-fumaca bg-fumaca shadow-[0_30px_70px_rgba(0,0,0,.55)]" />
+      </div>
       </div>
     </section>
   );

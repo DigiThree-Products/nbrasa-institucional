@@ -4,7 +4,8 @@ import { Chama } from "@/components/ui/Chama";
 export async function ChipsCategorias() {
   const cats = await getCategorias();
   return (
-    <section className="mx-auto max-w-[1280px] px-6 pb-3 pt-12">
+    <section className="flex min-h-dvh items-center">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-16">
       <ul className="flex list-none gap-4 overflow-x-auto p-1 pb-5">
         {cats.map((c) => (
           <li key={c.slug} className="flex-none">
@@ -19,6 +20,7 @@ export async function ChipsCategorias() {
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }

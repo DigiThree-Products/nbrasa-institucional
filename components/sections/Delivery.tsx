@@ -13,7 +13,7 @@ const PARADAS = [
 export async function Delivery() {
   const c = await getConteudo();
   return (
-    <section id="delivery" className="relative overflow-hidden pt-16">
+    <section id="delivery" className="relative min-h-[140dvh] overflow-hidden pt-16">
       <div className="mx-auto max-w-[760px] px-6 text-center">
         <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">Delivery</p>
         <h2 className="mt-3 font-display text-[clamp(2.6rem,8.4vw,6.4rem)] uppercase leading-[.86]">

@@ -11,7 +11,8 @@ const VAOS = [
 export async function Cardapio() {
   const cats = await getCategorias();
   return (
-    <section id="cardapio" className="mx-auto max-w-[1280px] px-6 py-20">
+    <section id="cardapio" className="flex min-h-dvh items-center">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
       <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
         <h2 className="text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
           Feito na hora,<br />servido no capricho
@@ -36,6 +37,7 @@ export async function Cardapio() {
             </article>
           </Reveal>
         ))}
+      </div>
       </div>
     </section>
   );

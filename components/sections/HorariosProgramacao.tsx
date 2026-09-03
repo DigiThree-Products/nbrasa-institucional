@@ -9,7 +9,7 @@ export async function HorariosProgramacao() {
   const faixas = agruparHorarios(horarios);
 
   return (
-    <section id="programacao" className="bg-creme text-carvao">
+    <section id="programacao" className="flex min-h-dvh items-center bg-creme text-carvao">
       <div className="mx-auto max-w-[1280px] px-6 py-20">
         <div className="grid gap-14 md:grid-cols-2">
           <div>
