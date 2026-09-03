@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "test:integracao": "dotenv -e .env.local -- vitest run --config vitest.integracao.config.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
@@ -32,6 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.1",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.25",
     "jsdom": "^30.0.1",
