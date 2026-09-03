@@ -47,7 +47,7 @@ describe("Reveal", () => {
 
     await waitFor(() => expect(fromToMock).toHaveBeenCalled());
 
-    const vars = fromToMock.mock.calls[0][2] as Record<string, unknown>;
+    const vars = (fromToMock.mock.calls[0] as unknown[])[2] as Record<string, unknown>;
     expect(vars.immediateRender).toBe(false);
   });
 

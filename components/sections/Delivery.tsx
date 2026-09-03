@@ -28,7 +28,6 @@ export async function Delivery() {
 
       <div className="flex flex-wrap justify-center gap-3 px-6 pb-20">
         <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
-        <Botao href={c.ifoodUrl} variante="fantasma">Pedir no iFood</Botao>
       </div>
     </section>
   );

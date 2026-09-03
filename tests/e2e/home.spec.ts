@@ -34,7 +34,6 @@ async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => sessionStorage.setItem("nbrasa:preloader", "1"));
   await page.goto("/");
 });
 

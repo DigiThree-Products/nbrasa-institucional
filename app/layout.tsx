@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Anton } from "next/font/google";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
-import { Preloader } from "@/components/motion/Preloader";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -50,7 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${corpo.variable} ${display.variable}`}>
       <body>
         <DadosEstruturados />
-        <Preloader />
         <a href="#conteudo"
            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-brasa focus:px-4 focus:py-2">
           Pular para o conteúdo

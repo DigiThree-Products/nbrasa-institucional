@@ -44,7 +44,6 @@ export type Conteudo = {
   cidadeUf: string;
   cep: string;
   whatsappUrl: string;
-  ifoodUrl: string;
   instagram: string;
   campanhaAtiva: boolean;
   campanhaTitulo: string;

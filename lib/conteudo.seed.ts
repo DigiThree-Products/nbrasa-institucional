@@ -82,7 +82,6 @@ export const conteudoSeed: Conteudo = {
   cidadeUf: "Angra dos Reis, RJ",
   cep: "23900-504",
   whatsappUrl: "https://wa.me/552433645253",
-  ifoodUrl: "https://www.ifood.com.br/",
   instagram: "@nbrasaangra",
   campanhaAtiva: false,
   campanhaTitulo: "",

@@ -47,7 +47,6 @@ export async function Hero() {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
-            <Botao href={c.ifoodUrl} variante="fantasma">Delivery iFood</Botao>
           </div>
 
           <div className="mt-9 flex flex-wrap gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza">
