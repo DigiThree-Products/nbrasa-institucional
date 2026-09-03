@@ -28,5 +28,7 @@ nbrasa-*.png
 # artefato de build do TypeScript
 *.tsbuildinfo
 
-# plano de implementacao: fica local, fora do repositorio
+# artefatos de processo: ficam locais, fora do repositorio
 docs/superpowers/plans/
+docs/superpowers/decisoes/
+docs/superpowers/specs/mockup-direcao-visual.html

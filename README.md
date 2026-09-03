@@ -7,8 +7,8 @@ semeados em `lib/conteudo.seed.ts`, atrás de uma única fachada tipada
 plano seguinte, sem que nenhuma seção da página precise mudar.
 
 Ver `docs/superpowers/specs/2026-09-02-site-nbrasa-design.md` para o
-documento de design completo e `docs/superpowers/plans/2026-09-02-site-publico-nbrasa.md`
-para o plano de implementação.
+documento de design completo: paleta, tipografia, modelo de dados, orçamento
+de performance e critérios de acessibilidade.
 
 ## Rodando localmente
 
