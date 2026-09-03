@@ -15,4 +15,7 @@ export function unstable_cache<A extends unknown[], R>(
   return cb;
 }
 
-export function revalidateTag(_tag: string): void {}
+export function revalidateTag(tag: string): void {
+  // Mantem a assinatura real do next/cache; o corpo e vazio de proposito.
+  void tag;
+}
