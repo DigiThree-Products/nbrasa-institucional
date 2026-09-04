@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   getCategorias, getProgramacao, getHorarios, getDepoimentos, getConteudo,
 } from "@/lib/conteudo";
+import { conteudoSeed } from "@/lib/conteudo.seed";
 
 describe("fachada contra o banco real", () => {
   it("devolve as 6 categorias ativas na ordem", async () => {
@@ -25,10 +26,27 @@ describe("fachada contra o banco real", () => {
     expect(sab).toMatchObject({ abre: "16:00", fecha: "03:00" });
   });
 
-  it("devolve o contato real, com o travessão do endereço", async () => {
+  it("devolve o contato real, sem travessão no endereço", async () => {
     const c = await getConteudo();
     expect(c.telefone).toBe("(24) 3364-5253");
-    expect(c.endereco).toBe("Av. Júlio Maria, 235 — Centro");
+    expect(c.endereco).toBe("Av. Júlio Maria, 235, Centro");
+  });
+
+  it("devolve a copy do herói que está no seed", async () => {
+    const c = await getConteudo();
+    expect(c.heroTitulo).toBe(conteudoSeed.heroTitulo);
+    expect(c.heroSubtitulo).toBe(conteudoSeed.heroSubtitulo);
+  });
+
+  it("não tem travessão em nenhum texto servido", async () => {
+    const c = await getConteudo();
+    const depoimentos = (await getDepoimentos()).map((d) => d.texto);
+    const textos = [
+      c.heroTitulo, c.heroSubtitulo, c.endereco, c.cidadeUf,
+      c.depoimentosTitulo, c.horariosTitulo, ...depoimentos,
+    ];
+
+    expect(textos.filter((t) => t.includes("—"))).toEqual([]);
   });
 
   it("devolve os 4 itens de programação e os 3 depoimentos ativos", async () => {
