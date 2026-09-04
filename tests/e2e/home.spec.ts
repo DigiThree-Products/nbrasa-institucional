@@ -55,6 +55,86 @@ test("o h1 continua sendo a frase inteira, apesar das três linhas", async ({ pa
   await expect(h1).toHaveAccessibleName("Sua fome acende aqui.");
 });
 
+test("o fecho do título encosta na direita do foco, medindo a tinta", async ({ page }) => {
+  // Mede TINTA, e não a caixa de layout, de propósito. A linha do meio é
+  // desenhada e inclinada: o traço sangra para fora da caixa nos dois lados,
+  // e o alinhamento que o desenho pede é o que se vê, não o que a caixa diz.
+  // O componente compensa isso com `ml` e `pr` no foco, o que faz as caixas
+  // ficarem DESALINHADAS de propósito. Um teste de caixa aqui reprovaria o
+  // acerto e aprovaria o erro, que foi exatamente o que aconteceu quando a
+  // fonte passou a ser inclinada.
+  const bordas = await page.locator("h1").evaluate((h1) => {
+    const caixa = (el: Element) => {
+      const faixa = document.createRange();
+      faixa.selectNodeContents(el);
+      const cx = [...faixa.getClientRects()].filter((c) => c.width > 0.5);
+      return { esq: Math.min(...cx.map((c) => c.left)) };
+    };
+    // actualBoundingBox* dá a extensão do traço desenhado, que é o que
+    // getClientRects não sabe: ele só conhece o avanço da fonte.
+    const ctx = document.createElement("canvas").getContext("2d")!;
+    const tinta = (el: Element) => {
+      const st = getComputedStyle(el);
+      ctx.font = `${st.fontStyle} ${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
+      if ("letterSpacing" in ctx) ctx.letterSpacing = st.letterSpacing;
+      const m = ctx.measureText((el.textContent ?? "").trim().toUpperCase());
+      return { recuo: m.actualBoundingBoxLeft, avanco: m.actualBoundingBoxRight };
+    };
+    const [abertura, foco, fecho] = [...h1.querySelectorAll(":scope > span")];
+    const dir = (el: Element) => caixa(el).esq + tinta(el).avanco;
+    const esq = (el: Element) => caixa(el).esq - tinta(el).recuo;
+    return {
+      focoDir: dir(foco), fechoDir: dir(fecho),
+      aberturaDir: dir(abertura), aberturaEsq: esq(abertura), focoEsq: esq(foco),
+    };
+  });
+
+  expect(Math.abs(bordas.focoDir - bordas.fechoDir)).toBeLessThan(1.5);
+  // as três linhas alinham à esquerda pela tinta, e não pela caixa
+  expect(Math.abs(bordas.focoEsq - bordas.aberturaEsq)).toBeLessThan(1.5);
+  // a premissa do `w-fit`: o foco é a linha mais larga, senão o h1 mede pela errada
+  expect(bordas.focoDir).toBeGreaterThan(bordas.aberturaDir);
+});
+
+test("o botão se encaixa na última linha do título, sem encostar no fecho", async ({ page }) => {
+  // A partir de `sm` o botão sobe para dentro da linha do fecho, no vão que
+  // ele deixou ao encostar na direita. O vão vale a largura do foco menos a
+  // do fecho, e os dois crescem em ritmos diferentes conforme o trecho do
+  // `clamp` que está ativo, então "cabe" não é garantido por construção: em
+  // viewport estreito o botão é mais largo que o vão, e por isso ele só sobe
+  // de `sm` para cima. Se alguém mexer na escala e o vão encolher, aqui os
+  // dois se sobrepõem, e sobreposição de link com texto não falha em teste
+  // nenhum, só fica feia e difícil de clicar.
+  const m = await page.evaluate(() => {
+    const h1 = document.querySelector("h1")!;
+    const caixa = (el: Element) => {
+      const faixa = document.createRange();
+      faixa.selectNodeContents(el);
+      const cx = [...faixa.getClientRects()].filter((c) => c.width > 0.5);
+      return {
+        esq: Math.min(...cx.map((c) => c.left)),
+        topo: Math.min(...cx.map((c) => c.top)),
+        base: Math.max(...cx.map((c) => c.bottom)),
+      };
+    };
+    const fecho = caixa([...h1.querySelectorAll(":scope > span")][2]);
+    const b = h1.parentElement!.querySelector("a")!.getBoundingClientRect();
+    return { fecho, botao: { dir: b.right, topo: b.top, base: b.bottom }, largura: window.innerWidth };
+  });
+
+  const naMesmaLinha = m.botao.topo < m.fecho.base && m.botao.base > m.fecho.topo;
+
+  if (m.largura >= 640) {
+    expect(naMesmaLinha).toBe(true);
+    // o vão precisa sobrar: encostar já é colisão
+    expect(m.botao.dir).toBeLessThan(m.fecho.esq);
+  } else {
+    // abaixo de `sm` o botão volta a ser bloco em fluxo, embaixo do título
+    expect(naMesmaLinha).toBe(false);
+    expect(m.botao.topo).toBeGreaterThan(m.fecho.base);
+  }
+});
+
 test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
   // Modo de falha observado duas vezes durante o desenvolvimento: basta um
   // caractere cru no data URI para o Chrome descartar a declaração inteira

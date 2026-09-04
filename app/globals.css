@@ -17,6 +17,11 @@
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
+  /* Fonte desenhada, so para a palavra dominante do heroi. Nao existe
+     equivalente de sistema para traco de marcador, entao o fallback e um
+     grotesco pesado: melhor uma massa parecida durante o swap do que um
+     cursivo fino, que mudaria a mancha inteira do bloco. */
+  --font-desenhada: var(--fonte-desenhada), "Arial Black", Impact, sans-serif;
 }
 
 /* CSS oficial do Lenis, obrigatório para o scroll suave funcionar */

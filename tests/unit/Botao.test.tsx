@@ -24,6 +24,17 @@ describe("Botao", () => {
     expect(screen.getByRole("link")).not.toHaveClass("bg-brasa");
   });
 
+  it("na variante escura, usa fundo carvão e texto branco", () => {
+    // O herói encaixou o botão dentro da última linha do título, a poucos
+    // pixels do "ACENDE". Em bg-brasa seriam duas massas do mesmo vermelho
+    // encostadas, e a pastilha competiria com a palavra em vez de apoiá-la.
+    render(<Botao href="#" variante="escuro">Pedir no WhatsApp</Botao>);
+    const link = screen.getByRole("link", { name: "Pedir no WhatsApp" });
+    expect(link).toHaveClass("bg-carvao");
+    expect(link).toHaveClass("text-branco");
+    expect(link).not.toHaveClass("bg-brasa");
+  });
+
   it("na variante clara, inverte para fundo branco e texto carvão", () => {
     // O botão sólido é bg-brasa: dentro da faixa vermelha da Delivery ele
     // sumiria no fundo. A variante clara existe só para superfície de marca

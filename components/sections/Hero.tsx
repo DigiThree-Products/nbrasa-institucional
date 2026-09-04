@@ -32,13 +32,63 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
  * corpos diferentes a elas criaria uma terceira hierarquia que o desenho não
  * pede. No topo do `clamp` a linha do meio tem 3,47 vezes este corpo, que é a
  * proporção pedida no desenho e o que os três valores preservam ao crescer.
+ *
+ * O valor em si não está aqui, está em `--corpo-apoio`, declarado na coluna
+ * de texto. É que ele governa duas coisas que precisam bater no pixel: o
+ * corpo destas linhas e a altura da faixa em que o botão do WhatsApp se
+ * encaixa, ao lado do fecho. Repetir o `clamp` nos dois lugares seria pedir
+ * para eles saírem de sincronia no primeiro ajuste de escala.
  */
-const APOIO =
-  "block leading-[1.1] tracking-[-.01em] " +
-  "text-[clamp(2.75rem,9.5vw,3.75rem)] lg:text-[clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)]";
+const APOIO = "block text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
+
+/**
+ * O fecho, que é o apoio encostado à direita.
+ *
+ * O alinhamento sai de `text-right` mais o `w-fit` do `h1`, e não de um
+ * recuo calculado. O `w-fit` faz o `h1` encolher até a largura do maior
+ * filho, que é sempre a linha do meio: "ACENDE" ocupa 2,24 vezes o próprio
+ * corpo e "SUA FOME" ocupa 2,91 vezes o dele, e a razão entre os dois corpos
+ * nunca chega perto de 2,91/2,24, nem no piso do `clamp`, que é onde ela é
+ * mais apertada (2,55). Então a borda direita do `h1` é a borda direita do
+ * "ACENDE", e encostar o fecho nela alinha os dois.
+ *
+ * Um recuo em `em` não serviria: o afastamento vale
+ * `2,24 · corpoDominante - 1,54 · corpoApoio`, e a razão entre os dois corpos
+ * muda conforme qual trecho do `clamp` está ativo, 3,48 no `vw` e no teto,
+ * 2,55 no piso. Um número só desalinharia em alguma faixa, e as três faixas
+ * mudam de lugar a cada ajuste de escala.
+ */
+const FECHO = APOIO + " text-right";
 
 /**
  * Corpo da linha 2, a palavra dominante.
+ *
+ * É a única linha desenhada, em Permanent Marker. As outras duas seguem na
+ * Owners XNarrow Black, reta e condensada, e o contraste entre traço de
+ * marcador e grotesco geométrico é justamente o efeito. A família não vem do
+ * moodboard, que só traz Owners e Hanken Grotesk: entrou por decisão de
+ * desenho.
+ *
+ * Não há `italic` aqui, e isso é deliberado. A inclinação já está no desenho
+ * da letra, e a oblíqua sintética do navegador é uma matriz de cisalhamento
+ * aplicada por cima: numa fonte já inclinada e de contorno irregular, ela
+ * some com o gesto e deixa o traço torto em vez de inclinado.
+ *
+ * Foi escolhida contra brush scripts como Kaushan e Yellowtail, que também
+ * leem como desenhadas, porque aquelas são a mesma voz do wordmark manuscrito
+ * da marca. Repetir o gesto do logo na manchete faria as duas peças
+ * competirem; o marcador é uma mão diferente, mais crua, e convive.
+ *
+ * A troca de família obrigou a refazer os três números, e não só a classe.
+ * Medido no navegador, "ACENDE" ocupa 3,78 vezes o próprio corpo
+ * contra 2,24 na Owners XNarrow Black. Os valores abaixo são os da versão em
+ * Owners multiplicados pelo inverso desse fator, então a palavra ocupa
+ * exatamente a mesma largura de antes em qualquer viewport.
+ *
+ * O número medido é a largura da TINTA, não a da caixa. Numa letra reta os
+ * dois são quase o mesmo e a distinção não aparece; numa inclinada, não, e
+ * dimensionar pela caixa já fez o "E" final entrar dentro da foto em 1024px
+ * sem nenhuma conta acusar.
  *
  * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
  * layouts diferentes: empilhado, com a coluna inteira à disposição, e em duas
@@ -46,37 +96,31 @@ const APOIO =
  * parede mais dura nas duas faixas, e medido isso custava 26% de corpo entre
  * 620px e 1000px, onde parede nenhuma existe.
  *
- * O `min(20vw,32vh)` da regra do `lg` resolve duas paredes que puxam para
- * lados opostos, e nenhuma das duas é onde se procuraria.
+ * O `min(11.8vw,18.9vh)` da regra do `lg` resolve duas paredes que puxam para lados
+ * opostos, e nenhuma das duas é onde se procuraria.
  *
  * A parede de largura não é a tela larga: é `1024px`, onde o `lg` entra e a
  * coluna do texto despenca de `100%` para `52%`. Medido ali: o texto começa
  * em 24px e a foto em 512px, então sobram 488px úteis, não os 507px da
- * coluna, que já invade a foto em 20px. "ACENDE" ocupa 2,24 vezes o próprio
- * corpo na Owners XNarrow, então o teto em 1024px é 216px. Em 1440px, com o
- * contêiner centralizado, sobram 616px e o teto sobe para 275px. Um teto fixo
- * teria que atender o pior caso e desperdiçaria 60px de corpo na tela larga,
- * que é onde o herói é mais visto. Os `20vw` acompanham essa parede: ela vale
- * `0,5v - 24` e o corpo máximo `0,223v`, curvas quase paralelas.
+ * coluna, que já invade a foto em 20px. Em 1440px, com o contêiner
+ * centralizado, sobram 616px. Um teto fixo teria que atender o pior caso e
+ * desperdiçaria corpo na tela larga, que é onde o herói é mais visto.
  *
- * A parede de altura é o botão do WhatsApp. Quando o conteúdo transborda o
- * `min-height`, cada pixel de corpo aqui empurra o CTA para baixo em 0,92px,
- * e ele já vivia no limite do notebook 1366x768. Os `32vh` amarram o título à
- * altura da janela: resolvendo a desigualdade, o botão continua acima da
- * dobra para qualquer viewport a partir de 623px, um pouco melhor que os
- * 631px de antes. Em janela baixa o título encolhe sozinho, que é o
- * comportamento certo, porque ali o problema é altura e não largura.
+ * A parede de altura é o botão do WhatsApp, que mora encaixado na terceira
+ * linha: tudo que cresce aqui empurra o bloco para baixo. O `vh` é o `32vh`
+ * da versão em Owners convertido pelo mesmo fator, para o comportamento em
+ * janela baixa ficar igual ao que já estava medido.
  *
- * O teto de `16rem` para em 256px e deixa 43px de folga na tela larga, para a
- * fonte de fallback durante o `swap` e para o dono cadastrar uma palavra mais
- * larga pelo painel. No mobile nada disso pega: `20vw` em 390px dá 78px, bem
- * abaixo do piso de `7rem`, então quem manda lá é o piso e o `vh` nunca entra
- * na conta, o que também evita o título respirar junto com a barra de
- * endereço do celular.
+ * O `ml` e o `pr` são compensação ótica, e existem porque a caixa de layout e
+ * a tinta não são a mesma coisa numa letra inclinada. O alinhamento à
+ * esquerda das três linhas e o fecho encostado na direita são pedidos do
+ * desenho, e sem isto ficavam certos na conta e errados na tela, que é o tipo
+ * de erro que nenhum teste de caixa pega. Os dois valores estão em `em` do
+ * próprio foco, então acompanham a escala sozinhos.
  */
 const DOMINANTE =
-  "block leading-[.92] tracking-[-.02em] text-brasa " +
-  "text-[clamp(7rem,27vw,13rem)] lg:text-[clamp(7rem,min(20vw,32vh),16rem)]";
+  "block font-desenhada leading-[.92] tracking-[-.02em] text-brasa ml-[.03em] pr-[.046em] " +
+  "text-[clamp(4.14rem,16vw,7.7rem)] lg:text-[clamp(4.14rem,min(11.8vw,18.9vh),9.45rem)]";
 
 /**
  * O título do herói em três linhas, uma palavra por linha, alinhadas à
@@ -113,7 +157,7 @@ function TituloHero({ texto }: { texto: string }) {
     <>
       {abertura && <span className={APOIO}>{abertura}{" "}</span>}
       {foco && <span className={DOMINANTE}>{foco}{" "}</span>}
-      {fecho && <span className={APOIO}>{fecho}</span>}
+      {fecho && <span className={FECHO}>{fecho}</span>}
     </>
   );
 }
@@ -163,18 +207,37 @@ export async function Hero() {
           O mobile fica em `py-16`: lá a foto vem em fluxo logo abaixo do
           texto e o respiro maior é o que separa os dois. */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)] lg:py-4">
-        <div className="lg:max-w-[52%]">
+        {/* `--corpo-apoio` mora aqui, e não no `APOIO`, porque dois elementos
+            precisam do mesmo número: o corpo das linhas 1 e 3 do título e a
+            altura da faixa onde o botão se encaixa, logo abaixo. */}
+        <div className="[--corpo-apoio:clamp(2.75rem,9.5vw,3.75rem)] lg:[--corpo-apoio:clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)] lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
-          <h1 className="mt-4 text-balance font-display uppercase">
+          <h1 className="mt-4 w-fit font-display uppercase">
             <TituloHero texto={c.heroTitulo} />
           </h1>
-          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
+          {/* O botão sobe para dentro da última linha do título, no vão que o
+              fecho deixou ao encostar na direita. A faixa tem exatamente a
+              altura dessa linha, `1.1 * --corpo-apoio`, que é o `line-height`
+              dela, e o recuo negativo é o mesmo número, então o botão ocupa a
+              linha em vez de vir depois dela. O `items-center` o centra na
+              faixa, e como os dois valores saem da mesma variável, mexer na
+              escala do título continua alinhando os dois sozinho.
+
+              Só a partir de `sm`. Medido: abaixo de uns 450px de viewport o
+              vão entre a esquerda do "ACENDE" e o "AQUI." fica menor que o
+              próprio botão, então ali ele volta a ser um bloco em fluxo.
+
+              O botão vem antes do subtítulo no DOM, e não só na tela: com
+              `order` do flex a ordem de leitura ficaria diferente da ordem
+              visual, que é o tipo de descasamento que leitor de tela paga. */}
+          <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-[calc(-1.1*var(--corpo-apoio))] sm:h-[calc(1.1*var(--corpo-apoio))]">
+            <Botao href={c.whatsappUrl} variante="escuro">Pedir no WhatsApp</Botao>
           </div>
+
+          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
 
           {/* Grade, e não flex-wrap: as três faixas somam 586px numa coluna de
               641px e só cabem numa linha se o vão encolher, com 7px de folga.
