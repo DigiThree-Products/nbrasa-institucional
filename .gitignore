@@ -17,6 +17,11 @@ dist/
 .DS_Store
 Thumbs.db
 
+# fotos originais enviadas pelo cliente (~34 MB). Ficam locais pelo mesmo
+# motivo do material de marca: o que o site serve sao os derivados web em
+# public/, gerados por scripts/gerar-fachada.py.
+fotos-site/
+
 # material de marca: arquivos-fonte pesados (~85 MB no total).
 # Ficam locais de propósito — inflariam o clone permanentemente.
 # Ver CLAUDE.md para o inventário e como abrir cada um.

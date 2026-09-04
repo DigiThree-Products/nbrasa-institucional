@@ -41,6 +41,19 @@ test("mostra o título do herói", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("acende");
 });
 
+test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
+  // Modo de falha observado duas vezes durante o desenvolvimento: basta um
+  // caractere cru no data URI para o Chrome descartar a declaração inteira
+  // — sem erro no console, sem aviso. A máscara vira `none` e a foto aparece
+  // como um retângulo comum, que é fácil de não notar numa revisão rápida.
+  const mascara = await page
+    .locator(".costura-chama")
+    .evaluate((el) => getComputedStyle(el).maskImage || getComputedStyle(el).webkitMaskImage);
+
+  expect(mascara).not.toBe("none");
+  expect(mascara).toContain("data:image/svg+xml");
+});
+
 test("tem exatamente um h1", async ({ page }) => {
   await expect(page.locator("h1")).toHaveCount(1);
 });
