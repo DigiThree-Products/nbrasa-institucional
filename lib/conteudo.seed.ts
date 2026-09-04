@@ -62,7 +62,7 @@ export const horariosSeed: Horario[] = [
 
 export const depoimentosSeed: Depoimento[] = [
   { id: "d1", nota: 5, autor: "Phellipe K.", ordem: 1, ativo: true,
-    texto: "Lugar perfeito para fazer um lanche de qualidade! Experimentei o hambúrguer com geleia de pimenta — simplesmente maravilhoso." },
+    texto: "Lugar perfeito para fazer um lanche de qualidade! Experimentei o hambúrguer com geleia de pimenta, simplesmente maravilhoso." },
   { id: "d2", nota: 5, autor: "Roni L.", ordem: 2, ativo: true,
     texto: "Pratos excelentes, chopp gelado e ótimo atendimento. Voltarei com certeza." },
   { id: "d3", nota: 5, autor: "Cliente Google", ordem: 3, ativo: true,
@@ -70,7 +70,7 @@ export const depoimentosSeed: Depoimento[] = [
   // Inativo de propósito: fixture do painel de admin (esconder um depoimento
   // sem apagar o registro) e prova de que getDepoimentos() de fato filtra.
   { id: "d4", nota: 2, autor: "Depoimento antigo", ordem: 4, ativo: false,
-    texto: "Registro de antes da reforma da casa, mantido desativado — não deve aparecer no site." },
+    texto: "Registro de antes da reforma da casa, mantido desativado, não deve aparecer no site." },
 ];
 
 export const conteudoSeed: Conteudo = {
@@ -78,7 +78,7 @@ export const conteudoSeed: Conteudo = {
   heroSubtitulo:
     "Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.",
   telefone: "(24) 3364-5253",
-  endereco: "Av. Júlio Maria, 235 — Centro",
+  endereco: "Av. Júlio Maria, 235, Centro",
   cidadeUf: "Angra dos Reis, RJ",
   cep: "23900-504",
   whatsappUrl: "https://wa.me/552433645253",

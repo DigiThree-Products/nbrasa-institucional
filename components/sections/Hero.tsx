@@ -26,8 +26,8 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
  * Quebra `heroTitulo` em duas linhas com a última palavra destacada em
- * `text-brasa` — a apresentação exata do mockup ("A fome" / "acende
- * aqui.") — mas dirigida pelas palavras do dado, não hardcoded na JSX.
+ * `text-brasa`, a apresentação exata do mockup ("A fome" / "acende
+ * aqui."), mas dirigida pelas palavras do dado, não hardcoded na JSX.
  * Assim o painel de admin continua podendo trocar o texto do herói: a
  * última palavra sempre ganha o destaque, e o resto se distribui em duas
  * linhas de tamanho parecido, reproduzindo a quebra atual para o texto de
@@ -99,7 +99,7 @@ export async function Hero() {
       {/* A foto sangra até a borda direita e a esquerda dela é recortada pela
           chama da logo. No mobile ela fica em fluxo, abaixo do texto, e a
           costura gira: a chama sobe do topo da foto em direção ao título.
-          Depois do texto no DOM de propósito — é a ordem de leitura no
+          Depois do texto no DOM de propósito, é a ordem de leitura no
           mobile; no desktop o posicionamento absoluto ignora a ordem. */}
       <div
         className="costura-chama relative aspect-square w-full lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-auto lg:left-[var(--costura-inicio)]"
@@ -111,7 +111,7 @@ export async function Hero() {
           {/*
             <img> em vez de next/image de propósito. O next/image traz um
             componente de cliente que subiu a primeira carga de 122 kB para
-            127 kB, contra um orçamento de 130 kB — caro para uma única foto
+            127 kB, contra um orçamento de 130 kB, caro para uma única foto
             estática. Assim os arquivos saem direto do CDN, sem passar pelo
             otimizador da Vercel, que acrescenta latência na primeira
             requisição justamente do elemento candidato a LCP.

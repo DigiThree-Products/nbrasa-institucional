@@ -22,7 +22,7 @@ function lerTransform(mascote: Locator) {
 /**
  * Rola em passos, via wheel real, até o meio da seção da rota. A distância é
  * contada a partir do topo real da página (não só da altura da própria
- * seção) — em telas estreitas o cardápio empilhado antes dela é bem mais
+ * seção), em telas estreitas o cardápio empilhado antes dela é bem mais
  * alto, então essa distância muda por viewport.
  */
 async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
@@ -44,7 +44,7 @@ test("mostra o título do herói", async ({ page }) => {
 test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
   // Modo de falha observado duas vezes durante o desenvolvimento: basta um
   // caractere cru no data URI para o Chrome descartar a declaração inteira
-  // — sem erro no console, sem aviso. A máscara vira `none` e a foto aparece
+  //, sem erro no console, sem aviso. A máscara vira `none` e a foto aparece
   // como um retângulo comum, que é fácil de não notar numa revisão rápida.
   const mascara = await page
     .locator(".costura-chama")
@@ -75,7 +75,7 @@ test("mostra os horários agrupados corretamente", async ({ page }) => {
   // "Terça a quinta" aparece duas vezes na página (resumo do herói e lista
   // de horários na faixa creme); .first() evita a falha do strict mode.
   await expect(page.getByText("Terça a quinta").first()).toBeVisible();
-  await expect(page.getByText("16h — 03h").first()).toBeVisible();
+  await expect(page.getByText("16h às 03h").first()).toBeVisible();
 });
 
 test("expõe os cinco bairros da rota de entrega", async ({ page }) => {
@@ -94,7 +94,7 @@ test.describe("com movimento reduzido", () => {
   // uma reprodução isolada (config mínima, sem nenhuma customização deste
   // projeto) mostrou que essa opção de contexto não faz
   // window.matchMedia("(prefers-reduced-motion: reduce)") reportar `true`
-  // neste ambiente — fica `false` mesmo com o contexto configurado.
+  // neste ambiente, fica `false` mesmo com o contexto configurado.
   // page.emulateMedia() aplica de fato (confirmado na mesma reprodução), e
   // é o que usamos aqui. Por isso este describe navega de novo, depois de
   // emular: RotaMascote só lê a preferência uma vez, no mount, e o
@@ -114,7 +114,7 @@ test.describe("com movimento reduzido", () => {
   // animação roda; este prova que o guard de reduced-motion realmente a
   // desliga. Sem este teste, o de cima passaria (e passou, numa versão
   // anterior) mesmo que o matchMedia("(prefers-reduced-motion: reduce)")
-  // de RotaMascote.tsx fosse apagado — nada aqui checava o comportamento
+  // de RotaMascote.tsx fosse apagado, nada aqui checava o comportamento
   // que a asserção alegava cobrir.
   test("o mascote não se move com prefers-reduced-motion", async ({ page }) => {
     const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
@@ -128,7 +128,7 @@ test.describe("com movimento reduzido", () => {
     await rolarAteOMeioDaRota(page, alvo!);
 
     // Asserção negativa: não dá para "esperar até nunca acontecer". Uma
-    // espera fixa é legítima aqui, mas curta — o bastante para o
+    // espera fixa é legítima aqui, mas curta, o bastante para o
     // ScrollTrigger reagir *se* o guard não estivesse funcionando (o teste
     // irmão, com o mesmo scroll, converge bem dentro de poucos segundos).
     await page.waitForTimeout(2_500);
@@ -149,25 +149,25 @@ test("o menu mobile abre e fecha", async ({ page, viewport }) => {
 // Guarda de regressão adicional (não faz parte da lista do brief): a Task 6
 // nunca viu o SmoothScrollProvider rodar num browser real, e a animação do
 // mascote (Task 9) só foi conferida manualmente uma vez. Aqui confirmamos
-// barato que o GSAP MotionPath realmente está mexendo o mascote ao rolar —
+// barato que o GSAP MotionPath realmente está mexendo o mascote ao rolar:
 // sem isso, uma regressão silenciosa no wiring do cliente não quebraria
 // nenhum teste automatizado.
 test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
   const mascote = page.locator('#delivery svg[viewBox="0 0 100 116"]');
   await expect(mascote).toBeAttached();
 
-  // Lenis adiciona a classe "lenis" a <html> ao montar — o mesmo gancho que
+  // Lenis adiciona a classe "lenis" a <html> ao montar, o mesmo gancho que
   // app/globals.css (linhas 19-21) usa para o CSS oficial do Lenis
   // funcionar (html.lenis, .lenis.lenis-smooth). Isso discrimina a presença
   // do Lenis de um jeito que window.scrollY, sozinho, não discrimina:
   // SmoothScrollProvider usa Lenis sobre `window` sem `wrapper` customizado,
   // não há scroll-lock de CSS como fallback, e o ScrollTrigger de
-  // RotaMascote não define `scroller` — ambos escutam scroll nativo. Se o
+  // RotaMascote não define `scroller`, ambos escutam scroll nativo. Se o
   // <SmoothScrollProvider> inteiro fosse removido do layout, o wheel nativo
   // ainda avançaria window.scrollY e o ScrollTrigger ainda moveria o
   // mascote, e as duas asserções abaixo passariam do mesmo jeito sem o
   // Lenis existir. A classe + o scrollY, juntos, estabelecem "o Lenis está
-  // montado E o scroll avança" — não isolam especificamente o binding
+  // montado E o scroll avança", não isolam especificamente o binding
   // gsap.ticker.add(tick) → lenis.raf(), e não devem ser lidos como se
   // provassem isso.
   await expect
@@ -189,7 +189,7 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
     .toBeGreaterThan(scrollAntes);
 
   // O scrub do ScrollTrigger (scrub: 1) converge suavemente até o progresso
-  // alvo; poll em vez de sleep fixo — mais rápido quando a máquina está
+  // alvo; poll em vez de sleep fixo, mais rápido quando a máquina está
   // livre, sem flakar quando não está.
   await expect.poll(() => lerTransform(mascote), { timeout: 8_000 }).not.toBe(antes);
 

@@ -13,7 +13,7 @@ describe("montarSchemaRestaurant", () => {
 
   it("inclui o endereço completo", () => {
     expect(schema.address).toMatchObject({
-      streetAddress: "Av. Júlio Maria, 235 — Centro",
+      streetAddress: "Av. Júlio Maria, 235, Centro",
       postalCode: "23900-504",
       addressCountry: "BR",
     });

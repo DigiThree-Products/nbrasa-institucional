@@ -21,7 +21,9 @@ const hhmm = (v: string) => `${v.padStart(5, "0").slice(0, 2)}h`;
 
 function texto(h: Horario): string {
   if (h.fechado || !h.abre || !h.fecha) return FECHADO;
-  return `${hhmm(h.abre)} — ${hhmm(h.fecha)}`;
+  // "às", e não travessão: o cliente pediu que ele não apareça em lugar
+  // nenhum do site.
+  return `${hhmm(h.abre)} às ${hhmm(h.fecha)}`;
 }
 
 const mesmoHorario = (a: Horario, b: Horario) => texto(a) === texto(b);
