@@ -57,9 +57,10 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
     ["brasa-escura sobre creme (rótulo pequeno no card)", BRASA_ESCURA, CREME],
     ["branco sobre brasa (texto em botão sólido)", BRANCO, BRASA],
     ["brasa sobre branco (traço e ícone, texto display grande)", BRASA, BRANCO],
-    // Carvão como superfície: sobrou a etiqueta de bairro da rota, que virou
-    // bg-carvao quando a faixa passou a vermelho e herda o texto branco.
-    ["branco sobre carvao (etiqueta de bairro na rota da Delivery)", BRANCO, CARVAO],
+    // Carvão como superfície: a etiqueta de bairro da rota, que virou
+    // bg-carvao quando a faixa passou a vermelho, e o botão do herói, que
+    // saiu do brasa para não disputar com o "ACENDE" logo acima dele.
+    ["branco sobre carvao (etiqueta de bairro e botão do herói)", BRANCO, CARVAO],
     // Faixa saturada: a Delivery deixou de ser carvão e virou o vermelho de
     // marca. Sobre ele o branco é a única cor que passa AA para texto normal.
     // Não existe cinza intermediário que passe sem chegar tão perto do branco

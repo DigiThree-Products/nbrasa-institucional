@@ -213,7 +213,7 @@ export async function Hero() {
               `order` do flex a ordem de leitura ficaria diferente da ordem
               visual, que é o tipo de descasamento que leitor de tela paga. */}
           <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-[calc(-1.1*var(--corpo-apoio))] sm:h-[calc(1.1*var(--corpo-apoio))]">
-            <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
+            <Botao href={c.whatsappUrl} variante="escuro">Pedir no WhatsApp</Botao>
           </div>
 
           <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
