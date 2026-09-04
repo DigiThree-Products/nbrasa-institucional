@@ -77,6 +77,45 @@ test("o fecho do título encosta na direita do foco", async ({ page }) => {
   expect(bordas.foco).toBeGreaterThan(bordas.abertura);
 });
 
+test("o botão se encaixa na última linha do título, sem encostar no fecho", async ({ page }) => {
+  // A partir de `sm` o botão sobe para dentro da linha do fecho, no vão que
+  // ele deixou ao encostar na direita. O vão vale a largura do foco menos a
+  // do fecho, e os dois crescem em ritmos diferentes conforme o trecho do
+  // `clamp` que está ativo, então "cabe" não é garantido por construção: em
+  // viewport estreito o botão é mais largo que o vão, e por isso ele só sobe
+  // de `sm` para cima. Se alguém mexer na escala e o vão encolher, aqui os
+  // dois se sobrepõem, e sobreposição de link com texto não falha em teste
+  // nenhum, só fica feia e difícil de clicar.
+  const m = await page.evaluate(() => {
+    const h1 = document.querySelector("h1")!;
+    const caixa = (el: Element) => {
+      const faixa = document.createRange();
+      faixa.selectNodeContents(el);
+      const cx = [...faixa.getClientRects()].filter((c) => c.width > 0.5);
+      return {
+        esq: Math.min(...cx.map((c) => c.left)),
+        topo: Math.min(...cx.map((c) => c.top)),
+        base: Math.max(...cx.map((c) => c.bottom)),
+      };
+    };
+    const fecho = caixa([...h1.querySelectorAll(":scope > span")][2]);
+    const b = h1.parentElement!.querySelector("a")!.getBoundingClientRect();
+    return { fecho, botao: { dir: b.right, topo: b.top, base: b.bottom }, largura: window.innerWidth };
+  });
+
+  const naMesmaLinha = m.botao.topo < m.fecho.base && m.botao.base > m.fecho.topo;
+
+  if (m.largura >= 640) {
+    expect(naMesmaLinha).toBe(true);
+    // o vão precisa sobrar: encostar já é colisão
+    expect(m.botao.dir).toBeLessThan(m.fecho.esq);
+  } else {
+    // abaixo de `sm` o botão volta a ser bloco em fluxo, embaixo do título
+    expect(naMesmaLinha).toBe(false);
+    expect(m.botao.topo).toBeGreaterThan(m.fecho.base);
+  }
+});
+
 test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
   // Modo de falha observado duas vezes durante o desenvolvimento: basta um
   // caractere cru no data URI para o Chrome descartar a declaração inteira

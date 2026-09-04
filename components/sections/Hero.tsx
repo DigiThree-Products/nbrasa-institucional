@@ -32,10 +32,14 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
  * corpos diferentes a elas criaria uma terceira hierarquia que o desenho não
  * pede. No topo do `clamp` a linha do meio tem 3,47 vezes este corpo, que é a
  * proporção pedida no desenho e o que os três valores preservam ao crescer.
+ *
+ * O valor em si não está aqui, está em `--corpo-apoio`, declarado na coluna
+ * de texto. É que ele governa duas coisas que precisam bater no pixel: o
+ * corpo destas linhas e a altura da faixa em que o botão do WhatsApp se
+ * encaixa, ao lado do fecho. Repetir o `clamp` nos dois lugares seria pedir
+ * para eles saírem de sincronia no primeiro ajuste de escala.
  */
-const APOIO =
-  "block leading-[1.1] tracking-[-.01em] " +
-  "text-[clamp(2.75rem,9.5vw,3.75rem)] lg:text-[clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)]";
+const APOIO = "block text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
 
 /**
  * O fecho, que é o apoio encostado à direita.
@@ -182,18 +186,37 @@ export async function Hero() {
           O mobile fica em `py-16`: lá a foto vem em fluxo logo abaixo do
           texto e o respiro maior é o que separa os dois. */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)] lg:py-4">
-        <div className="lg:max-w-[52%]">
+        {/* `--corpo-apoio` mora aqui, e não no `APOIO`, porque dois elementos
+            precisam do mesmo número: o corpo das linhas 1 e 3 do título e a
+            altura da faixa onde o botão se encaixa, logo abaixo. */}
+        <div className="[--corpo-apoio:clamp(2.75rem,9.5vw,3.75rem)] lg:[--corpo-apoio:clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)] lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
           <h1 className="mt-4 w-fit font-display uppercase">
             <TituloHero texto={c.heroTitulo} />
           </h1>
-          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          {/* O botão sobe para dentro da última linha do título, no vão que o
+              fecho deixou ao encostar na direita. A faixa tem exatamente a
+              altura dessa linha, `1.1 * --corpo-apoio`, que é o `line-height`
+              dela, e o recuo negativo é o mesmo número, então o botão ocupa a
+              linha em vez de vir depois dela. O `items-center` o centra na
+              faixa, e como os dois valores saem da mesma variável, mexer na
+              escala do título continua alinhando os dois sozinho.
+
+              Só a partir de `sm`. Medido: abaixo de uns 450px de viewport o
+              vão entre a esquerda do "ACENDE" e o "AQUI." fica menor que o
+              próprio botão, então ali ele volta a ser um bloco em fluxo.
+
+              O botão vem antes do subtítulo no DOM, e não só na tela: com
+              `order` do flex a ordem de leitura ficaria diferente da ordem
+              visual, que é o tipo de descasamento que leitor de tela paga. */}
+          <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-[calc(-1.1*var(--corpo-apoio))] sm:h-[calc(1.1*var(--corpo-apoio))]">
             <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
           </div>
+
+          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
 
           {/* Grade, e não flex-wrap: as três faixas somam 586px numa coluna de
               641px e só cabem numa linha se o vão encolher, com 7px de folga.
