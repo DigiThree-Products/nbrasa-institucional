@@ -13,6 +13,10 @@
   /* Vermelho de marca escurecido para texto pequeno sobre superficie clara:
      o #cf2434 puro faz 4,30:1 sobre creme e reprova AA. Ver contraste.test.ts. */
   --color-brasa-escura: #b81f2c;
+  /* Superficie dos blocos DENTRO da faixa vermelha. 1,75:1 contra o brasa,
+     o suficiente para ler como um plano distinto sem competir; branco sobre
+     ele da 9,32:1. Substituiu o fumaca, que fazia so 2,74:1 sobre o vermelho. */
+  --color-brasa-funda: #8a1a24;
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;

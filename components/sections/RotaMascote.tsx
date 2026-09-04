@@ -65,7 +65,7 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
         className="absolute inset-0 h-full w-full"
       >
         <path
-          id="rota-entrega" fill="none" stroke="#cf2434" strokeWidth="5"
+          id="rota-entrega" fill="none" stroke="#241e1f" strokeWidth="5"
           strokeDasharray="26 26" strokeLinecap="round"
           d="M120 40 C 620 140, 1080 220, 1040 460 C 1000 700, 260 620, 220 860 C 180 1100, 1020 1000, 1000 1250 C 980 1500, 260 1380, 200 1620 C 170 1740, 400 1830, 660 1860"
         />
@@ -73,6 +73,7 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
 
       <Mascote
         ref={mascote}
+        sobreVermelho
         // Posição padrão: início da rota ("M120 40" no viewBox 1200×1900 —
         // ~8%/2%), de onde o GSAP MotionPath assume o controle via scrub.
         // Sob prefers-reduced-motion o efeito acima nunca monta (early
@@ -89,10 +90,10 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
              className={`absolute z-[3] w-[158px] md:w-[190px] lg:w-[250px] ${POSICOES[i] ?? ""}`}>
           {/* Fonte de corpo, e não display: "Japuíba" é nome de bairro e não
               se reescreve, e a Owners TRIAL não tem letra acentuada. */}
-          <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-brasa px-4 py-1.5 text-base font-extrabold uppercase tracking-wide">
+          <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-carvao px-4 py-1.5 text-base font-extrabold uppercase tracking-wide">
             {p.bairro}
           </span>
-          <span className="block overflow-hidden rounded-[20px] border-[3px] border-branco bg-fumaca shadow-[0_22px_50px_rgba(0,0,0,.6)]">
+          <span className="block overflow-hidden rounded-[20px] border-[3px] border-branco bg-brasa-funda shadow-[0_22px_50px_rgba(0,0,0,.6)]">
             {/* foto da parada entra quando o cliente enviar (§10.2 do spec) */}
             <span className="block aspect-[4/3.4]" />
           </span>

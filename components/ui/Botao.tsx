@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type Props = {
   children: ReactNode;
   href?: string;
-  variante?: "solido" | "fantasma";
+  variante?: "solido" | "fantasma" | "claro";
   className?: string;
 };
 
@@ -14,6 +14,10 @@ const base =
 const variantes = {
   solido: "bg-brasa text-branco hover:brightness-110",
   fantasma: "border-2 border-creme-borda text-carvao hover:border-carvao",
+  // Para uso sobre superficie de marca saturada, onde o solido sumiria no
+  // fundo. Texto carvao sobre branco da 16,4:1, e a propria pastilha se
+  // separa do vermelho em 5,31:1.
+  claro: "bg-branco text-carvao hover:brightness-95",
 } as const;
 
 export function Botao({ children, href, variante = "solido", className = "" }: Props) {

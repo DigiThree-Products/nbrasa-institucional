@@ -17,14 +17,14 @@ export default function Home() {
         <Hero />
         <ChipsCategorias />
         <Cardapio />
-        {/* A Delivery é a única faixa escura da página: as duas curvas abaixo
-            são a entrada e a saída dela. A de cima nasce no branco do body e
-            preenche carvão; a de baixo precisa do corOrigem para levar o
-            carvão consigo e devolver a página ao branco. */}
-        <DivisoriaCurva corDestino="var(--color-carvao)" />
+        {/* A Delivery é a única faixa de cor saturada da página: as duas
+            curvas abaixo são a entrada e a saída dela. A de cima nasce no
+            branco do body e preenche brasa; a de baixo precisa do corOrigem
+            para levar o brasa consigo e devolver a página ao branco. */}
+        <DivisoriaCurva corDestino="var(--color-brasa)" />
         <Delivery />
         <DivisoriaCurva
-          corOrigem="var(--color-carvao)"
+          corOrigem="var(--color-brasa)"
           corDestino="var(--color-branco)"
           className="-mt-px"
         />
