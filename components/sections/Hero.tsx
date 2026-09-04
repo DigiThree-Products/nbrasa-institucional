@@ -27,18 +27,81 @@ const AVIF = "/fachada-nbrasa-900.avif 900w, /fachada-nbrasa-1600.avif 1600w";
 const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
- * O título do herói em três corpos: a abertura pequena na primeira linha, o
- * foco grande e vermelho na segunda, e o fecho, o menor dos três, ao lado do
- * foco. O vermelho fica só no foco; o fecho herda o carvão do `h1`, e é por
- * isso que `text-brasa` está no span de dentro e não no bloco da linha.
+ * Corpo das linhas 1 e 3, que dividem a mesma escala de propósito: a abertura
+ * e o fecho são apoio da palavra do meio, não informação concorrente, e dar
+ * corpos diferentes a elas criaria uma terceira hierarquia que o desenho não
+ * pede. No topo do `clamp` a linha do meio tem 3,47 vezes este corpo, que é a
+ * proporção pedida no desenho e o que os três valores preservam ao crescer.
+ */
+const APOIO =
+  "block leading-[1.1] tracking-[-.01em] " +
+  "text-[clamp(2.75rem,9.5vw,3.75rem)] lg:text-[clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)]";
+
+/**
+ * Corpo da linha 2, a palavra dominante.
  *
- * Os tamanhos são múltiplos em `em` do `clamp` que o `h1` já declara, e não
- * valores próprios: assim as três partes continuam crescendo juntas em
- * qualquer largura, com um número só governando a escala do bloco inteiro.
+ * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
+ * layouts diferentes: empilhado, com a coluna inteira à disposição, e em duas
+ * colunas, dividindo a largura com a foto. Uma regra só teria que atender a
+ * parede mais dura nas duas faixas, e medido isso custava 26% de corpo entre
+ * 620px e 1000px, onde parede nenhuma existe.
  *
- * Foco e fecho ficam inline no mesmo bloco de propósito. É isso que alinha os
- * dois pela linha de base, de graça, mesmo com um tendo mais que o dobro do
- * corpo do outro; empilhados em blocos seria preciso acertar a base à mão.
+ * O `min(20vw,32vh)` da regra do `lg` resolve duas paredes que puxam para
+ * lados opostos, e nenhuma das duas é onde se procuraria.
+ *
+ * A parede de largura não é a tela larga: é `1024px`, onde o `lg` entra e a
+ * coluna do texto despenca de `100%` para `52%`. Medido ali: o texto começa
+ * em 24px e a foto em 512px, então sobram 488px úteis, não os 507px da
+ * coluna, que já invade a foto em 20px. "ACENDE" ocupa 2,24 vezes o próprio
+ * corpo na Owners XNarrow, então o teto em 1024px é 216px. Em 1440px, com o
+ * contêiner centralizado, sobram 616px e o teto sobe para 275px. Um teto fixo
+ * teria que atender o pior caso e desperdiçaria 60px de corpo na tela larga,
+ * que é onde o herói é mais visto. Os `20vw` acompanham essa parede: ela vale
+ * `0,5v - 24` e o corpo máximo `0,223v`, curvas quase paralelas.
+ *
+ * A parede de altura é o botão do WhatsApp. Quando o conteúdo transborda o
+ * `min-height`, cada pixel de corpo aqui empurra o CTA para baixo em 0,92px,
+ * e ele já vivia no limite do notebook 1366x768. Os `32vh` amarram o título à
+ * altura da janela: resolvendo a desigualdade, o botão continua acima da
+ * dobra para qualquer viewport a partir de 623px, um pouco melhor que os
+ * 631px de antes. Em janela baixa o título encolhe sozinho, que é o
+ * comportamento certo, porque ali o problema é altura e não largura.
+ *
+ * O teto de `16rem` para em 256px e deixa 43px de folga na tela larga, para a
+ * fonte de fallback durante o `swap` e para o dono cadastrar uma palavra mais
+ * larga pelo painel. No mobile nada disso pega: `20vw` em 390px dá 78px, bem
+ * abaixo do piso de `7rem`, então quem manda lá é o piso e o `vh` nunca entra
+ * na conta, o que também evita o título respirar junto com a barra de
+ * endereço do celular.
+ */
+const DOMINANTE =
+  "block leading-[.92] tracking-[-.02em] text-brasa " +
+  "text-[clamp(7rem,27vw,13rem)] lg:text-[clamp(7rem,min(20vw,32vh),16rem)]";
+
+/**
+ * O título do herói em três linhas, uma palavra por linha, alinhadas à
+ * esquerda: a abertura em cima, o foco grande e vermelho no meio, o fecho
+ * embaixo. O vermelho fica só no foco; abertura e fecho herdam o carvão.
+ *
+ * É um `h1` só, com três spans em `block`. Não são três títulos separados
+ * nem `<br>`: para leitor de tela e para buscador isto precisa continuar
+ * sendo a frase "Sua fome acende aqui.", inteira, num heading só.
+ *
+ * O `{" "}` no fim das duas primeiras linhas é o que garante isso, e não é
+ * enfeite. O JSX descarta o espaço em branco entre expressões irmãs, então
+ * sem ele o `textContent` do `h1` sai grudado, "Sua fomeacendeaqui.", que é
+ * o que o buscador lê e o que alimenta o nome acessível. Visualmente o
+ * espaço não custa nada: ele cai no fim de uma linha de bloco, onde o
+ * navegador colapsa espaço à toa. Tem teste de e2e cobrando a frase inteira.
+ *
+ * Os corpos são `clamp` absolutos, e não múltiplos em `em` do `h1` como
+ * antes. Por isso o `h1` não declara mais `font-size` nem `line-height`: com
+ * cada span mandando no próprio corpo, o que ficasse lá seria letra morta e
+ * enganaria quem fosse ajustar a escala depois.
+ *
+ * Nenhuma linha carrega `font-weight`. A Owners XNarrow servida tem uma face
+ * só, Black, então o peso já é o máximo disponível e pedir mais só
+ * convidaria o navegador a engordar o traço por conta.
  *
  * Quem decide qual palavra é qual é `partesDoTitulo`, em lib/tituloHero.ts,
  * porque a regra é testável e este componente não é.
@@ -48,11 +111,9 @@ function TituloHero({ texto }: { texto: string }) {
 
   return (
     <>
-      {abertura && <span className="block text-[1em]">{abertura}</span>}
-      <span className="block">
-        <span className="text-[1.15em] text-brasa">{foco}</span>
-        {fecho && <>{" "}<span className="text-[.42em]">{fecho}</span></>}
-      </span>
+      {abertura && <span className={APOIO}>{abertura}{" "}</span>}
+      {foco && <span className={DOMINANTE}>{foco}{" "}</span>}
+      {fecho && <span className={APOIO}>{fecho}</span>}
     </>
   );
 }
@@ -81,12 +142,32 @@ export async function Hero() {
 
   return (
     <section className="relative overflow-hidden" style={VARIAVEIS}>
-      <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)]">
+      {/* `lg:py-4` não é aperto de respiro, é o que segura o CTA acima da
+          dobra em notebook baixo, e ele custa zero no caso comum.
+
+          Com `justify-center` dentro de um `min-height`, o padding se anula
+          na conta da posição: o topo do conteúdo fica em
+          `p + (altura - 2p - conteúdo) / 2`, que é `altura/2 - conteúdo/2`,
+          sem `p` nenhum. Medido: em 1440x900 o botão termina em 705px com
+          padding de 64, 32 ou 16px, os três. Em janela alta, portanto, este
+          valor não move nada, e o respiro que se vê ali vem da
+          centralização, não daqui.
+
+          Quando o conteúdo transborda o `min-height`, a centralização deixa
+          de valer e o topo passa a ser o próprio padding. É só nesse caso que
+          o número aparece, e é exatamente o caso em que faltava espaço: com
+          `py-16` o botão terminava em 679px, o que o escondia num notebook
+          1366x768, cujo viewport fica em torno de 641px depois da barra do
+          navegador. Em `lg:py-4` ele termina em 631px e cabe.
+
+          O mobile fica em `py-16`: lá a foto vem em fluxo logo abaixo do
+          texto e o respiro maior é o que separa os dois. */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)] lg:py-4">
         <div className="lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
-          <h1 className="mt-4 text-balance font-display text-[clamp(3.93rem,11.29vw,9.33rem)] uppercase leading-[.86]">
+          <h1 className="mt-4 text-balance font-display uppercase">
             <TituloHero texto={c.heroTitulo} />
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>

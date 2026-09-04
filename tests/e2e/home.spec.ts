@@ -41,6 +41,20 @@ test("mostra o título do herói", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("acende");
 });
 
+test("o h1 continua sendo a frase inteira, apesar das três linhas", async ({ page }) => {
+  // O título é quebrado em três spans `block`, um por palavra. O JSX descarta
+  // espaço em branco entre expressões irmãs, então basta esquecer o `{" "}`
+  // no fim de uma linha para o texto do heading virar "Sua fomeacendeaqui." e
+  // continuar parecendo certo na tela, porque cada bloco desenha na sua
+  // própria linha de qualquer jeito. Quem paga são o leitor de tela e o
+  // buscador, e nenhum dos dois aparece numa revisão visual.
+  const h1 = page.getByRole("heading", { level: 1 });
+
+  expect(await h1.evaluate((el) => el.textContent?.trim())).toBe("Sua fome acende aqui.");
+  // o nome acessível é computado pelo navegador, não é o mesmo caminho
+  await expect(h1).toHaveAccessibleName("Sua fome acende aqui.");
+});
+
 test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
   // Modo de falha observado duas vezes durante o desenvolvimento: basta um
   // caractere cru no data URI para o Chrome descartar a declaração inteira
