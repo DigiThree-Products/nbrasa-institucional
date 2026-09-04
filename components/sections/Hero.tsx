@@ -27,7 +27,9 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
  * O título do herói em três corpos: a abertura pequena na primeira linha, o
- * foco grande e vermelho na segunda, e o fecho pequeno ao lado dele.
+ * foco grande e vermelho na segunda, e o fecho, o menor dos três, ao lado do
+ * foco. O vermelho fica só no foco; o fecho herda o carvão do `h1`, e é por
+ * isso que `text-brasa` está no span de dentro e não no bloco da linha.
  *
  * Os tamanhos são múltiplos em `em` do `clamp` que o `h1` já declara, e não
  * valores próprios: assim as três partes continuam crescendo juntas em
@@ -46,9 +48,9 @@ function TituloHero({ texto }: { texto: string }) {
   return (
     <>
       {abertura && <span className="block text-[.55em]">{abertura}</span>}
-      <span className="block text-brasa">
-        <span className="text-[1.15em]">{foco}</span>
-        {fecho && <>{" "}<span className="text-[.55em]">{fecho}</span></>}
+      <span className="block">
+        <span className="text-[1.15em] text-brasa">{foco}</span>
+        {fecho && <>{" "}<span className="text-[.42em]">{fecho}</span></>}
       </span>
     </>
   );
