@@ -38,6 +38,25 @@ const APOIO =
   "text-[clamp(2.75rem,9.5vw,3.75rem)] lg:text-[clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)]";
 
 /**
+ * O fecho, que é o apoio encostado à direita.
+ *
+ * O alinhamento sai de `text-right` mais o `w-fit` do `h1`, e não de um
+ * recuo calculado. O `w-fit` faz o `h1` encolher até a largura do maior
+ * filho, que é sempre a linha do meio: "ACENDE" ocupa 2,24 vezes o próprio
+ * corpo e "SUA FOME" ocupa 2,91 vezes o dele, e a razão entre os dois corpos
+ * nunca chega perto de 2,91/2,24, nem no piso do `clamp`, que é onde ela é
+ * mais apertada (2,55). Então a borda direita do `h1` é a borda direita do
+ * "ACENDE", e encostar o fecho nela alinha os dois.
+ *
+ * Um recuo em `em` não serviria: o afastamento vale
+ * `2,24 · corpoDominante - 1,54 · corpoApoio`, e a razão entre os dois corpos
+ * muda conforme qual trecho do `clamp` está ativo, 3,48 no `vw` e no teto,
+ * 2,55 no piso. Um número só desalinharia em alguma faixa, e as três faixas
+ * mudam de lugar a cada ajuste de escala.
+ */
+const FECHO = APOIO + " text-right";
+
+/**
  * Corpo da linha 2, a palavra dominante.
  *
  * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
@@ -113,7 +132,7 @@ function TituloHero({ texto }: { texto: string }) {
     <>
       {abertura && <span className={APOIO}>{abertura}{" "}</span>}
       {foco && <span className={DOMINANTE}>{foco}{" "}</span>}
-      {fecho && <span className={APOIO}>{fecho}</span>}
+      {fecho && <span className={FECHO}>{fecho}</span>}
     </>
   );
 }
@@ -167,7 +186,7 @@ export async function Hero() {
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
-          <h1 className="mt-4 text-balance font-display uppercase">
+          <h1 className="mt-4 w-fit font-display uppercase">
             <TituloHero texto={c.heroTitulo} />
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>

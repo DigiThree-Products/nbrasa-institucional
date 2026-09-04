@@ -55,6 +55,28 @@ test("o h1 continua sendo a frase inteira, apesar das três linhas", async ({ pa
   await expect(h1).toHaveAccessibleName("Sua fome acende aqui.");
 });
 
+test("o fecho do título encosta na direita do foco", async ({ page }) => {
+  // O alinhamento não vem de recuo calculado: vem do `w-fit` no h1, que o
+  // encolhe até a largura do maior filho, mais `text-right` na terceira
+  // linha. Isso depende de uma premissa que pode cair em silêncio numa
+  // mudança de escala: a linha do meio ser sempre a mais larga. Se "SUA
+  // FOME" passar "ACENDE" em alguma faixa de viewport, o h1 passa a medir
+  // pela primeira linha e o fecho encosta na borda errada, sem erro nenhum.
+  const bordas = await page.locator("h1").evaluate((h1) => {
+    const direita = (el: Element) => {
+      const faixa = document.createRange();
+      faixa.selectNodeContents(el);
+      return Math.max(...[...faixa.getClientRects()].filter((c) => c.width > 0.5).map((c) => c.right));
+    };
+    const [abertura, foco, fecho] = [...h1.querySelectorAll(":scope > span")];
+    return { abertura: direita(abertura), foco: direita(foco), fecho: direita(fecho) };
+  });
+
+  expect(Math.abs(bordas.fecho - bordas.foco)).toBeLessThan(1);
+  // a premissa: o foco é a linha mais larga, senão o w-fit mede pela errada
+  expect(bordas.foco).toBeGreaterThan(bordas.abertura);
+});
+
 test("a costura de chama chega ao navegador aplicada", async ({ page }) => {
   // Modo de falha observado duas vezes durante o desenvolvimento: basta um
   // caractere cru no data URI para o Chrome descartar a declaração inteira
