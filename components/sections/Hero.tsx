@@ -85,7 +85,7 @@ export async function Hero() {
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
-          <h1 className="mt-4 text-balance font-display text-[clamp(3.2rem,9.2vw,7.6rem)] uppercase leading-[.86]">
+          <h1 className="mt-4 text-balance font-display text-[clamp(3.93rem,11.29vw,9.33rem)] uppercase leading-[.86]">
             <TituloHero texto={c.heroTitulo} />
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>

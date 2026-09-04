@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Anton } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
 import { SITE_URL } from "@/lib/site";
@@ -8,9 +9,15 @@ import "./globals.css";
 const corpo = Hanken_Grotesk({
   subsets: ["latin"], display: "swap", variable: "--fonte-corpo",
 });
-// Anton é substituta provisória da Owners (comercial). Ver §10 do spec.
-const display = Anton({
-  subsets: ["latin"], weight: "400", display: "swap", variable: "--fonte-display",
+// Owners XNarrow Black, a fonte de display da marca. É a versão TRIAL, com
+// 73 glifos e nenhuma letra acentuada: tests/unit/owners.test.ts garante que
+// nenhum título de display esbarre nisso. A Anton saiu junto, era substituta
+// provisória e virou peso morto. O arquivo sai de scripts/gerar-owners.py.
+const display = localFont({
+  src: "./fontes/owners-xnarrow-black.woff2",
+  weight: "900",
+  display: "swap",
+  variable: "--fonte-display",
 });
 
 const TITULO = "N'Brasa Angra | Chopperia e Carnes na Av. Júlio Maria";

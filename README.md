@@ -46,13 +46,25 @@ Tudo é Server Component por padrão. Só cinco componentes são cliente:
 
 Levantadas no spec (§10) e ainda abertas:
 
-1. **Licença da fonte Owners** (display, comercial da Latinotype). Enquanto
-   não decidida, o display usa **Anton** como substituta.
+1. **Licença de webfont da Owners.** O site serve
+   `app/fontes/owners-xnarrow-black.woff2`, gerado a partir dos arquivos
+   `OwnersTRIAL-*` de `fotos-site/owners-font-family/`, que trazem
+   `License: Personal Use Only`. O cliente decidiu publicar assim em
+   2026-09-04. Comprar a licença na Latinotype resolve e ainda traz os
+   acentos, que a trial não tem: basta soltar os arquivos licenciados na
+   mesma pasta e rodar `python scripts/gerar-owners.py`. Enquanto isso,
+   `tests/unit/owners.test.ts` impede que qualquer título de display use um
+   glifo que a trial não tem.
 2. **Fotografia limpa.** O material atual tem copy sobreposta; os chips de
    categoria e as paradas da rota de entrega ficam sem foto até o cliente
    enviar os arquivos originais ou um ensaio novo.
-3. **Logo vetorial oficial**, para substituir a reprodução em fonte no
-   wordmark `n'Brasa`.
+3. **Selo circular e mascote em vetor.** `fotos-site/logo.svg` resolveu
+   metade disto: a chama oficial chegou e virou `D_CHAMA_OFICIAL` em
+   `lib/marca.ts`. Continua faltando o selo com o wordmark manuscrito
+   `n’Brasa` no anel, que o Header ainda aproxima com um círculo de borda
+   mais o ícone da chama e o nome em Owners. O mascote está só em
+   `mascote.cdr`, binário proprietário que nenhuma ferramenta local abre.
+   Pedir os dois em SVG.
 4. **Categorias do cardápio:** confirmar se as 6 do site atual (Burgers,
    Espetinhos, Carnes Nobres, Petiscos, Drinks, Sobremesas) prevalecem sobre
    o conjunto ligeiramente diferente que o mockup inicial mostrou.

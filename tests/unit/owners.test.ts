@@ -20,13 +20,23 @@ import {
  */
 
 const PASTA_OTF = "fotos-site/owners-font-family";
-const PREFIXO = "OwnersTRIALXNarrow-Black";
+// O hífen final não é enfeite: sem ele o prefixo também casa com
+// "OwnersTRIALXNarrow-BlackItalic", e a família traz as duas. Deve bater
+// com o PREFIXO de scripts/gerar-owners.py, que gera o WOFF2 servido.
+const PREFIXO = "OwnersTRIALXNarrow-Black-";
 
 /** Lê os code points do `cmap` do OTF, sem depender de biblioteca de fonte. */
 function glifosDaOwners(): Set<number> {
-  const arquivo = readdirSync(PASTA_OTF).find((n) => n.startsWith(PREFIXO));
-  if (!arquivo) throw new Error(`OTF ${PREFIXO}* não encontrado em ${PASTA_OTF}`);
-  const buf = readFileSync(join(PASTA_OTF, arquivo));
+  const arquivos = readdirSync(PASTA_OTF).filter((n) => n.startsWith(PREFIXO));
+  if (arquivos.length === 0) {
+    throw new Error(`OTF ${PREFIXO}* não encontrado em ${PASTA_OTF}`);
+  }
+  if (arquivos.length > 1) {
+    // Ambíguo é pior que ausente: escolher em silêncio faria o teste medir
+    // uma fonte diferente da que o site serve.
+    throw new Error(`mais de um ${PREFIXO}*: ${arquivos.join(", ")}`);
+  }
+  const buf = readFileSync(join(PASTA_OTF, arquivos[0]));
   return lerCmap(buf);
 }
 

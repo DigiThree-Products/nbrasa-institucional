@@ -12,7 +12,7 @@ export async function Footer() {
               <span className="grid h-11 w-11 place-items-center rounded-full border-[2.5px] border-carvao">
                 <Chama className="h-[19px] w-[19px] text-brasa" />
               </span>
-              <span className="text-[1.42rem] leading-none">n&apos;Brasa</span>
+              <span className="font-display text-[1.42rem] uppercase leading-none">n’Brasa</span>
             </span>
             <p className="mt-4 text-lg">O sabor que encontra, o som.</p>
           </div>
@@ -28,7 +28,7 @@ export async function Footer() {
           </div>
         </div>
         <p className="mt-12 border-t border-creme-borda pt-6 text-[.75rem] uppercase tracking-[.09em] text-creme-texto">
-          © 2026 N&apos;Brasa Angra · Todos os direitos reservados
+          © 2026 N’Brasa Angra · Todos os direitos reservados
         </p>
       </div>
     </footer>

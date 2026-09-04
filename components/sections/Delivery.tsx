@@ -16,7 +16,7 @@ export async function Delivery() {
     <section id="delivery" className="relative min-h-[140dvh] overflow-hidden bg-carvao pt-16 text-branco">
       <div className="mx-auto max-w-[760px] px-6 text-center">
         <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">Delivery</p>
-        <h2 className="mt-3 font-display text-[clamp(2.6rem,8.4vw,6.4rem)] uppercase leading-[.86]">
+        <h2 className="mt-3 font-display text-[clamp(3.19rem,10.31vw,7.85rem)] uppercase leading-[.86]">
           Vai <span className="text-brasa">N’brasando</span>
         </h2>
         <p className="mx-auto mt-4 max-w-[52ch] text-cinza">

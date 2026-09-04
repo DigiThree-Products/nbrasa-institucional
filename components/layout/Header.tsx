@@ -19,7 +19,7 @@ export async function Header() {
           <span className="grid h-11 w-11 place-items-center rounded-full border-[2.5px] border-carvao">
             <Chama className="h-[19px] w-[19px] text-brasa" />
           </span>
-          <span className="text-[1.42rem] leading-none">n&apos;Brasa</span>
+          <span className="font-display text-[1.42rem] uppercase leading-none">n’Brasa</span>
         </a>
 
         <nav className="ml-auto hidden items-center gap-7 md:flex">

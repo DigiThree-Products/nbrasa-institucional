@@ -7,7 +7,7 @@ export default function Erro({ error, reset }: { error: Error; reset: () => void
 
   return (
     <main className="mx-auto max-w-[640px] px-6 py-32 text-center">
-      <h1 className="font-display text-5xl uppercase">Algo saiu do ponto</h1>
+      <h1 className="font-display text-[3.68rem] uppercase">Algo saiu do ponto</h1>
       <p className="mt-4 text-creme-texto">
         Não conseguimos carregar esta parte da página. Tente de novo.
       </p>

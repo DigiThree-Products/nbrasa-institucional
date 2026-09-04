@@ -16,7 +16,7 @@ export async function HorariosProgramacao() {
             <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Horário de funcionamento
             </p>
-            <h2 className="mb-7 mt-3 text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+            <h2 className="mb-7 mt-3 text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
               {c.horariosTitulo}
             </h2>
             <ul className="list-none p-0">
@@ -34,7 +34,7 @@ export async function HorariosProgramacao() {
             <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
               Programação da semana
             </p>
-            <h2 className="mb-7 mt-3 font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+            <h2 className="mb-7 mt-3 font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
               Tem motivo<br />pra vir todo dia
             </h2>
             <div className="grid gap-3">
@@ -45,7 +45,7 @@ export async function HorariosProgramacao() {
                       {p.diasLabel}
                     </span>
                     <span>
-                      <span className="block font-display text-lg uppercase leading-tight">{p.titulo}</span>
+                      <span className="block font-display text-[1.38rem] uppercase leading-tight">{p.titulo}</span>
                       <span className="mt-1 block text-sm text-creme-texto">{p.descricao}</span>
                     </span>
                   </article>

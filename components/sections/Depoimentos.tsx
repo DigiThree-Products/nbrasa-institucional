@@ -7,7 +7,7 @@ export async function Depoimentos() {
     <section className="flex min-h-dvh items-center">
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
       <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">Quem veio, volta</p>
-      <h2 className="mb-10 mt-3 text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+      <h2 className="mb-10 mt-3 text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
         {c.depoimentosTitulo}
       </h2>
       <div className="grid gap-[18px] md:grid-cols-3">

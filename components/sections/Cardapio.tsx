@@ -14,7 +14,7 @@ export async function Cardapio() {
     <section id="cardapio" className="flex min-h-dvh items-center">
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
       <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-        <h2 className="text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
+        <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
           Feito na hora,<br />servido no capricho
         </h2>
         <p className="max-w-[44ch] text-creme-texto">
@@ -32,7 +32,7 @@ export async function Cardapio() {
               <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-escura">
                 {c.kicker}
               </span>
-              <h3 className="mb-2 mt-2 font-display text-2xl uppercase leading-none">{c.nome}</h3>
+              <h3 className="mb-2 mt-2 font-display text-[1.84rem] uppercase leading-none">{c.nome}</h3>
               <p className="text-sm leading-relaxed text-creme-texto">{c.descricao}</p>
             </article>
           </Reveal>
