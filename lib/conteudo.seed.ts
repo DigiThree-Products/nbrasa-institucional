@@ -34,7 +34,7 @@ export const programacaoSeed: ItemProgramacao[] = [
   { id: "espetinho", diasLabel: "Terça e quinta", titulo: "Noite do Espetinho",
     descricao: "Espetinhos saindo sem parar e chopp gelado para acompanhar até o fim da noite.",
     ordem: 1, ativo: true },
-  { id: "burger", diasLabel: "Quarta", titulo: "Burger Preço Único",
+  { id: "burger", diasLabel: "Quarta", titulo: "Noite do Burger",
     descricao: "Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.",
     ordem: 2, ativo: true },
   { id: "dj", diasLabel: "Sexta e sábado", titulo: "DJ na Casa",
@@ -85,8 +85,8 @@ export const conteudoSeed: Conteudo = {
   instagram: "@nbrasaangra",
   campanhaAtiva: false,
   campanhaTitulo: "",
-  depoimentosTitulo: "4,2 estrelas e quase 300 avaliações",
+  depoimentosTitulo: "Nota 4,2 de quase 300 clientes",
   // Não cita um horário específico: os horários mudam por edição no painel e
   // este título não pode ficar contradizendo a lista logo abaixo dele.
-  horariosTitulo: "A casa abre à tarde",
+  horariosTitulo: "A casa abre de tarde",
 };

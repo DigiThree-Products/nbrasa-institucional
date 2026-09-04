@@ -84,10 +84,15 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
             type="button" aria-label="Fechar menu" onClick={() => setAberto(false)}
             className="absolute right-6 top-6 h-11 w-11 rounded-xl border-2 border-creme-borda text-2xl leading-none"
           >×</button>
+          {/* Fonte de corpo, e não display: "Cardápio" e "Programação" são
+              rótulos de navegação com acento, e a Owners TRIAL não tem nenhuma
+              letra acentuada, então em display eles sairiam partidos em duas
+              fontes no meio da palavra. Isto também alinha com o header do
+              desktop, que já usa fonte de corpo nos mesmos links. */}
           {links.map((l) => (
             <a
               key={l.href} href={l.href} onClick={() => setAberto(false)}
-              className="font-display text-4xl uppercase leading-none"
+              className="text-4xl font-extrabold uppercase leading-none tracking-[.02em]"
             >{l.rotulo}</a>
           ))}
         </div>,

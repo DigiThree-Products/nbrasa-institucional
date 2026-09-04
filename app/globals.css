@@ -3,9 +3,6 @@
 @theme {
   --color-carvao: #241e1f;
   --color-brasa: #cf2434;
-  --color-brasa-texto: #ee6b76;
-  --color-fumaca: #2f2728;
-  --color-cinza: #a39596;
   --color-creme: #f0e6dc;
   --color-creme-texto: #6b5c55;
   --color-creme-borda: #e3d5c8;
@@ -13,6 +10,10 @@
   /* Vermelho de marca escurecido para texto pequeno sobre superficie clara:
      o #cf2434 puro faz 4,30:1 sobre creme e reprova AA. Ver contraste.test.ts. */
   --color-brasa-escura: #b81f2c;
+  /* Superficie dos blocos DENTRO da faixa vermelha. 1,75:1 contra o brasa,
+     o suficiente para ler como um plano distinto sem competir; branco sobre
+     ele da 9,32:1. Substituiu o fumaca, que fazia so 2,74:1 sobre o vermelho. */
+  --color-brasa-funda: #8a1a24;
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
@@ -61,6 +62,20 @@ body {
   }
 }
 
+/* Parede de tipos: a mesma faixa duplicada, deslizando metade da largura e
+   voltando ao ponto de partida. A duplicação é o que faz a emenda cair fora
+   da tela. Ver components/ui/ParedeDeTipos.tsx. */
+@keyframes desliza-parede {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.parede-tipos { overflow: hidden; }
+
+.parede-tipos > div {
+  animation: desliza-parede 38s linear infinite;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-brasa);
   outline-offset: 3px;
@@ -72,4 +87,9 @@ body {
     animation-duration: .001ms !important;
     transition-duration: .001ms !important;
   }
+
+  /* A regra acima zera a duração de toda animação. Num marquee infinito isso
+     não para nada, só faz o laço girar num piscar. Pausar é o que de fato
+     atende o pedido. */
+  .parede-tipos > div { animation-play-state: paused; }
 }

@@ -53,4 +53,20 @@ describe("fachada contra o banco real", () => {
     expect(await getProgramacao()).toHaveLength(4);
     expect(await getDepoimentos()).toHaveLength(3);
   });
+
+  it("serve os títulos de display sem acento, como a Owners exige", async () => {
+    // O site lê do banco, não do seed: corrigir só lib/conteudo.seed.ts e
+    // 0003_seed.sql não muda o que o visitante vê. Se este teste falhar,
+    // o banco ficou para trás e falta aplicar
+    // supabase/migrations/0004_copy_owners.sql.
+    //
+    // Um acento aqui não some na tela, faz pior: renderiza metade em Owners
+    // e metade no fallback, no meio da palavra. Ver tests/unit/owners.test.ts.
+    const c = await getConteudo();
+    const prog = await getProgramacao();
+
+    expect(c.depoimentosTitulo).toBe(conteudoSeed.depoimentosTitulo);
+    expect(c.horariosTitulo).toBe(conteudoSeed.horariosTitulo);
+    expect(prog.find((p) => p.id === "burger")?.titulo).toBe("Noite do Burger");
+  });
 });

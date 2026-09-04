@@ -47,3 +47,18 @@ describe("mascaraChama", () => {
     expect(svg).toContain("translate(250,0)");
   });
 });
+
+describe("as duas formas da chama", () => {
+  it("a máscara usa a silhueta sólida, não a chama oficial", async () => {
+    const { D_SILHUETA, D_CHAMA_OFICIAL } = await import("@/lib/marca");
+    const svg = decodificar(mascaraChama("borda"));
+
+    // A silhueta é um path só e fechado: é isso que permite unir com o
+    // retângulo e produzir uma borda contínua. A chama oficial são três
+    // pinceladas separadas, e a mesma união produziria fitas rasgadas.
+    expect(svg).toContain(D_SILHUETA);
+    for (const path of D_CHAMA_OFICIAL) {
+      expect(svg).not.toContain(path);
+    }
+  });
+});

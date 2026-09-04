@@ -17,9 +17,9 @@ export async function Header() {
       <div className="mx-auto flex h-[74px] max-w-[1280px] items-center gap-5 px-6">
         <a href="#conteudo" className="flex flex-none items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-full border-[2.5px] border-carvao">
-            <Chama className="h-[19px] w-[19px] text-brasa" />
+            <Chama className="h-[22px] w-[15px] text-brasa" />
           </span>
-          <span className="text-[1.42rem] leading-none">n&apos;Brasa</span>
+          <span className="font-display text-[1.42rem] uppercase leading-none">n’Brasa</span>
         </a>
 
         <nav className="ml-auto hidden items-center gap-7 md:flex">

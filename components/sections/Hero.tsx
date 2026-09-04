@@ -4,6 +4,7 @@ import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { AJUSTES, mascaraChama } from "@/lib/costura";
 import { partesDoTitulo } from "@/lib/tituloHero";
 import { Botao } from "@/components/ui/Botao";
+import { VideoFachada } from "./VideoFachada";
 
 /**
  * Miniatura de 16px da própria foto, embutida como base64.
@@ -85,7 +86,7 @@ export async function Hero() {
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
-          <h1 className="mt-4 text-balance font-display text-[clamp(3.2rem,9.2vw,7.6rem)] uppercase leading-[.86]">
+          <h1 className="mt-4 text-balance font-display text-[clamp(3.93rem,11.29vw,9.33rem)] uppercase leading-[.86]">
             <TituloHero texto={c.heroTitulo} />
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
@@ -148,6 +149,16 @@ export async function Hero() {
             }}
           />
         </picture>
+
+        {/* Fica DEPOIS do <picture> no DOM: o vídeo é posicionado absoluto
+            por cima da foto, e a foto continua sendo o elemento candidato a
+            LCP. Se o vídeo nunca montar, o que se vê é exatamente o herói de
+            antes. O recorte é o mesmo da foto para a troca de um pelo outro
+            não deslocar o enquadramento. */}
+        <VideoFachada
+          poster="/fachada-nbrasa-1600.jpg"
+          recorte={AJUSTES.recorteDaFoto}
+        />
       </div>
     </section>
   );
