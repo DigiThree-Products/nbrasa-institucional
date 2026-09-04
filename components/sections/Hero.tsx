@@ -89,9 +89,18 @@ export async function Hero() {
             <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
           </div>
 
-          <div className="mt-9 flex flex-wrap gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza">
+          {/* Grade, e não flex-wrap: as três faixas somam 586px numa coluna de
+              641px e só cabem numa linha se o vão encolher, com 7px de folga.
+              Bastaria o dono cadastrar "14h às 22h30" no painel para a linha
+              estourar e sobrar um dia órfão embaixo. Em duas colunas o bloco
+              fica alinhado em qualquer largura e aguenta o texto crescer.
+
+              O @ do Instagram saiu daqui: era a terceira aparição dele na
+              página (rodapé e "Onde estamos", esta como link de verdade), não
+              era clicável, e era ele que emparelhava rede social com horário
+              na mesma linha. */}
+          <div className="mt-9 grid gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza sm:grid-cols-2">
             {resumo.map((f) => <span key={f.label}>{f.label} · {f.texto}</span>)}
-            <span>{c.instagram}</span>
           </div>
         </div>
       </div>
