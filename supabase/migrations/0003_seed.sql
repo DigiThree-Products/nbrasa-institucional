@@ -41,4 +41,4 @@ insert into public.depoimentos (id, texto, autor, nota, ordem, ativo) values
 
 -- Linha unica: id fixo em 1, garantido pelo check da tabela.
 insert into public.conteudo (id, hero_titulo, hero_subtitulo, telefone, endereco, cidade_uf, cep, whatsapp_url, instagram, campanha_ativa, campanha_titulo, depoimentos_titulo, horarios_titulo) values
-  (1, 'A fome acende aqui.', 'Bar com atrações musicais, chopp gelado, burguers, espetos e petiscos. Na Av. Júlio Maria, no Centro — onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235 — Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', '4,2 estrelas e quase 300 avaliações', 'A casa abre à tarde');
+  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235 — Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', '4,2 estrelas e quase 300 avaliações', 'A casa abre à tarde');

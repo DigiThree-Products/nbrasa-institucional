@@ -74,9 +74,9 @@ export const depoimentosSeed: Depoimento[] = [
 ];
 
 export const conteudoSeed: Conteudo = {
-  heroTitulo: "A fome acende aqui.",
+  heroTitulo: "Sua fome acende aqui.",
   heroSubtitulo:
-    "Bar com atrações musicais, chopp gelado, burguers, espetos e petiscos. Na Av. Júlio Maria, no Centro — onde a noite de Angra começa.",
+    "Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.",
   telefone: "(24) 3364-5253",
   endereco: "Av. Júlio Maria, 235 — Centro",
   cidadeUf: "Angra dos Reis, RJ",
