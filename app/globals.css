@@ -62,6 +62,20 @@ body {
   }
 }
 
+/* Parede de tipos: a mesma faixa duplicada, deslizando metade da largura e
+   voltando ao ponto de partida. A duplicação é o que faz a emenda cair fora
+   da tela. Ver components/ui/ParedeDeTipos.tsx. */
+@keyframes desliza-parede {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.parede-tipos { overflow: hidden; }
+
+.parede-tipos > div {
+  animation: desliza-parede 38s linear infinite;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-brasa);
   outline-offset: 3px;
@@ -73,4 +87,9 @@ body {
     animation-duration: .001ms !important;
     transition-duration: .001ms !important;
   }
+
+  /* A regra acima zera a duração de toda animação. Num marquee infinito isso
+     não para nada, só faz o laço girar num piscar. Pausar é o que de fato
+     atende o pedido. */
+  .parede-tipos > div { animation-play-state: paused; }
 }

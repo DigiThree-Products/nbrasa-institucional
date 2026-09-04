@@ -1,6 +1,7 @@
 import { getConteudo } from "@/lib/conteudo";
 import { Botao } from "@/components/ui/Botao";
 import { Chama } from "@/components/ui/Chama";
+import { ParedeDeTipos } from "@/components/ui/ParedeDeTipos";
 import { RotaMascote } from "./RotaMascote";
 
 const PARADAS = [
@@ -44,6 +45,11 @@ export async function Delivery() {
           feel<br />the<br />fire
         </p>
       </div>
+
+      {/* Fora da coluna de 760px de proposito: um marquee precisa da largura
+          inteira da secao, senao ele desliza dentro de uma coluna estreita e
+          o efeito se perde. */}
+      <ParedeDeTipos className="relative mt-12 opacity-90" corTexto="text-carvao" />
 
       <RotaMascote paradas={PARADAS} />
 
