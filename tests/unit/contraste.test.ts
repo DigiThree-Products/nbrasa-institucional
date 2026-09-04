@@ -57,11 +57,9 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
     ["brasa-escura sobre creme (rótulo pequeno no card)", BRASA_ESCURA, CREME],
     ["branco sobre brasa (texto em botão sólido)", BRANCO, BRASA],
     ["brasa sobre branco (traço e ícone, texto display grande)", BRASA, BRANCO],
-    // Faixa escura, hoje só a Delivery.
-    ["branco sobre carvao (texto principal da Delivery)", BRANCO, CARVAO],
-    ["cinza sobre carvao (texto secundário da Delivery)", CINZA, CARVAO],
-    ["brasa-texto sobre carvao (reservado à faixa escura)", BRASA_TEXTO, CARVAO],
-    ["brasa-texto sobre fumaca (reservado à faixa escura)", BRASA_TEXTO, FUMACA],
+    // Carvão como superfície: sobrou a etiqueta de bairro da rota, que virou
+    // bg-carvao quando a faixa passou a vermelho e herda o texto branco.
+    ["branco sobre carvao (etiqueta de bairro na rota da Delivery)", BRANCO, CARVAO],
     // Faixa saturada: a Delivery deixou de ser carvão e virou o vermelho de
     // marca. Sobre ele o branco é a única cor que passa AA para texto normal.
     // Não existe cinza intermediário que passe sem chegar tão perto do branco
@@ -81,6 +79,21 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
     // a falhar (ratio subir), reavalie se a restrição ainda é necessária.
     expect(razaoDeContraste(BRASA, CREME)).toBeLessThan(AA_NORMAL);
   });
+
+  it.each([
+    ["cinza", CINZA],
+    ["fumaca", FUMACA],
+    ["brasa-texto", BRASA_TEXTO],
+  ])(
+    "%s reprova sobre brasa, e é por isso que o token saiu do projeto",
+    (_nome, cor) => {
+      // As constantes ficam aqui como memória do que foi medido, mesmo sem
+      // token correspondente no CSS: se alguém propuser reintroduzir um
+      // destes na faixa vermelha, o número já está registrado e a conversa
+      // não recomeça do zero.
+      expect(razaoDeContraste(cor, BRASA)).toBeLessThan(AA_NORMAL);
+    },
+  );
 
   it("carvao sobre brasa só serve para display grande", () => {
     // 3,09:1 passa em AA-grande (>= 3:1) e reprova em AA normal. É o que

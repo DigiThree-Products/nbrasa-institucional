@@ -153,19 +153,43 @@ Paleta oficial (valores exatos, do moodboard):
 
 **A página é clara.** O fundo padrão do `body` é branco e o carvão virou a cor
 do texto; `creme` é a superfície dos cards sobre esse branco. A **Delivery é a
-única faixa escura** e carrega o próprio `bg-carvao text-branco`, com uma
-`DivisoriaCurva` na entrada e outra na saída (a de saída precisa de
-`corOrigem`, senão a metade de cima da curva vira branco). Consequência
-prática: `cinza`, `fumaca` e `brasa-texto` só valem dentro da Delivery, e todo
-rótulo pequeno vermelho sobre superfície clara usa `--color-brasa-escura`
-(`#b81f2c`), porque o `brasa` puro faz 4,30:1 sobre creme e reprova AA.
+única faixa de cor saturada**, e desde 2026-09-04 ela é `bg-brasa text-branco`,
+não mais carvão, com uma `DivisoriaCurva` na entrada e outra na saída (a de
+saída precisa de `corOrigem`, senão a metade de cima da curva vira branco).
+
+Consequência prática, medida e testada: **sobre `#cf2434` só o branco passa AA
+para texto normal** (5,31:1). Carvão fica em 3,09:1 e só vale para display
+grande e grafismo, que é o que autoriza o `N’brasando`, o `feel the fire`, o
+traço da rota e o corpo do mascote. A hierarquia secundária da seção vem de
+corpo, peso e tracking, não de cor, porque não existe cinza intermediário que
+passe AA sobre esse vermelho. `brasa-funda` (`#8a1a24`) é a superfície dos
+blocos dentro da faixa. Os tokens `cinza`, `fumaca` e `brasa-texto` foram
+removidos: existiam só para a faixa escura e reprovavam sobre o vermelho. Todo
+rótulo pequeno vermelho sobre superfície clara continua usando
+`--color-brasa-escura` (`#b81f2c`), porque o `brasa` puro faz 4,30:1 sobre
+creme e reprova AA.
 
 Os demais tokens (`--color-brasa-escura`, `--color-creme`, …) são derivados
 criados para atender contraste — não invente novos sem passar pelo teste.
 
-Tipografia: **Owners** (display) e **Hanken Grotesk** (corpo). Owners é
-comercial (Latinotype) e a licença de webfont ainda não foi decidida — o site
-usa **Anton** como substituta provisória. Não troque a família sem avisar.
+Tipografia: **Owners XNarrow Black** (display) e **Hanken Grotesk** (corpo). A
+Anton, que era substituta provisória, saiu em 2026-09-04.
+
+A Owners servida é a **versão TRIAL**, licenciada como "Personal Use Only": o
+cliente decidiu publicar assim e a compra está registrada como pendência no
+`README.md`. Ela tem **73 glifos, sem nenhuma letra acentuada e sem apóstrofo
+reto**, e por isso a grafia da marca no site usa a aspa curva (`n’Brasa`,
+`N’brasando`). `tests/unit/owners.test.ts` lê o `cmap` do OTF e falha se
+qualquer string de display usar glifo ausente; todo título de display novo
+escrito direto na JSX ganha uma linha em `LITERAIS_DE_DISPLAY` lá. É por causa
+disso que os links do `MenuMobile` e as etiquetas de bairro da rota usam fonte
+de corpo: "Cardápio", "Programação" e "Japuíba" não se reescrevem.
+
+XNarrow é a largura escolhida por medição: a caixa alta da Owners é 0,700 em
+contra 0,859 em da Anton, então **todo corpo de display carrega o fator
+1,227**. Com ele, a XNarrow ocupa 103% da largura que a Anton ocupava e os
+`clamp` do layout continuam valendo. O WOFF2 sai de
+`python scripts/gerar-owners.py`. Não troque a família nem a largura sem avisar.
 
 **Horários** (confirmados pelo cliente em 2026-09-02, valem sobre qualquer
 outra fonte): terça a quinta e domingo 14h–22h; sexta e sábado 16h–03h; segunda
@@ -178,9 +202,21 @@ reutilizáveis: `vamos N'brasar?` · `feel the fire` · `VAI N'BRASANDO` ·
 inventado "N'brasar" é central na marca — mantenha o apóstrofo e a grafia
 exatos em qualquer texto novo.
 
-Elementos gráficos: wordmark manuscrito `n'Brasa` em anel circular com chama
-(ainda reproduzido em fonte — falta o vetor oficial); mascote chama
-antropomórfica de óculos escuros; grafismo de curvas de nível concêntricas.
+Elementos gráficos: wordmark manuscrito `n’Brasa` em anel circular com chama
+(o anel e o nome ainda são reproduzidos em fonte, falta o vetor do selo);
+mascote chama antropomórfica de óculos escuros; grafismo de curvas de nível
+concêntricas.
+
+**Existem duas chamas em `lib/marca.ts`, de propósito.** `D_CHAMA_OFICIAL` vem
+de `fotos-site/logo.svg` e são três pinceladas afiladas e separadas: é a marca
+de verdade, usada como ícone no header, no rodapé, nos chips e como marca
+d'água. `D_SILHUETA` é uma gota sólida desenhada à mão, não é a logo: a máscara
+do herói (`lib/costura.ts`) monta a borda da foto pela união dessa forma com um
+retângulo, e uma forma aberta em três traços viraria fitas rasgadas ali; o
+mascote também precisa do corpo sólido para apoiar óculos e boca. Não unifique
+as duas, há teste em `tests/unit/costura.test.ts` que impede. A chama oficial é
+468×684, bem mais alta que larga: quem dimensionar a `Chama` usa
+`PROPORCAO_OFICIAL`, senão o SVG encolhe para caber e sobra vão.
 
 ## Ativos de marca (fora do controle de versão)
 
