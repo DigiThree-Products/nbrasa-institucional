@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import { getConteudo, getHorarios } from "@/lib/conteudo";
 import { agruparHorarios, FECHADO } from "@/lib/horarios";
+import { AJUSTES, mascaraChama } from "@/lib/costura";
 import { Botao } from "@/components/ui/Botao";
 
 /**
@@ -13,13 +15,14 @@ const BORRAO_FACHADA =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDI0rWWtD5cy+dETnGcMPpW2FhvLcm12htxYxO2GXt+IrjMdTU9q+XYtk4HHOMVopO9yHBNWP/Z";
 
 /**
- * Duas larguras cobrem todos os casos: no desktop o slot fica em ~500 px CSS
- * (medido: 511 px num viewport de 1440), e no mobile ocupa a largura
- * toda. 1400 px atende o pior caso, que é o mobile em tela 2x.
+ * A foto ocupa a coluna direita inteira e sangra até a borda da tela, então o
+ * slot mais largo é o de um monitor grande. 1600 cobre isso e o mobile em
+ * tela 2x; 900 cobre telas comuns. As variantes vêm de
+ * scripts/gerar-fachada.py, que guarda o corte e as qualidades usadas.
  */
-const TAMANHOS = "(min-width: 1024px) 36vw, 100vw";
-const AVIF = "/fachada-nbrasa-800.avif 800w, /fachada-nbrasa-1400.avif 1400w";
-const WEBP = "/fachada-nbrasa-800.webp 800w, /fachada-nbrasa-1400.webp 1400w";
+const TAMANHOS = "(min-width: 1024px) 60vw, 100vw";
+const AVIF = "/fachada-nbrasa-900.avif 900w, /fachada-nbrasa-1600.avif 1600w";
+const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
  * Quebra `heroTitulo` em duas linhas com a última palavra destacada em
@@ -48,15 +51,32 @@ function TituloHero({ texto }: { texto: string }) {
   );
 }
 
+/**
+ * Controles da costura, entregues ao CSS como custom properties.
+ *
+ * Os valores vivem em `AJUSTES` (lib/costura.ts) e a geometria em si é regra
+ * de estilo (`.costura-chama`, em app/globals.css). O componente só faz a
+ * ponte: assim dá para reajustar a borda mexendo num objeto só, sem abrir
+ * nem o CSS nem esta JSX.
+ */
+const VARIAVEIS = {
+  "--costura-mascara": mascaraChama("borda"),
+  "--costura-mascara-topo": mascaraChama("topo"),
+  "--costura-escala": String(AJUSTES.escala),
+  "--costura-altura": AJUSTES.altura,
+  "--costura-escala-mobile": String(AJUSTES.mobile.escala),
+  "--costura-lado-mobile": AJUSTES.mobile.lado,
+  "--costura-altura-mobile": AJUSTES.mobile.altura,
+} as CSSProperties;
+
 export async function Hero() {
   const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
   const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
 
   return (
-    <section className="flex min-h-[calc(100dvh-74px)] items-center">
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-16">
-      <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_.85fr]">
-        <div>
+    <section className="relative overflow-hidden" style={VARIAVEIS}>
+      <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)]">
+        <div className="lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">
             Angra dos Reis · Chopperia | Carnes
           </p>
@@ -74,40 +94,46 @@ export async function Hero() {
             <span>{c.instagram}</span>
           </div>
         </div>
-
-        {/* Recorte 4:3.2 centrado no letreiro, feito no arquivo — o original é
-            retrato 4892x7732 e serviria 6x mais pixels do que o slot ocupa.
-            O borrão vai como background do contêiner, então a área nunca
-            aparece vazia enquanto a foto carrega. */}
-        <div
-          className="relative aspect-[4/3.2] rotate-2 overflow-hidden rounded-[26px] border-[3px] border-fumaca bg-fumaca bg-cover bg-center shadow-[0_30px_70px_rgba(0,0,0,.55)]"
-          style={{ backgroundImage: `url("${BORRAO_FACHADA}")` }}
-        >
-          <picture>
-            <source type="image/avif" srcSet={AVIF} sizes={TAMANHOS} />
-            <source type="image/webp" srcSet={WEBP} sizes={TAMANHOS} />
-            {/*
-              <img> em vez de next/image de propósito. O next/image traz um
-              componente de cliente que subiu a primeira carga de 122 kB para
-              127 kB, contra um orçamento de 130 kB — caro para uma única foto
-              estática. Assim os arquivos saem direto do CDN, sem passar pelo
-              otimizador da Vercel, que acrescenta latência na primeira
-              requisição justamente do elemento candidato a LCP.
-              As variantes de public/ vêm de scripts/gerar-fachada.py, que
-              guarda o ponto de corte e as qualidades usadas.
-            */}
-            <img
-              src="/fachada-nbrasa-1400.jpg"
-              alt="Fachada do N'Brasa na Av. Júlio Maria ao entardecer, com o letreiro iluminado sobre a entrada"
-              width={1400}
-              height={1120}
-              fetchPriority="high"
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </picture>
-        </div>
       </div>
+
+      {/* A foto sangra até a borda direita e a esquerda dela é recortada pela
+          chama da logo. No mobile ela fica em fluxo, abaixo do texto, e a
+          costura gira: a chama sobe do topo da foto em direção ao título.
+          Depois do texto no DOM de propósito — é a ordem de leitura no
+          mobile; no desktop o posicionamento absoluto ignora a ordem. */}
+      <div
+        className="costura-chama relative aspect-square w-full lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-auto lg:left-[var(--costura-inicio)]"
+        style={{ "--costura-inicio": AJUSTES.inicioDaFoto } as CSSProperties}
+      >
+        <picture>
+          <source type="image/avif" srcSet={AVIF} sizes={TAMANHOS} />
+          <source type="image/webp" srcSet={WEBP} sizes={TAMANHOS} />
+          {/*
+            <img> em vez de next/image de propósito. O next/image traz um
+            componente de cliente que subiu a primeira carga de 122 kB para
+            127 kB, contra um orçamento de 130 kB — caro para uma única foto
+            estática. Assim os arquivos saem direto do CDN, sem passar pelo
+            otimizador da Vercel, que acrescenta latência na primeira
+            requisição justamente do elemento candidato a LCP.
+          */}
+          <img
+            src="/fachada-nbrasa-1600.jpg"
+            alt="Fachada do N'Brasa na Av. Júlio Maria ao entardecer, com o letreiro iluminado sobre a entrada"
+            width={1600}
+            height={1684}
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              objectPosition: AJUSTES.recorteDaFoto,
+              // o borrão fica no próprio <img>: enquanto o arquivo não chega,
+              // é ele que preenche a área já recortada pela chama.
+              backgroundImage: `url("${BORRAO_FACHADA}")`,
+              backgroundSize: "cover",
+              backgroundPosition: AJUSTES.recorteDaFoto,
+            }}
+          />
+        </picture>
       </div>
     </section>
   );

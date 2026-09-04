@@ -5,9 +5,12 @@ porque sao cinco arquivos pequenos e o original tem 33 MB (fora do repo).
 
     python scripts/gerar-fachada.py
 
-O original e retrato 4892x7732 e o slot do heroi e paisagem 4:3.2, entao o
-corte e obrigatorio. FOCO_VERTICAL marca onde esta o centro do letreiro
+O original e retrato 4892x7732 e o slot do heroi e mais alto que largo, entao
+o corte e obrigatorio. FOCO_VERTICAL marca onde esta o centro do letreiro
 iluminado, medido na imagem: e o elemento que nao pode sair do quadro.
+
+PROPORCAO e FOCO_VERTICAL sao os dois botoes deste script. Baixar a proporcao
+deixa o quadro mais alto; subir o foco desce o corte e tira ceu.
 """
 
 from pathlib import Path
@@ -23,12 +26,16 @@ RAIZ = Path(__file__).resolve().parent.parent
 ORIGEM = RAIZ / "apresentação site" / "IMG_3643.png"
 DESTINO = RAIZ / "public"
 
-PROPORCAO = 4 / 3.2  # mesma do slot no Hero: aspect-[4/3.2]
-FOCO_VERTICAL = 0.556  # centro do letreiro, em fracao da altura
+# Largura / altura do quadro. O slot do heroi vai de ~0.9 (mobile) a ~1.2
+# (desktop largo); 0.95 fica no meio, entao o object-cover corta pouco dos
+# dois lados. Era 4/3.2 (paisagem) quando a foto era um card no canto.
+PROPORCAO = 0.95
+# Desceu de 0.556: com quadro mais alto, o corte antigo trazia ceu demais.
+FOCO_VERTICAL = 0.60  # centro do letreiro, em fracao da altura
 
-# 800 cobre o slot no desktop (~511 px CSS) e o mobile em tela comum;
-# 1400 cobre o pior caso, que e o mobile em tela 2x.
-LARGURAS = (800, 1400)
+# A foto agora ocupa ~60% da largura da tela: 900 cobre o mobile e telas
+# comuns, 1600 cobre desktop grande e mobile em tela 2x.
+LARGURAS = (900, 1600)
 
 # Qualidades escolhidas olhando o ceu em 1:1, que e onde o banding aparece
 # primeiro nesta foto. Abaixo destes valores ele fica visivel.

@@ -30,6 +30,34 @@ body {
   overflow-x: hidden;
 }
 
+/* Costura do herói: a borda da foto é a silhueta da chama da logo.
+   A máscara e os números vêm de lib/costura.ts, via custom properties — para
+   reajustar a forma, mexa lá, não aqui. Sem suporte a mask-image a foto
+   aparece como retângulo, que é uma degradação aceitável. */
+.costura-chama {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* mobile: chama de pé, saindo do topo da foto */
+  -webkit-mask-image: var(--costura-mascara-topo);
+  mask-image: var(--costura-mascara-topo);
+  -webkit-mask-size: calc(var(--costura-escala-mobile) * 100%) auto;
+  mask-size: calc(var(--costura-escala-mobile) * 100%) auto;
+  -webkit-mask-position: var(--costura-lado-mobile) var(--costura-altura-mobile);
+  mask-position: var(--costura-lado-mobile) var(--costura-altura-mobile);
+}
+
+@media (min-width: 1024px) {
+  /* desktop: chama deitada na borda esquerda da foto */
+  .costura-chama {
+    -webkit-mask-image: var(--costura-mascara);
+    mask-image: var(--costura-mascara);
+    -webkit-mask-size: auto calc(var(--costura-escala) * 100%);
+    mask-size: auto calc(var(--costura-escala) * 100%);
+    -webkit-mask-position: left var(--costura-altura);
+    mask-position: left var(--costura-altura);
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--color-brasa);
   outline-offset: 3px;
