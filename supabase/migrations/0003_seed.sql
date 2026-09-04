@@ -18,7 +18,7 @@ insert into public.categorias (slug, nome, kicker, descricao, foto_path, ordem, 
 
 insert into public.programacao (id, dias_label, titulo, descricao, ordem, ativo) values
   ('espetinho', 'Terça e quinta', 'Noite do Espetinho', 'Espetinhos saindo sem parar e chopp gelado para acompanhar até o fim da noite.', 1, true),
-  ('burger', 'Quarta', 'Burger Preço Único', 'Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.', 2, true),
+  ('burger', 'Quarta', 'Noite do Burger', 'Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.', 2, true),
   ('dj', 'Sexta e sábado', 'DJ na Casa', 'DJ comandando a pista, drinks autorais e cozinha aberta até tarde.', 3, true),
   ('orla', 'Domingo', 'Tarde na Orla', 'Porções para dividir em família, pôr do sol na Av. Júlio Maria e chopp sempre gelado.', 4, true);
 
@@ -41,4 +41,4 @@ insert into public.depoimentos (id, texto, autor, nota, ordem, ativo) values
 
 -- Linha unica: id fixo em 1, garantido pelo check da tabela.
 insert into public.conteudo (id, hero_titulo, hero_subtitulo, telefone, endereco, cidade_uf, cep, whatsapp_url, instagram, campanha_ativa, campanha_titulo, depoimentos_titulo, horarios_titulo) values
-  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235, Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', '4,2 estrelas e quase 300 avaliações', 'A casa abre à tarde');
+  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235, Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', 'Nota 4,2 de quase 300 clientes', 'A casa abre de tarde');

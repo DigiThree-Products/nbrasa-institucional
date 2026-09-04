@@ -87,7 +87,9 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
       {paradas.map((p, i) => (
         <div key={p.id}
              className={`absolute z-[3] w-[158px] md:w-[190px] lg:w-[250px] ${POSICOES[i] ?? ""}`}>
-          <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-brasa px-4 py-1.5 font-display text-base uppercase tracking-wide">
+          {/* Fonte de corpo, e não display: "Japuíba" é nome de bairro e não
+              se reescreve, e a Owners TRIAL não tem letra acentuada. */}
+          <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-brasa px-4 py-1.5 text-base font-extrabold uppercase tracking-wide">
             {p.bairro}
           </span>
           <span className="block overflow-hidden rounded-[20px] border-[3px] border-branco bg-fumaca shadow-[0_22px_50px_rgba(0,0,0,.6)]">
