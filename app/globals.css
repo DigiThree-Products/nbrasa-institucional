@@ -15,7 +15,7 @@
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
 }
 
-/* CSS oficial do Lenis — obrigatório para o scroll suave funcionar */
+/* CSS oficial do Lenis, obrigatório para o scroll suave funcionar */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -31,7 +31,7 @@ body {
 }
 
 /* Costura do herói: a borda da foto é a silhueta da chama da logo.
-   A máscara e os números vêm de lib/costura.ts, via custom properties — para
+   A máscara e os números vêm de lib/costura.ts, via custom properties, para
    reajustar a forma, mexa lá, não aqui. Sem suporte a mask-image a foto
    aparece como retângulo, que é uma degradação aceitável. */
 .costura-chama {

@@ -12,7 +12,7 @@ describe("mascaraChama", () => {
 
     expect(url.startsWith('url("data:image/svg+xml,')).toBe(true);
     // `<` e aspas crus dentro do data URI fazem o Chrome descartar a
-    // declaração inteira — sem erro nenhum, a máscara simplesmente some.
+    // declaração inteira, sem erro nenhum, a máscara simplesmente some.
     const dados = url.slice('url("data:image/svg+xml,'.length, -2);
     expect(dados).not.toContain("<");
     expect(dados).not.toContain('"');
@@ -20,7 +20,7 @@ describe("mascaraChama", () => {
 
   it("declara tamanho intrínseco, não só viewBox", () => {
     // Sem width/height o SVG não tem dimensão intrínseca, e `mask-size: auto`
-    // no outro eixo fica a cargo do navegador — a chama sai de proporção.
+    // no outro eixo fica a cargo do navegador, a chama sai de proporção.
     const svg = decodificar(mascaraChama("borda"));
 
     expect(svg).toContain("width='600'");

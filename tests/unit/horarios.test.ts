@@ -12,18 +12,18 @@ describe("agruparHorarios", () => {
   it("junta três dias consecutivos iguais numa faixa com 'a'", () => {
     expect(agruparHorarios([
       h(2, 1, "14:00", "22:00"), h(3, 2, "14:00", "22:00"), h(4, 3, "14:00", "22:00"),
-    ])).toEqual([{ label: "Terça a quinta", texto: "14h — 22h" }]);
+    ])).toEqual([{ label: "Terça a quinta", texto: "14h às 22h" }]);
   });
 
   it("junta dois dias consecutivos iguais com 'e'", () => {
     expect(agruparHorarios([
       h(5, 1, "16:00", "03:00"), h(6, 2, "16:00", "03:00"),
-    ])).toEqual([{ label: "Sexta e sábado", texto: "16h — 03h" }]);
+    ])).toEqual([{ label: "Sexta e sábado", texto: "16h às 03h" }]);
   });
 
   it("mantém um dia isolado com o próprio nome", () => {
     expect(agruparHorarios([h(0, 1, "14:00", "22:00")]))
-      .toEqual([{ label: "Domingo", texto: "14h — 22h" }]);
+      .toEqual([{ label: "Domingo", texto: "14h às 22h" }]);
   });
 
   it("escreve 'Fechado' para dia fechado", () => {
@@ -40,9 +40,9 @@ describe("agruparHorarios", () => {
     // segunda fechada separa domingo de terça, mesmo com horário igual
     expect(agruparHorarios(horariosSeed)).toEqual([
       { label: "Segunda-feira",   texto: "Fechado"   },
-      { label: "Terça a quinta",  texto: "14h — 22h" },
-      { label: "Sexta e sábado",  texto: "16h — 03h" },
-      { label: "Domingo",         texto: "14h — 22h" },
+      { label: "Terça a quinta",  texto: "14h às 22h" },
+      { label: "Sexta e sábado",  texto: "16h às 03h" },
+      { label: "Domingo",         texto: "14h às 22h" },
     ]);
   });
 
@@ -51,8 +51,8 @@ describe("agruparHorarios", () => {
     expect(agruparHorarios([
       h(2, 2, "14:00", "22:00"), h(5, 5, "14:00", "22:00"),
     ])).toEqual([
-      { label: "Terça-feira", texto: "14h — 22h" },
-      { label: "Sexta-feira", texto: "14h — 22h" },
+      { label: "Terça-feira", texto: "14h às 22h" },
+      { label: "Sexta-feira", texto: "14h às 22h" },
     ]);
   });
 
@@ -65,6 +65,6 @@ describe("agruparHorarios", () => {
     // renderizaria "9:h". Inalcançável pelo seed atual (sempre "HH:MM"),
     // mas alcançável assim que um form de admin deixar o dono digitar livre.
     expect(agruparHorarios([h(2, 1, "9:00", "22:00")]))
-      .toEqual([{ label: "Terça-feira", texto: "09h — 22h" }]);
+      .toEqual([{ label: "Terça-feira", texto: "09h às 22h" }]);
   });
 });

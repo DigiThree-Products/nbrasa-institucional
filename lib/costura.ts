@@ -8,7 +8,7 @@ export type Costura = "borda" | "topo";
  *
  * Estão todos aqui de propósito: o componente e o CSS apenas consomem estes
  * valores como custom properties, então ajustar o desenho depois é editar
- * este bloco — não caçar número solto em JSX nem em folha de estilo.
+ * este bloco, não caçar número solto em JSX nem em folha de estilo.
  */
 export const AJUSTES = {
   /**
@@ -16,7 +16,7 @@ export const AJUSTES = {
    *
    * Precisa passar de `1`. Em `1` a chama cabe justa e as duas pontas ficam
    * dentro do quadro: acima do bico e abaixo da base não há curva nenhuma, e
-   * a borda cai na linha reta do eixo — no rodapé, onde a base é larga e
+   * a borda cai na linha reta do eixo, no rodapé, onde a base é larga e
    * redonda, isso vira um degrau visível. Transbordando um pouco, a curva
    * entra por cima e sai por baixo, contínua de ponta a ponta.
    *
@@ -24,7 +24,7 @@ export const AJUSTES = {
    * entalhe no tamanho em que ele lê como lambida.
    *
    * Perto de `1.8` a chama fica bem maior e o entalhe cresce junto, a ponto
-   * de virar uma cunha solta — aí ele precisa ser cortado pela borda de cima
+   * de virar uma cunha solta, aí ele precisa ser cortado pela borda de cima
    * (`altura: "91%"`). Acima de ~`2.2` o entalhe sai do quadro e a borda vira
    * uma curva lisa: elegante, mas deixa de ler como chama.
    */
@@ -35,13 +35,13 @@ export const AJUSTES = {
    *
    * Distribui a sobra criada por `escala` entre cima e baixo. `50%` (atual)
    * divide igual, então bico e base transbordam na mesma medida.
-   * `0%` alinha o topo da chama ao topo do herói — o que traz de volta o
+   * `0%` alinha o topo da chama ao topo do herói, o que traz de volta o
    * trecho reto lá em cima; `100%` faz o mesmo no rodapé.
    */
   altura: "50%",
 
   /**
-   * Onde a coluna da foto começa — na prática, onde fica a barriga da chama,
+   * Onde a coluna da foto começa, na prática, onde fica a barriga da chama,
    * porque a máscara alinha a chama pela esquerda do contêiner.
    * Menor = mordida mais funda no texto. Abaixo de ~40% a curva encosta no
    * fim das linhas do parágrafo e atrapalha a leitura.
@@ -78,7 +78,7 @@ const SOBRA = 600;
 const ALTURA_CHAMA = 116;
 const LARGURA_CHAMA = 100;
 /**
- * Altura em que a chama de pé é mais larga — onde o preenchimento encosta
+ * Altura em que a chama de pé é mais larga, onde o preenchimento encosta
  * nela, no mobile.
  *
  * Não use a cintura (58, a meia altura): ali o contorno ainda desce
@@ -90,7 +90,7 @@ const APOIO_CHAMA = 78;
 
 export function mascaraChama(onde: Costura): string {
   // O quadro sobra nos dois eixos em que a foto continua. Ele precisa cobrir
-  // a foto inteira depois de escalado — um quadro do tamanho da chama deixaria
+  // a foto inteira depois de escalado, um quadro do tamanho da chama deixaria
   // as laterais sem máscara, e ali a foto simplesmente sumiria.
   const [w, h] = onde === "borda" ? [SOBRA, ALTURA_CHAMA] : [SOBRA, SOBRA];
 

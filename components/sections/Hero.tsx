@@ -26,8 +26,8 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
  * Quebra `heroTitulo` em duas linhas com a última palavra destacada em
- * `text-brasa` — a apresentação exata do mockup ("A fome" / "acende
- * aqui.") — mas dirigida pelas palavras do dado, não hardcoded na JSX.
+ * `text-brasa`, a apresentação exata do mockup ("A fome" / "acende
+ * aqui."), mas dirigida pelas palavras do dado, não hardcoded na JSX.
  * Assim o painel de admin continua podendo trocar o texto do herói: a
  * última palavra sempre ganha o destaque, e o resto se distribui em duas
  * linhas de tamanho parecido, reproduzindo a quebra atual para o texto de
@@ -89,9 +89,18 @@ export async function Hero() {
             <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
           </div>
 
-          <div className="mt-9 flex flex-wrap gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza">
+          {/* Grade, e não flex-wrap: as três faixas somam 586px numa coluna de
+              641px e só cabem numa linha se o vão encolher, com 7px de folga.
+              Bastaria o dono cadastrar "14h às 22h30" no painel para a linha
+              estourar e sobrar um dia órfão embaixo. Em duas colunas o bloco
+              fica alinhado em qualquer largura e aguenta o texto crescer.
+
+              O @ do Instagram saiu daqui: era a terceira aparição dele na
+              página (rodapé e "Onde estamos", esta como link de verdade), não
+              era clicável, e era ele que emparelhava rede social com horário
+              na mesma linha. */}
+          <div className="mt-9 grid gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza sm:grid-cols-2">
             {resumo.map((f) => <span key={f.label}>{f.label} · {f.texto}</span>)}
-            <span>{c.instagram}</span>
           </div>
         </div>
       </div>
@@ -99,7 +108,7 @@ export async function Hero() {
       {/* A foto sangra até a borda direita e a esquerda dela é recortada pela
           chama da logo. No mobile ela fica em fluxo, abaixo do texto, e a
           costura gira: a chama sobe do topo da foto em direção ao título.
-          Depois do texto no DOM de propósito — é a ordem de leitura no
+          Depois do texto no DOM de propósito, é a ordem de leitura no
           mobile; no desktop o posicionamento absoluto ignora a ordem. */}
       <div
         className="costura-chama relative aspect-square w-full lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto lg:w-auto lg:left-[var(--costura-inicio)]"
@@ -111,7 +120,7 @@ export async function Hero() {
           {/*
             <img> em vez de next/image de propósito. O next/image traz um
             componente de cliente que subiu a primeira carga de 122 kB para
-            127 kB, contra um orçamento de 130 kB — caro para uma única foto
+            127 kB, contra um orçamento de 130 kB, caro para uma única foto
             estática. Assim os arquivos saem direto do CDN, sem passar pelo
             otimizador da Vercel, que acrescenta latência na primeira
             requisição justamente do elemento candidato a LCP.

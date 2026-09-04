@@ -2,8 +2,8 @@
 --
 -- Gerado a partir de lib/conteudo.seed.ts, que continua sendo a fonte de
 -- verdade e a fixture dos testes unitarios. Os textos batem caractere por
--- caractere com aquele arquivo — inclusive o travessao em
--- 'Av. Julio Maria, 235 — Centro', que e em dash (—), nao hifen.
+-- caractere com aquele arquivo. O travessao foi removido de todo o conteudo
+-- em 2026-09-04, a pedido do cliente: onde havia em dash entra virgula.
 --
 -- Inclui de proposito as linhas INATIVAS (categoria 'chopp', depoimento 'd4'):
 -- elas provam que o filtro de ativo funciona e servem de fixture do painel.
@@ -34,11 +34,11 @@ insert into public.horarios (dia_semana, abre, fecha, fechado, ordem) values
   (6, '16:00', '03:00', false, 6);
 
 insert into public.depoimentos (id, texto, autor, nota, ordem, ativo) values
-  ('d1', 'Lugar perfeito para fazer um lanche de qualidade! Experimentei o hambúrguer com geleia de pimenta — simplesmente maravilhoso.', 'Phellipe K.', 5, 1, true),
+  ('d1', 'Lugar perfeito para fazer um lanche de qualidade! Experimentei o hambúrguer com geleia de pimenta, simplesmente maravilhoso.', 'Phellipe K.', 5, 1, true),
   ('d2', 'Pratos excelentes, chopp gelado e ótimo atendimento. Voltarei com certeza.', 'Roni L.', 5, 2, true),
   ('d3', 'Ambiente acolhedor e música ao vivo. Viramos clientes da casa.', 'Cliente Google', 5, 3, true),
-  ('d4', 'Registro de antes da reforma da casa, mantido desativado — não deve aparecer no site.', 'Depoimento antigo', 2, 4, false);
+  ('d4', 'Registro de antes da reforma da casa, mantido desativado, não deve aparecer no site.', 'Depoimento antigo', 2, 4, false);
 
 -- Linha unica: id fixo em 1, garantido pelo check da tabela.
 insert into public.conteudo (id, hero_titulo, hero_subtitulo, telefone, endereco, cidade_uf, cep, whatsapp_url, instagram, campanha_ativa, campanha_titulo, depoimentos_titulo, horarios_titulo) values
-  (1, 'A fome acende aqui.', 'Bar com atrações musicais, chopp gelado, burguers, espetos e petiscos. Na Av. Júlio Maria, no Centro — onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235 — Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', '4,2 estrelas e quase 300 avaliações', 'A casa abre à tarde');
+  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235, Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', '4,2 estrelas e quase 300 avaliações', 'A casa abre à tarde');

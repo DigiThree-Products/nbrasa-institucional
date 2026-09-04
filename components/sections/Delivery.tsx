@@ -20,7 +20,7 @@ export async function Delivery() {
           Vai <span className="text-brasa">N&apos;brasando</span>
         </h2>
         <p className="mx-auto mt-4 max-w-[52ch] text-cinza">
-          O sabor sai da brasa e vai até você. Role a página e siga a rota — de Angra ao seu sofá, sem perder a temperatura.
+          O sabor sai da brasa e vai até você. Role a página e siga a rota, de Angra ao seu sofá, sem perder a temperatura.
         </p>
       </div>
 
