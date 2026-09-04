@@ -10,7 +10,7 @@ export async function Footer() {
           <div>
             <span className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-full border-[2.5px] border-carvao">
-                <Chama className="h-[19px] w-[19px] text-brasa" />
+                <Chama className="h-[22px] w-[15px] text-brasa" />
               </span>
               <span className="font-display text-[1.42rem] uppercase leading-none">n’Brasa</span>
             </span>

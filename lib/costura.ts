@@ -1,4 +1,4 @@
-import { D_CHAMA, EIXO_CHAMA } from "./marca";
+import { D_SILHUETA, EIXO_SILHUETA } from "./marca";
 
 /** Onde a chama encosta na foto: na borda esquerda (desktop) ou no topo (mobile). */
 export type Costura = "borda" | "topo";
@@ -75,8 +75,8 @@ export const AJUSTES = {
  *  o bastante para a máscara cobrir a foto inteira depois de escalada. */
 const SOBRA = 600;
 
-const ALTURA_CHAMA = 116;
-const LARGURA_CHAMA = 100;
+const ALTURA_SILHUETA = 116;
+const LARGURA_SILHUETA = 100;
 /**
  * Altura em que a chama de pé é mais larga, onde o preenchimento encosta
  * nela, no mobile.
@@ -86,28 +86,28 @@ const LARGURA_CHAMA = 100;
  * da lateral morrendo no ar acima da reta. Na parte mais larga a tangente é
  * vertical e a curva encosta na reta sem quebra.
  */
-const APOIO_CHAMA = 78;
+const APOIO_SILHUETA = 78;
 
 export function mascaraChama(onde: Costura): string {
   // O quadro sobra nos dois eixos em que a foto continua. Ele precisa cobrir
   // a foto inteira depois de escalado, um quadro do tamanho da chama deixaria
   // as laterais sem máscara, e ali a foto simplesmente sumiria.
-  const [w, h] = onde === "borda" ? [SOBRA, ALTURA_CHAMA] : [SOBRA, SOBRA];
+  const [w, h] = onde === "borda" ? [SOBRA, ALTURA_SILHUETA] : [SOBRA, SOBRA];
 
   // No topo a chama fica no meio do quadro; na borda, encostada à esquerda.
-  const desloca = onde === "borda" ? 0 : (SOBRA - LARGURA_CHAMA) / 2;
+  const desloca = onde === "borda" ? 0 : (SOBRA - LARGURA_SILHUETA) / 2;
 
   // Opaco = foto aparece. A união da chama com o retângulo é a região visível:
   // por isso a borda da foto é a curva da chama, e do eixo dela em diante a
   // foto segue inteira até sangrar na tela.
   const preenche =
     onde === "borda"
-      ? `<rect x='${EIXO_CHAMA}' y='0' width='${SOBRA - EIXO_CHAMA}' height='${ALTURA_CHAMA}' fill='black'/>`
-      : `<rect x='0' y='${APOIO_CHAMA}' width='${SOBRA}' height='${SOBRA - APOIO_CHAMA}' fill='black'/>`;
+      ? `<rect x='${EIXO_SILHUETA}' y='0' width='${SOBRA - EIXO_SILHUETA}' height='${ALTURA_SILHUETA}' fill='black'/>`
+      : `<rect x='0' y='${APOIO_SILHUETA}' width='${SOBRA}' height='${SOBRA - APOIO_SILHUETA}' fill='black'/>`;
 
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>` +
-    `<g transform='translate(${desloca},0)'><path d='${D_CHAMA}' fill='black'/></g>` +
+    `<g transform='translate(${desloca},0)'><path d='${D_SILHUETA}' fill='black'/></g>` +
     preenche +
     `</svg>`;
 
