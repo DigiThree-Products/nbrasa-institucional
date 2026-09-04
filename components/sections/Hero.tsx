@@ -47,7 +47,7 @@ function TituloHero({ texto }: { texto: string }) {
 
   return (
     <>
-      {abertura && <span className="block text-[.55em]">{abertura}</span>}
+      {abertura && <span className="block text-[.7em]">{abertura}</span>}
       <span className="block">
         <span className="text-[1.15em] text-brasa">{foco}</span>
         {fecho && <>{" "}<span className="text-[.42em]">{fecho}</span></>}
