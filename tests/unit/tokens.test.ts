@@ -14,6 +14,7 @@ describe("tokens de marca", () => {
     ["--color-creme-texto", "#6b5c55"],
     ["--color-creme-borda", "#e3d5c8"],
     ["--color-branco", "#ffffff"],
+    ["--color-brasa-escura", "#b81f2c"],
   ])("declara %s como %s", (token, valor) => {
     expect(css).toMatch(new RegExp(`${token}\\s*:\\s*${valor}`));
   });

@@ -147,11 +147,20 @@ Paleta oficial (valores exatos, do moodboard):
 
 | Cor | Hex |
 |---|---|
-| Carvão (fundo padrão) | `#241e1f` |
+| Carvão | `#241e1f` |
 | Vermelho brasa (destaque) | `#cf2434` |
 | Branco | `#ffffff` |
 
-Os demais tokens (`--color-brasa-texto`, `--color-creme`, …) são derivados
+**A página é clara.** O fundo padrão do `body` é branco e o carvão virou a cor
+do texto; `creme` é a superfície dos cards sobre esse branco. A **Delivery é a
+única faixa escura** e carrega o próprio `bg-carvao text-branco`, com uma
+`DivisoriaCurva` na entrada e outra na saída (a de saída precisa de
+`corOrigem`, senão a metade de cima da curva vira branco). Consequência
+prática: `cinza`, `fumaca` e `brasa-texto` só valem dentro da Delivery, e todo
+rótulo pequeno vermelho sobre superfície clara usa `--color-brasa-escura`
+(`#b81f2c`), porque o `brasa` puro faz 4,30:1 sobre creme e reprova AA.
+
+Os demais tokens (`--color-brasa-escura`, `--color-creme`, …) são derivados
 criados para atender contraste — não invente novos sem passar pelo teste.
 
 Tipografia: **Owners** (display) e **Hanken Grotesk** (corpo). Owners é

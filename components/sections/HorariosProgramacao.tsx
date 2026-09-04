@@ -9,7 +9,7 @@ export async function HorariosProgramacao() {
   const faixas = agruparHorarios(horarios);
 
   return (
-    <section id="programacao" className="flex min-h-dvh items-center bg-creme text-carvao">
+    <section id="programacao" className="flex min-h-dvh items-center">
       <div className="mx-auto max-w-[1280px] px-6 py-20">
         <div className="grid gap-14 md:grid-cols-2">
           <div>
@@ -40,8 +40,8 @@ export async function HorariosProgramacao() {
             <div className="grid gap-3">
               {prog.map((p) => (
                 <Reveal key={p.id}>
-                  <article className="flex items-baseline gap-4 rounded-2xl border-l-[5px] border-brasa bg-branco px-5 py-4">
-                    <span className="flex-none basis-[108px] text-[.68rem] font-extrabold uppercase tracking-[.14em] text-brasa">
+                  <article className="flex items-baseline gap-4 rounded-2xl border-l-[5px] border-brasa bg-creme px-5 py-4">
+                    <span className="flex-none basis-[108px] text-[.68rem] font-extrabold uppercase tracking-[.14em] text-brasa-escura">
                       {p.diasLabel}
                     </span>
                     <span>

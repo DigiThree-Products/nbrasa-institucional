@@ -10,6 +10,9 @@
   --color-creme-texto: #6b5c55;
   --color-creme-borda: #e3d5c8;
   --color-branco: #ffffff;
+  /* Vermelho de marca escurecido para texto pequeno sobre superficie clara:
+     o #cf2434 puro faz 4,30:1 sobre creme e reprova AA. Ver contraste.test.ts. */
+  --color-brasa-escura: #b81f2c;
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
@@ -23,8 +26,8 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth iframe { pointer-events: none; }
 
 body {
-  background: var(--color-carvao);
-  color: var(--color-branco);
+  background: var(--color-branco);
+  color: var(--color-carvao);
   font-family: var(--font-corpo);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;

@@ -17,7 +17,7 @@ export async function Cardapio() {
         <h2 className="text-balance font-display text-[clamp(2.3rem,5.6vw,4.4rem)] uppercase leading-[.86]">
           Feito na hora,<br />servido no capricho
         </h2>
-        <p className="max-w-[44ch] text-cinza">
+        <p className="max-w-[44ch] text-creme-texto">
           Ingredientes frescos, ponto certo e porções generosas. Cada item nasceu para ser repetido.
         </p>
       </div>
@@ -26,14 +26,14 @@ export async function Cardapio() {
         {cats.map((c, i) => (
           <Reveal key={c.slug} className={VAOS[i] ?? ""}>
             <article
-              className="flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-fumaca bg-fumaca p-6 transition-all hover:-translate-y-1.5 hover:border-brasa"
+              className="flex h-full min-h-[210px] flex-col justify-end rounded-[22px] border border-creme-borda bg-creme p-6 transition-all hover:-translate-y-1.5 hover:border-brasa"
             >
-              {/* brasa-texto, nao brasa: rotulo pequeno sobre fundo escuro (§9 do spec) */}
-              <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-texto">
+              {/* brasa-escura, nao brasa: rotulo pequeno sobre fundo claro (§9 do spec) */}
+              <span className="text-[.68rem] font-extrabold uppercase tracking-[.16em] text-brasa-escura">
                 {c.kicker}
               </span>
               <h3 className="mb-2 mt-2 font-display text-2xl uppercase leading-none">{c.nome}</h3>
-              <p className="text-sm leading-relaxed text-cinza">{c.descricao}</p>
+              <p className="text-sm leading-relaxed text-creme-texto">{c.descricao}</p>
             </article>
           </Reveal>
         ))}
