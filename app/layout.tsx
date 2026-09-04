@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Playfair_Display } from "next/font/google";
+import { Hanken_Grotesk, Permanent_Marker } from "next/font/google";
 import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
@@ -9,13 +9,15 @@ import "./globals.css";
 const corpo = Hanken_Grotesk({
   subsets: ["latin"], display: "swap", variable: "--fonte-corpo",
 });
-// Serifa de display, usada em UMA palavra: o "acende" do herói. Peso fixo em
-// 900, e não a variável inteira, porque é o único peso consumido e a estática
-// baixa bem menos. A família não vem do moodboard, que só traz Owners e
+// Fonte desenhada, usada em UMA palavra: o "acende" do herói. Traço de
+// marcador, peso único, e a inclinação faz parte do desenho da letra: não há
+// oblíqua sintética por cima, que numa fonte já inclinada e irregular só
+// borraria o gesto. A família não vem do moodboard, que só traz Owners e
 // Hanken Grotesk; entrou por decisão de desenho, para a palavra dominante
 // destoar das duas linhas condensadas em volta dela.
-const serifa = Playfair_Display({
-  subsets: ["latin"], weight: "900", display: "swap", variable: "--fonte-serifa",
+const desenhada = Permanent_Marker({
+  subsets: ["latin"], weight: "400",
+  display: "swap", variable: "--fonte-desenhada",
 });
 // Owners XNarrow Black, a fonte de display da marca. É a versão TRIAL, com
 // 73 glifos e nenhuma letra acentuada: tests/unit/owners.test.ts garante que
@@ -61,7 +63,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${corpo.variable} ${display.variable} ${serifa.variable}`}>
+    <html lang="pt-BR" className={`${corpo.variable} ${display.variable} ${desenhada.variable}`}>
       <body>
         <DadosEstruturados />
         <a href="#conteudo"

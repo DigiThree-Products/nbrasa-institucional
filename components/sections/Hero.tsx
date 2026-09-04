@@ -63,18 +63,32 @@ const FECHO = APOIO + " text-right";
 /**
  * Corpo da linha 2, a palavra dominante.
  *
- * É a única linha serifada, em Playfair Display 900. As outras duas seguem na
- * Owners XNarrow Black. A serifa não vem do moodboard, que só traz Owners e
- * Hanken Grotesk: entrou por decisão de desenho, e o contraste com as duas
- * linhas condensadas em volta é justamente o efeito.
+ * É a única linha desenhada, em Permanent Marker. As outras duas seguem na
+ * Owners XNarrow Black, reta e condensada, e o contraste entre traço de
+ * marcador e grotesco geométrico é justamente o efeito. A família não vem do
+ * moodboard, que só traz Owners e Hanken Grotesk: entrou por decisão de
+ * desenho.
  *
- * A troca de família obrigou a refazer os três números, e não só a trocar a
- * classe: a Owners XNarrow é condensada e a Playfair não é. Medido no
- * navegador, "ACENDE" ocupa 4,11 vezes o próprio corpo na Playfair 900 contra
- * 2,24 na Owners, ou seja, 84% mais largo no mesmo corpo. Sem baixar a
- * escala, a palavra estouraria todas as paredes de uma vez. Os valores abaixo
- * são os anteriores multiplicados por 0,545, o inverso desse fator, então a
- * palavra ocupa exatamente a mesma largura de antes em qualquer viewport.
+ * Não há `italic` aqui, e isso é deliberado. A inclinação já está no desenho
+ * da letra, e a oblíqua sintética do navegador é uma matriz de cisalhamento
+ * aplicada por cima: numa fonte já inclinada e de contorno irregular, ela
+ * some com o gesto e deixa o traço torto em vez de inclinado.
+ *
+ * Foi escolhida contra brush scripts como Kaushan e Yellowtail, que também
+ * leem como desenhadas, porque aquelas são a mesma voz do wordmark manuscrito
+ * da marca. Repetir o gesto do logo na manchete faria as duas peças
+ * competirem; o marcador é uma mão diferente, mais crua, e convive.
+ *
+ * A troca de família obrigou a refazer os três números, e não só a classe.
+ * Medido no navegador, "ACENDE" ocupa 3,78 vezes o próprio corpo
+ * contra 2,24 na Owners XNarrow Black. Os valores abaixo são os da versão em
+ * Owners multiplicados pelo inverso desse fator, então a palavra ocupa
+ * exatamente a mesma largura de antes em qualquer viewport.
+ *
+ * O número medido é a largura da TINTA, não a da caixa. Numa letra reta os
+ * dois são quase o mesmo e a distinção não aparece; numa inclinada, não, e
+ * dimensionar pela caixa já fez o "E" final entrar dentro da foto em 1024px
+ * sem nenhuma conta acusar.
  *
  * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
  * layouts diferentes: empilhado, com a coluna inteira à disposição, e em duas
@@ -82,25 +96,31 @@ const FECHO = APOIO + " text-right";
  * parede mais dura nas duas faixas, e medido isso custava 26% de corpo entre
  * 620px e 1000px, onde parede nenhuma existe.
  *
- * O `min(10.9vw,17.4vh)` da regra do `lg` resolve duas paredes que puxam para
- * lados opostos, e nenhuma das duas é onde se procuraria.
+ * O `min(11.8vw,18.9vh)` da regra do `lg` resolve duas paredes que puxam para lados
+ * opostos, e nenhuma das duas é onde se procuraria.
  *
  * A parede de largura não é a tela larga: é `1024px`, onde o `lg` entra e a
  * coluna do texto despenca de `100%` para `52%`. Medido ali: o texto começa
  * em 24px e a foto em 512px, então sobram 488px úteis, não os 507px da
- * coluna, que já invade a foto em 20px. Com o fator 4,11 o teto em 1024px é
- * 118px de corpo. Em 1440px, com o contêiner centralizado, sobram 616px e o
- * teto sobe para 149px. Um teto fixo teria que atender o pior caso e
+ * coluna, que já invade a foto em 20px. Em 1440px, com o contêiner
+ * centralizado, sobram 616px. Um teto fixo teria que atender o pior caso e
  * desperdiçaria corpo na tela larga, que é onde o herói é mais visto.
  *
  * A parede de altura é o botão do WhatsApp, que mora encaixado na terceira
- * linha: tudo que cresce aqui empurra o bloco para baixo. Os `17.4vh` são os
- * `32vh` da versão em Owners convertidos pelo mesmo fator, para o
- * comportamento em janela baixa ficar igual ao que já estava medido.
+ * linha: tudo que cresce aqui empurra o bloco para baixo. O `vh` é o `32vh`
+ * da versão em Owners convertido pelo mesmo fator, para o comportamento em
+ * janela baixa ficar igual ao que já estava medido.
+ *
+ * O `ml` e o `pr` são compensação ótica, e existem porque a caixa de layout e
+ * a tinta não são a mesma coisa numa letra inclinada. O alinhamento à
+ * esquerda das três linhas e o fecho encostado na direita são pedidos do
+ * desenho, e sem isto ficavam certos na conta e errados na tela, que é o tipo
+ * de erro que nenhum teste de caixa pega. Os dois valores estão em `em` do
+ * próprio foco, então acompanham a escala sozinhos.
  */
 const DOMINANTE =
-  "block font-serifa leading-[.92] tracking-[-.02em] text-brasa " +
-  "text-[clamp(3.8rem,14.5vw,7.1rem)] lg:text-[clamp(3.8rem,min(10.9vw,17.4vh),8.7rem)]";
+  "block font-desenhada leading-[.92] tracking-[-.02em] text-brasa ml-[.03em] pr-[.046em] " +
+  "text-[clamp(4.14rem,16vw,7.7rem)] lg:text-[clamp(4.14rem,min(11.8vw,18.9vh),9.45rem)]";
 
 /**
  * O título do herói em três linhas, uma palavra por linha, alinhadas à

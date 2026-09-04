@@ -17,10 +17,11 @@
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
-  /* Serifa de display. O fallback e Georgia antes do serif generico: o serif
-     do sistema no Windows e Times New Roman, bem mais estreito e leve, e a
-     troca durante o swap saltaria aos olhos numa palavra deste tamanho. */
-  --font-serifa: var(--fonte-serifa), Georgia, "Times New Roman", serif;
+  /* Fonte desenhada, so para a palavra dominante do heroi. Nao existe
+     equivalente de sistema para traco de marcador, entao o fallback e um
+     grotesco pesado: melhor uma massa parecida durante o swap do que um
+     cursivo fino, que mudaria a mancha inteira do bloco. */
+  --font-desenhada: var(--fonte-desenhada), "Arial Black", Impact, sans-serif;
 }
 
 /* CSS oficial do Lenis, obrigatório para o scroll suave funcionar */
