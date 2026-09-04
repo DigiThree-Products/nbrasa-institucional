@@ -77,13 +77,13 @@ export async function Hero() {
     <section className="relative overflow-hidden" style={VARIAVEIS}>
       <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-16 lg:min-h-[calc(100dvh-74px)]">
         <div className="lg:max-w-[52%]">
-          <p className="text-[.72rem] uppercase tracking-[.2em] text-cinza">
+          <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
           <h1 className="mt-4 text-balance font-display text-[clamp(3.2rem,9.2vw,7.6rem)] uppercase leading-[.86]">
             <TituloHero texto={c.heroTitulo} />
           </h1>
-          <p className="mt-6 max-w-[46ch] text-lg text-cinza">{c.heroSubtitulo}</p>
+          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Botao href={c.whatsappUrl}>Pedir no WhatsApp</Botao>
@@ -99,7 +99,7 @@ export async function Hero() {
               página (rodapé e "Onde estamos", esta como link de verdade), não
               era clicável, e era ele que emparelhava rede social com horário
               na mesma linha. */}
-          <div className="mt-9 grid gap-x-8 gap-y-2 border-t border-fumaca pt-6 text-[.78rem] uppercase tracking-[.11em] text-cinza sm:grid-cols-2">
+          <div className="mt-9 grid gap-x-8 gap-y-2 border-t border-creme-borda pt-6 text-[.78rem] uppercase tracking-[.11em] text-creme-texto sm:grid-cols-2">
             {resumo.map((f) => <span key={f.label}>{f.label} · {f.texto}</span>)}
           </div>
         </div>

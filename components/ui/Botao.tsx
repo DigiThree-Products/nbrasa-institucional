@@ -13,7 +13,7 @@ const base =
 
 const variantes = {
   solido: "bg-brasa text-branco hover:brightness-110",
-  fantasma: "border-2 border-fumaca text-branco hover:border-branco",
+  fantasma: "border-2 border-creme-borda text-carvao hover:border-carvao",
 } as const;
 
 export function Botao({ children, href, variante = "solido", className = "" }: Props) {

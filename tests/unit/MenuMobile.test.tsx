@@ -62,6 +62,18 @@ describe("MenuMobile", () => {
     expect(screen.getAllByRole("button", { name: /fechar menu/i })).toHaveLength(1);
   });
 
+  // Regressão: o MenuMobile mora dentro do <header>, que tem backdrop-blur, e
+  // backdrop-filter faz do elemento o bloco de contenção dos descendentes
+  // `fixed`. Sem o portal, o `inset-0` do painel se media pelos 75px do header
+  // em vez da viewport e o menu virava uma tarja no topo, com os links por
+  // cima da página. Passou meses despercebido porque painel e página eram os
+  // dois carvão; só apareceu quando a página ficou branca.
+  it("monta o painel direto no body, fora da árvore do header", async () => {
+    render(<MenuMobile links={links} />);
+    await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
+    expect(screen.getByRole("dialog").parentElement).toBe(document.body);
+  });
+
   it("trava o scroll do body enquanto aberto e libera ao fechar", async () => {
     render(<MenuMobile links={links} />);
     await userEvent.click(screen.getByRole("button", { name: /abrir menu/i }));

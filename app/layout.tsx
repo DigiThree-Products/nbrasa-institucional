@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <DadosEstruturados />
         <a href="#conteudo"
-           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-brasa focus:px-4 focus:py-2">
+           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-brasa focus:px-4 focus:py-2 focus:text-branco">
           Pular para o conteúdo
         </a>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
