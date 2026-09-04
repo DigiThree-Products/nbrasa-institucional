@@ -63,43 +63,44 @@ const FECHO = APOIO + " text-right";
 /**
  * Corpo da linha 2, a palavra dominante.
  *
+ * É a única linha serifada, em Playfair Display 900. As outras duas seguem na
+ * Owners XNarrow Black. A serifa não vem do moodboard, que só traz Owners e
+ * Hanken Grotesk: entrou por decisão de desenho, e o contraste com as duas
+ * linhas condensadas em volta é justamente o efeito.
+ *
+ * A troca de família obrigou a refazer os três números, e não só a trocar a
+ * classe: a Owners XNarrow é condensada e a Playfair não é. Medido no
+ * navegador, "ACENDE" ocupa 4,11 vezes o próprio corpo na Playfair 900 contra
+ * 2,24 na Owners, ou seja, 84% mais largo no mesmo corpo. Sem baixar a
+ * escala, a palavra estouraria todas as paredes de uma vez. Os valores abaixo
+ * são os anteriores multiplicados por 0,545, o inverso desse fator, então a
+ * palavra ocupa exatamente a mesma largura de antes em qualquer viewport.
+ *
  * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
  * layouts diferentes: empilhado, com a coluna inteira à disposição, e em duas
  * colunas, dividindo a largura com a foto. Uma regra só teria que atender a
  * parede mais dura nas duas faixas, e medido isso custava 26% de corpo entre
  * 620px e 1000px, onde parede nenhuma existe.
  *
- * O `min(20vw,32vh)` da regra do `lg` resolve duas paredes que puxam para
+ * O `min(10.9vw,17.4vh)` da regra do `lg` resolve duas paredes que puxam para
  * lados opostos, e nenhuma das duas é onde se procuraria.
  *
  * A parede de largura não é a tela larga: é `1024px`, onde o `lg` entra e a
  * coluna do texto despenca de `100%` para `52%`. Medido ali: o texto começa
  * em 24px e a foto em 512px, então sobram 488px úteis, não os 507px da
- * coluna, que já invade a foto em 20px. "ACENDE" ocupa 2,24 vezes o próprio
- * corpo na Owners XNarrow, então o teto em 1024px é 216px. Em 1440px, com o
- * contêiner centralizado, sobram 616px e o teto sobe para 275px. Um teto fixo
- * teria que atender o pior caso e desperdiçaria 60px de corpo na tela larga,
- * que é onde o herói é mais visto. Os `20vw` acompanham essa parede: ela vale
- * `0,5v - 24` e o corpo máximo `0,223v`, curvas quase paralelas.
+ * coluna, que já invade a foto em 20px. Com o fator 4,11 o teto em 1024px é
+ * 118px de corpo. Em 1440px, com o contêiner centralizado, sobram 616px e o
+ * teto sobe para 149px. Um teto fixo teria que atender o pior caso e
+ * desperdiçaria corpo na tela larga, que é onde o herói é mais visto.
  *
- * A parede de altura é o botão do WhatsApp. Quando o conteúdo transborda o
- * `min-height`, cada pixel de corpo aqui empurra o CTA para baixo em 0,92px,
- * e ele já vivia no limite do notebook 1366x768. Os `32vh` amarram o título à
- * altura da janela: resolvendo a desigualdade, o botão continua acima da
- * dobra para qualquer viewport a partir de 623px, um pouco melhor que os
- * 631px de antes. Em janela baixa o título encolhe sozinho, que é o
- * comportamento certo, porque ali o problema é altura e não largura.
- *
- * O teto de `16rem` para em 256px e deixa 43px de folga na tela larga, para a
- * fonte de fallback durante o `swap` e para o dono cadastrar uma palavra mais
- * larga pelo painel. No mobile nada disso pega: `20vw` em 390px dá 78px, bem
- * abaixo do piso de `7rem`, então quem manda lá é o piso e o `vh` nunca entra
- * na conta, o que também evita o título respirar junto com a barra de
- * endereço do celular.
+ * A parede de altura é o botão do WhatsApp, que mora encaixado na terceira
+ * linha: tudo que cresce aqui empurra o bloco para baixo. Os `17.4vh` são os
+ * `32vh` da versão em Owners convertidos pelo mesmo fator, para o
+ * comportamento em janela baixa ficar igual ao que já estava medido.
  */
 const DOMINANTE =
-  "block leading-[.92] tracking-[-.02em] text-brasa " +
-  "text-[clamp(7rem,27vw,13rem)] lg:text-[clamp(7rem,min(20vw,32vh),16rem)]";
+  "block font-serifa leading-[.92] tracking-[-.02em] text-brasa " +
+  "text-[clamp(3.8rem,14.5vw,7.1rem)] lg:text-[clamp(3.8rem,min(10.9vw,17.4vh),8.7rem)]";
 
 /**
  * O título do herói em três linhas, uma palavra por linha, alinhadas à
