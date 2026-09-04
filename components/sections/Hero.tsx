@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { getConteudo, getHorarios } from "@/lib/conteudo";
 import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { AJUSTES, mascaraChama } from "@/lib/costura";
+import { partesDoTitulo } from "@/lib/tituloHero";
 import { Botao } from "@/components/ui/Botao";
 
 /**
@@ -25,28 +26,32 @@ const AVIF = "/fachada-nbrasa-900.avif 900w, /fachada-nbrasa-1600.avif 1600w";
 const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
 
 /**
- * Quebra `heroTitulo` em duas linhas com a última palavra destacada em
- * `text-brasa`, a apresentação exata do mockup ("A fome" / "acende
- * aqui."), mas dirigida pelas palavras do dado, não hardcoded na JSX.
- * Assim o painel de admin continua podendo trocar o texto do herói: a
- * última palavra sempre ganha o destaque, e o resto se distribui em duas
- * linhas de tamanho parecido, reproduzindo a quebra atual para o texto de
- * hoje sem prender o componente a um título de 4 palavras específico.
+ * O título do herói em três corpos: a abertura pequena na primeira linha, o
+ * foco grande e vermelho na segunda, e o fecho, o menor dos três, ao lado do
+ * foco. O vermelho fica só no foco; o fecho herda o carvão do `h1`, e é por
+ * isso que `text-brasa` está no span de dentro e não no bloco da linha.
+ *
+ * Os tamanhos são múltiplos em `em` do `clamp` que o `h1` já declara, e não
+ * valores próprios: assim as três partes continuam crescendo juntas em
+ * qualquer largura, com um número só governando a escala do bloco inteiro.
+ *
+ * Foco e fecho ficam inline no mesmo bloco de propósito. É isso que alinha os
+ * dois pela linha de base, de graça, mesmo com um tendo mais que o dobro do
+ * corpo do outro; empilhados em blocos seria preciso acertar a base à mão.
+ *
+ * Quem decide qual palavra é qual é `partesDoTitulo`, em lib/tituloHero.ts,
+ * porque a regra é testável e este componente não é.
  */
 function TituloHero({ texto }: { texto: string }) {
-  const palavras = texto.trim().split(/\s+/);
-  const destaque = palavras.at(-1) ?? "";
-  const resto = palavras.slice(0, -1);
-  const meio = Math.ceil(resto.length / 2);
-  const linha1 = resto.slice(0, meio).join(" ");
-  const linha2 = resto.slice(meio).join(" ");
+  const { abertura, foco, fecho } = partesDoTitulo(texto);
 
   return (
     <>
-      {linha1}
-      {linha1 && <br />}
-      {linha2 && `${linha2} `}
-      <span className="text-brasa">{destaque}</span>
+      {abertura && <span className="block text-[1em]">{abertura}</span>}
+      <span className="block">
+        <span className="text-[1.15em] text-brasa">{foco}</span>
+        {fecho && <>{" "}<span className="text-[.42em]">{fecho}</span></>}
+      </span>
     </>
   );
 }
