@@ -141,7 +141,16 @@ test.describe("com movimento reduzido", () => {
 test("o menu mobile abre e fecha", async ({ page, viewport }) => {
   test.skip((viewport?.width ?? 0) >= 768, "só faz sentido no mobile");
   await page.getByRole("button", { name: /abrir menu/i }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  const painel = page.getByRole("dialog");
+  await expect(painel).toBeVisible();
+
+  // O painel precisa cobrir a viewport inteira: enquanto ele era filho do
+  // header (que tem backdrop-blur, e portanto vira bloco de contenção de
+  // `fixed`), o inset-0 media os 75px do header e a página aparecia por baixo
+  // dos links. Ver o comentário do portal em MenuMobile.tsx.
+  const caixa = await painel.boundingBox();
+  expect(caixa?.height).toBeGreaterThanOrEqual((viewport?.height ?? 0) - 1);
+
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
 });

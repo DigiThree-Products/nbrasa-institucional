@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type LinkNav = { href: string; rotulo: string };
 
@@ -59,23 +60,29 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
         aria-hidden={aberto || undefined}
         tabIndex={aberto ? -1 : undefined}
         onClick={() => setAberto((v) => !v)}
-        className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-fumaca md:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-creme-borda md:hidden"
       >
         <span className="flex flex-col items-center gap-[6px]">
-          <span className="block h-0.5 w-[18px] bg-branco" />
-          <span className="block h-0.5 w-[18px] bg-branco" />
-          <span className="block h-0.5 w-[18px] bg-branco" />
+          <span className="block h-0.5 w-[18px] bg-carvao" />
+          <span className="block h-0.5 w-[18px] bg-carvao" />
+          <span className="block h-0.5 w-[18px] bg-carvao" />
         </span>
       </button>
 
-      {aberto && (
+      {/* Portal para o body, e não um filho do <header>: o header tem
+          backdrop-blur, e backdrop-filter faz do elemento o bloco de contenção
+          dos descendentes `fixed`. Dentro dele o `inset-0` abaixo resolvia
+          contra os 75px do header, não contra a viewport, e o painel virava
+          uma tarja no topo com os links vazando por cima da página. O defeito
+          passou despercebido enquanto painel e página eram os dois carvão. */}
+      {aberto && createPortal(
         <div
           ref={painel} role="dialog" aria-modal="true" aria-label="Menu de navegação"
-          className="fixed inset-0 z-[80] flex flex-col gap-6 bg-carvao p-8 pt-24"
+          className="fixed inset-0 z-[80] flex flex-col gap-6 bg-branco p-8 pt-24"
         >
           <button
             type="button" aria-label="Fechar menu" onClick={() => setAberto(false)}
-            className="absolute right-6 top-6 h-11 w-11 rounded-xl border-2 border-fumaca text-2xl leading-none"
+            className="absolute right-6 top-6 h-11 w-11 rounded-xl border-2 border-creme-borda text-2xl leading-none"
           >×</button>
           {links.map((l) => (
             <a
@@ -83,7 +90,8 @@ export function MenuMobile({ links }: { links: LinkNav[] }) {
               className="font-display text-4xl uppercase leading-none"
             >{l.rotulo}</a>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
