@@ -132,6 +132,15 @@ saem de `python scripts/gerar-fachada.py`, que lê o original de 33 MB em
 `apresentação site/` (fora do repositório). Rode só quando a foto de origem
 mudar. O `Hero` embute um borrão base64 de 16 px como placeholder.
 
+O favicon sai de `python scripts/gerar-favicon.py`, que lê a chama de
+`lib/marca.ts` e grava três arquivos em `app/`, de onde o App Router os serve
+sozinho: `icon.svg` (Chrome e Firefox), `favicon.ico` (Safari e o pedido cru a
+`/favicon.ico`) e `apple-icon.png` (atalho do iOS). O tratamento é chama
+**branca sobre azulejo brasa**, e não a chama vermelha solta: a 16px a chama
+sozinha vira mancha, porque é bem mais alta que larga. O `.ico` precisa sair em
+**RGBA**, o Turbopack recusa PNG interno em RGB durante o build.
+`tests/unit/favicon.test.ts` falha se o SVG sair de sincronia com `marca.ts`.
+
 O herói também carrega `public/video-fachada.mp4` (1280×720, 4,4 s, 1,05 MB),
 montado por `VideoFachada` só quando o movimento é permitido e depois da
 primeira pintura. A foto continua sendo o `poster` e o elemento candidato a
