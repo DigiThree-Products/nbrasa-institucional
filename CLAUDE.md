@@ -102,12 +102,18 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Só cinco componentes são `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote` e `app/error.tsx`. Todo o resto é Server Component
-`async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por
-`await import()` dentro de `useEffect`, nunca no bundle inicial, e cada um
-verifica `prefers-reduced-motion` antes de animar — há testes unitários e e2e
-que provam que nada de conteúdo depende de animação.
+Só seis componentes são `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`. Todo o resto é
+Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
+entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
+cada um verifica `prefers-reduced-motion` antes de animar — há testes unitários
+e e2e que provam que nada de conteúdo depende de animação.
+
+`VideoFachada` é o mais novo e existe por orçamento, não por interatividade: o
+vídeo do herói tem 1 MB e o elemento candidato a LCP é a foto logo atrás dele,
+então o `<video>` só entra no DOM quando `prefers-reduced-motion` não está
+ativo **e** a primeira pintura já passou. Em CSS puro o arquivo baixaria
+sempre, inclusive para quem pediu menos movimento.
 
 ### Tokens de marca
 
@@ -125,6 +131,14 @@ mais um JPG de 1400 como último fallback) e
 saem de `python scripts/gerar-fachada.py`, que lê o original de 33 MB em
 `apresentação site/` (fora do repositório). Rode só quando a foto de origem
 mudar. O `Hero` embute um borrão base64 de 16 px como placeholder.
+
+O herói também carrega `public/video-fachada.mp4` (1280×720, 4,4 s, 1,05 MB),
+montado por `VideoFachada` só quando o movimento é permitido e depois da
+primeira pintura. A foto continua sendo o `poster` e o elemento candidato a
+LCP: se o vídeo nunca montar, o herói fica idêntico ao que era. Os dois usam o
+mesmo `AJUSTES.recorteDaFoto`, para a troca não deslocar o enquadramento. O
+arquivo é o único ativo pesado versionado; substituí-lo por um corte mais
+longo ou em 1080p não exige mexer em código.
 
 ### SEO
 

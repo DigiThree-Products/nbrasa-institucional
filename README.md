@@ -39,8 +39,9 @@ Next.js 15 · TypeScript · Tailwind CSS v4 · Lenis (scroll suave) · GSAP +
 ScrollTrigger + MotionPathPlugin · Vitest + Testing Library · Playwright.
 
 Tudo é Server Component por padrão. Só cinco componentes são cliente:
-`SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `Preloader`
-(mais `app/error.tsx`, que o Next exige).
+`SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote` e `VideoFachada`
+(mais `app/error.tsx`, que o Next exige). A lista citava um `Preloader` que
+nunca existiu no código.
 
 ## Pendências do cliente
 

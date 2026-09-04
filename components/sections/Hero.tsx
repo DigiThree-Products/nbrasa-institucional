@@ -4,6 +4,7 @@ import { agruparHorarios, FECHADO } from "@/lib/horarios";
 import { AJUSTES, mascaraChama } from "@/lib/costura";
 import { partesDoTitulo } from "@/lib/tituloHero";
 import { Botao } from "@/components/ui/Botao";
+import { VideoFachada } from "./VideoFachada";
 
 /**
  * Miniatura de 16px da própria foto, embutida como base64.
@@ -148,6 +149,16 @@ export async function Hero() {
             }}
           />
         </picture>
+
+        {/* Fica DEPOIS do <picture> no DOM: o vídeo é posicionado absoluto
+            por cima da foto, e a foto continua sendo o elemento candidato a
+            LCP. Se o vídeo nunca montar, o que se vê é exatamente o herói de
+            antes. O recorte é o mesmo da foto para a troca de um pelo outro
+            não deslocar o enquadramento. */}
+        <VideoFachada
+          poster="/fachada-nbrasa-1600.jpg"
+          recorte={AJUSTES.recorteDaFoto}
+        />
       </div>
     </section>
   );
