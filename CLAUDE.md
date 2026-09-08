@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## O projeto
 
-Site institucional do **N'Brasa** — bar, choperia e casa de carnes em Angra dos
+Site institucional do **N'Brasa**: bar, choperia e casa de carnes em Angra dos
 Reis (RJ). Next.js 15 (App Router) + TypeScript + Tailwind v4, dados no
 Supabase, deploy na Vercel. Uma única rota pública (`/`), toda ela Server
 Components; o painel de admin (`/admin/*`) está previsto mas ainda não existe.
@@ -14,8 +14,8 @@ performance, critérios de acessibilidade):
 `docs/superpowers/specs/2026-09-02-site-nbrasa-design.md`. Pendências abertas
 com o cliente: seção final do `README.md`.
 
-**Idioma do código:** tudo em português — nomes de arquivo, funções, variáveis,
-colunas do banco, comentários, mensagens de teste. Mantenha assim.
+**Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
+variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
 
 ## Comandos
 
@@ -23,9 +23,9 @@ colunas do banco, comentários, mensagens de teste. Mantenha assim.
 npm run dev                # dev server (turbopack) em localhost:3000
 npm run build              # build de produção; falha se faltar variável de ambiente
 npm run lint               # ESLint
-npm test                   # Vitest — unitários (tests/unit), jsdom, offline
+npm test                   # Vitest, unitários (tests/unit), jsdom, offline
 npm run test:watch
-npm run e2e                # Playwright — 5 viewports, roda build+start antes
+npm run e2e                # Playwright, 5 viewports, roda build+start antes
 npm run test:integracao    # Vitest contra o Supabase REAL (carrega .env.local)
 ```
 
@@ -38,7 +38,7 @@ npx playwright test --project=w320 -g "menu"   # e2e: um viewport, um teste
 ```
 
 `npm run e2e` **sempre** roda `npm run build && npm start`
-(`reuseExistingServer: false`) — não tente acelerar apontando para um dev
+(`reuseExistingServer: false`), não tente acelerar apontando para um dev
 server já em pé; a suíte já validou build velha por causa disso.
 
 `npm run test:integracao` exige `.env.local` preenchido e as migrations
@@ -52,7 +52,7 @@ então rode um `npm run build` antes.
 
 `lib/conteudo.ts` exporta `getCategorias`, `getProgramacao`, `getHorarios`,
 `getDepoimentos`, `getConteudo`. **Nenhuma seção fala com o Supabase
-diretamente** — se precisar de um dado novo na página, o caminho é
+diretamente**. Se precisar de um dado novo na página, o caminho é
 acrescentar/estender uma função ali, não importar o cliente numa seção.
 
 Cada função é um `unstable_cache` com uma tag de `TAGS`. Traduz snake_case do
@@ -63,8 +63,26 @@ despercebida, erro não.
 Tipos em `lib/conteudo.tipos.ts`. `lib/conteudo.seed.ts` continua sendo a fonte
 de verdade do conteúdo e a fixture dos testes unitários;
 `supabase/migrations/0003_seed.sql` é a cópia dele no banco e os textos batem
-caractere por caractere (inclusive o travessão em dash). Alterou um, altere o
-outro.
+caractere por caractere. Alterou um, altere o outro.
+
+**Travessão (em dash) não entra em texto nenhum**, nem no site, nem em copy
+nova, nem em commit: use vírgula, e "às" em faixa de horário. A regra é do
+cliente, de 2026-09-04, e `0004_copy_sem_travessao.sql` foi a migration que
+limpou o banco.
+
+### Regra de negócio fora do Server Component
+
+`lib/tituloHero.ts` existe por testabilidade, e o padrão vale para o próximo
+caso igual. O título do herói é quebrado em três corpos (abertura, foco,
+fecho), e `partesDoTitulo` decide quem é quem: o **foco é a penúltima
+palavra**, o fecho é a última, o resto abre. A regra não mora na JSX porque
+`Hero` é Server Component `async` que arrasta a fachada do Supabase junto, e
+nenhum teste em jsdom conseguiria importá-lo; e porque o painel de admin ainda
+vai poder trocar `heroTitulo`, e o destaque precisa acompanhar o texto novo.
+`tests/unit/tituloHero.test.ts` cobre a repartição.
+
+Mesmo motivo em `lib/horarios.ts` e `lib/costura.ts`: **lógica que dá para
+errar sai do componente e vira função pura com teste.**
 
 ### Cache e revalidação
 
@@ -75,26 +93,37 @@ Actions do painel chamarão `revalidateTag` com as mesmas constantes.
 
 ### Dois clientes Supabase, propósitos incompatíveis
 
-- `lib/supabase/servidor.ts` — chave anônima, usado pelos Server Components via
+- `lib/supabase/servidor.ts`: chave anônima, usado pelos Server Components via
   a fachada. O que ele enxerga é decidido pelo RLS, não por confiança no código.
   Exporta `SUPABASE_URL`/`SUPABASE_ANON_KEY` já validados (`exigir` explica onde
   cadastrar a variável faltante, local **e** na Vercel).
-- `lib/supabase/admin.ts` — service role, **ignora RLS**. Marcado com
+- `lib/supabase/admin.ts`: service role, **ignora RLS**. Marcado com
   `import "server-only"` e restrito a scripts locais. Nunca importe de `app/` ou
   `components/`: há teste de integração que falha se acontecer.
 
 ### Banco
 
 Cinco tabelas em `supabase/migrations/`: `0001_schema.sql` (categorias,
-programacao, horarios, depoimentos, conteudo — esta última linha única,
+programacao, horarios, depoimentos, conteudo, esta última linha única,
 `id = 1`), `0002_rls.sql` (revoga grants, liga RLS forçado, leitura pública só
 de `ativo = true`, escrita só para admin autenticado), `0003_seed.sql` (conteúdo
-real). Aplicadas manualmente no projeto Supabase — SQL editor ou
+real), mais duas de correção de copy, ambas numeradas `0004` de propósito por
+serem independentes entre si: `0004_copy_owners.sql` (tira os acentos dos
+campos que chegam a elementos de display, que a Owners trial não desenha) e
+`0004_copy_sem_travessao.sql` (nova copy do herói e fim do travessão).
+Aplicadas manualmente no projeto Supabase: SQL editor ou
 `npx supabase link --project-ref <ref> && npx supabase db push`. Migrations
 devem ser reentrantes: a de RLS já quebrou por ter sido aplicada pela metade.
 
+**`0003_seed.sql` é um `INSERT` puro, sem `on conflict`: reaplicá-lo num banco
+já semeado quebra por chave duplicada.** Por isso toda mudança de conteúdo é
+feita em dois lugares: o texto novo entra no `0003` (para uma instalação nova
+já nascer certa e continuar batendo com `lib/conteudo.seed.ts`) e ganha uma
+migration nova de `UPDATE`s por id, naturalmente reentrante, que leva a
+mudança aos bancos que já rodaram o seed. As duas `0004` são exatamente isso.
+
 `horarios.dia_semana` segue `Date.getDay()` (0 = domingo) e `ordem` exibe a
-semana começando na segunda — domingo leva `ordem` 7. `lib/horarios.ts` agrupa
+semana começando na segunda, domingo leva `ordem` 7. `lib/horarios.ts` agrupa
 dias adjacentes com o mesmo horário ("Terça a quinta", "Sexta e sábado").
 
 O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
@@ -106,7 +135,7 @@ Só seis componentes são `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
 `Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`. Todo o resto é
 Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
 entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
-cada um verifica `prefers-reduced-motion` antes de animar — há testes unitários
+cada um verifica `prefers-reduced-motion` antes de animar, e há testes unitários
 e e2e que provam que nada de conteúdo depende de animação.
 
 `VideoFachada` é o mais novo e existe por orçamento, não por interatividade: o
@@ -115,22 +144,42 @@ então o `<video>` só entra no DOM quando `prefers-reduced-motion` não está
 ativo **e** a primeira pintura já passou. Em CSS puro o arquivo baixaria
 sempre, inclusive para quem pediu menos movimento.
 
+### O header é recortado pelo herói
+
+No desktop (`min-width: 1024px`) o header deixa de ser faixa de ponta a ponta.
+A regra `.cabecalho-hero`, em `app/globals.css`, o deixa transparente e pinta o
+fundo em dois pseudoelementos: a metade esquerda é retangular, e a direita usa
+a **mesma máscara da chama** com composição `exclude`, portanto só pinta onde
+a foto não está. Ele fica absoluto junto ao herói, e não `sticky`, para os
+dois recortes continuarem casados durante o scroll. No mobile o comportamento
+`sticky` original permanece. Mexer no recorte do herói (`AJUSTES`, em
+`lib/costura.ts`) move os dois de uma vez, que é justamente a intenção.
+
 ### Tokens de marca
 
 Declarados uma vez em `app/globals.css`, bloco `@theme` do Tailwind v4
-(`--color-carvao`, `--color-brasa`, `--color-creme`, …), consumidos como classes
-(`bg-carvao`, `text-cinza`). `tests/unit/tokens.test.ts` fixa os valores hex e
-`tests/unit/contraste.test.ts` calcula a razão WCAG de cada par texto/fundo —
-**todo par novo ganha uma linha lá**; um token de contraste já falhou quatro
+(`--color-carvao`, `--color-brasa`, `--color-creme`, `--color-creme-texto`,
+`--color-creme-borda`, `--color-branco`, `--color-brasa-escura`,
+`--color-brasa-funda`), consumidos como classes (`bg-carvao`,
+`text-creme-texto`). `tests/unit/tokens.test.ts` fixa os valores hex, **e
+também afirma que `cinza`, `fumaca` e `brasa-texto` continuam ausentes**, e
+`tests/unit/contraste.test.ts` calcula a razão WCAG de cada par texto/fundo.
+**Todo par novo ganha uma linha lá**; um token de contraste já falhou quatro
 vezes neste projeto por não ser medido contra a superfície real.
 
 ### Imagens
 
-Os derivados web ficam versionados em `public/` (AVIF + WebP em 800 e 1400 px,
-mais um JPG de 1400 como último fallback) e
+Os derivados web ficam versionados em `public/` (AVIF + WebP em 900 e 1600 px,
+mais `fachada-nbrasa-1600.jpg` como último fallback) e
 saem de `python scripts/gerar-fachada.py`, que lê o original de 33 MB em
 `apresentação site/` (fora do repositório). Rode só quando a foto de origem
 mudar. O `Hero` embute um borrão base64 de 16 px como placeholder.
+
+A foto do herói é um `<img>` com `<picture>`, **não `next/image`, e isso é
+deliberado**: o componente do Next é de cliente e subiu a primeira carga de
+122 kB para 127 kB contra um orçamento de 130 kB, e o otimizador da Vercel
+acrescenta latência justamente no elemento candidato a LCP. Não "corrija" para
+`next/image`.
 
 O favicon sai de `python scripts/gerar-favicon.py`, que lê a chama de
 `lib/marca.ts` e grava três arquivos em `app/`, de onde o App Router os serve
@@ -151,7 +200,7 @@ longo ou em 1080p não exige mexer em código.
 
 ### SEO
 
-`lib/site.ts` centraliza `SITE_URL` — **placeholder** (`nbrasa.vercel.app`),
+`lib/site.ts` centraliza `SITE_URL`, hoje um **placeholder** (`nbrasa.vercel.app`),
 consumido por `metadataBase`, `robots.ts` e `sitemap.ts`. `DadosEstruturados`
 emite JSON-LD `Restaurant` a partir de `lib/schemaRestaurant.ts`, alimentado
 pela mesma fachada.
@@ -160,7 +209,7 @@ pela mesma fachada.
 
 `.env.example` → `.env.local` (nunca commitado; o `.gitignore` cobre padrões
 amplos de propósito porque o Bloco de Notas do Windows acrescenta `.txt` sem
-avisar — e o Next só lê `.env.local`). As mesmas variáveis precisam existir na
+avisar, e o Next só lê `.env.local`). As mesmas variáveis precisam existir na
 Vercel marcadas em Production/Preview/Development: sem elas o build falha ao
 coletar as páginas, não em runtime.
 
@@ -193,10 +242,27 @@ rótulo pequeno vermelho sobre superfície clara continua usando
 creme e reprova AA.
 
 Os demais tokens (`--color-brasa-escura`, `--color-creme`, …) são derivados
-criados para atender contraste — não invente novos sem passar pelo teste.
+criados para atender contraste, não invente novos sem passar pelo teste.
 
-Tipografia: **Owners XNarrow Black** (display) e **Hanken Grotesk** (corpo). A
-Anton, que era substituta provisória, saiu em 2026-09-04.
+Tipografia, quatro famílias, cada uma com um papel fechado. As três locais
+moram em `app/fontes/` e entram por `localFont`; só a de corpo vem do Google.
+
+| Papel | Família | Token | Onde |
+|---|---|---|---|
+| Display | Owners XNarrow Black | `font-display` | todo título de seção, wordmark, marquee |
+| Display leve | Owners XNarrow Light | `font-display-leve` | as linhas de apoio do título do herói |
+| Desenhada | Authentic Signature | `font-desenhada` | **uma palavra**, o foco do título do herói |
+| Corpo | Hanken Grotesk | `font-corpo` | todo o resto |
+
+A Anton, que era substituta provisória, saiu em 2026-09-04.
+
+A desenhada não vem do moodboard, que só traz Owners e Hanken: entrou por
+decisão de desenho, para a palavra dominante do herói destoar das duas linhas
+condensadas em volta dela. **Não aplique `italic` nela**, a inclinação já está
+no desenho da letra e a oblíqua sintética só borra o gesto. Trocar a família
+exige remedir os três `clamp` do `DOMINANTE` em `Hero.tsx`, e a referência é a
+largura da **tinta**, não a da caixa: numa letra inclinada as duas diferem e a
+última letra pode entrar na foto com a caixa ainda cabendo.
 
 A Owners servida é a **versão TRIAL**, licenciada como "Personal Use Only": o
 cliente decidiu publicar assim e a compra está registrada como pendência no
@@ -215,14 +281,14 @@ contra 0,859 em da Anton, então **todo corpo de display carrega o fator
 `python scripts/gerar-owners.py`. Não troque a família nem a largura sem avisar.
 
 **Horários** (confirmados pelo cliente em 2026-09-02, valem sobre qualquer
-outra fonte): terça a quinta e domingo 14h–22h; sexta e sábado 16h–03h; segunda
+outra fonte): terça a quinta e domingo 14h às 22h; sexta e sábado 16h às 03h; segunda
 fechado. O folder impresso em `apresentação site/` traz horários diferentes e
-está **desatualizado** — não "corrija" o site com base nele.
+está **desatualizado**, não "corrija" o site com base nele.
 
 Assinatura: **"O sabor que encontra, o som."** Slogans aprovados e
 reutilizáveis: `vamos N'brasar?` · `feel the fire` · `VAI N'BRASANDO` ·
 `A fome acende aqui.` · `Vem sentir a vida acontecer de gole em gole.` O verbo
-inventado "N'brasar" é central na marca — mantenha o apóstrofo e a grafia
+inventado "N'brasar" é central na marca, mantenha o apóstrofo e a grafia
 exatos em qualquer texto novo.
 
 Elementos gráficos: wordmark manuscrito `n’Brasa` em anel circular com chama
@@ -232,8 +298,8 @@ concêntricas.
 
 **Existem duas chamas em `lib/marca.ts`, de propósito.** `D_CHAMA_OFICIAL` vem
 de `fotos-site/logo.svg` e são três pinceladas afiladas e separadas: é a marca
-de verdade, usada como ícone no header, no rodapé, nos chips e como marca
-d'água. `D_SILHUETA` é uma gota sólida desenhada à mão, não é a logo: a máscara
+de verdade, usada como ícone no header e no rodapé e como marca d'água.
+`D_SILHUETA` é uma gota sólida desenhada à mão, não é a logo: a máscara
 do herói (`lib/costura.ts`) monta a borda da foto pela união dessa forma com um
 retângulo, e uma forma aberta em três traços viraria fitas rasgadas ali; o
 mascote também precisa do corpo sólido para apoiar óculos e boca. Não unifique
@@ -248,14 +314,14 @@ Nenhum é texto:
 
 | Arquivo | Conteúdo |
 |---|---|
-| `moodboard-nbrasa-2025.pdf` | 6 pág. — manual de marca: logo, paleta, tipografia, grafismos, mascote, navegação |
-| `apresentação - folder - nbrasa.pdf` | 5 pág. — folder impresso (horários desatualizados) |
+| `moodboard-nbrasa-2025.pdf` | 6 pág., manual de marca: logo, paleta, tipografia, grafismos, mascote, navegação |
+| `apresentação - folder - nbrasa.pdf` | 5 pág., folder impresso (horários desatualizados) |
 | `N'brasa adesivos.pdf` | cartela de adesivos |
 | `IMG_3643.png` | foto da fachada, 4892×7732 (32 MB) |
 | `mascote.cdr` | vetor editável do mascote |
 
 `pdftoppm`/poppler não está instalado; o Python 3.13 local tem **PyMuPDF
-(`fitz`)**, `pypdf`, `pdfminer` e **Pillow** — use `fitz` para extrair texto e
+(`fitz`)**, `pypdf`, `pdfminer` e **Pillow**, use `fitz` para extrair texto e
 rasterizar páginas. O `.cdr` é binário proprietário: nenhuma ferramenta local
 abre, peça um export em SVG/PNG. Grave intermediários fora do repositório, não
 ao lado dos ativos.
