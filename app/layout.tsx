@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Yellowtail } from "next/font/google";
+import { Hanken_Grotesk, Kaushan_Script } from "next/font/google";
 import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
@@ -15,7 +15,7 @@ const corpo = Hanken_Grotesk({
 // borraria o gesto. A família não vem do moodboard, que só traz Owners e
 // Hanken Grotesk; entrou por decisão de desenho, para a palavra dominante
 // destoar das duas linhas condensadas em volta dela.
-const desenhada = Yellowtail({
+const desenhada = Kaushan_Script({
   subsets: ["latin"], weight: "400",
   display: "swap", variable: "--fonte-desenhada",
 });

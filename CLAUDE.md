@@ -46,6 +46,16 @@ aplicadas: ele lê o banco de verdade e afirma contagens do seed (6 categorias
 ativas, 7 horários). `tests/integracao/segredos.test.ts` varre `.next/static`,
 então rode um `npm run build` antes.
 
+**`npm test` não passa em clone limpo**, e isso é de propósito:
+`tests/unit/owners.test.ts` lê o OTF de origem em
+`fotos-site/owners-font-family/`, pasta que o `.gitignore` cobre. Sem ela o
+teste **lança** em vez de pular, porque medir a fonte errada, ou não medir, é
+exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
+de rodar a suíte pela primeira vez.
+
+Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
+`w1920`. A suíte unitária tem 16 arquivos e 127 testes e roda em torno de 10 s.
+
 ## Arquitetura
 
 ### A fachada de conteúdo é a única porta para o banco
@@ -65,6 +75,23 @@ de verdade do conteúdo e a fixture dos testes unitários;
 `supabase/migrations/0003_seed.sql` é a cópia dele no banco e os textos batem
 caractere por caractere. Alterou um, altere o outro.
 
+Quem consome o quê, hoje:
+
+| Consumidor | Chama |
+|---|---|
+| `Hero` | `getConteudo`, `getHorarios` |
+| `Cardapio` | `getCategorias` |
+| `Delivery` | `getConteudo` |
+| `HorariosProgramacao` | `getConteudo`, `getHorarios`, `getProgramacao` |
+| `Depoimentos` | `getConteudo`, `getDepoimentos` |
+| `OndeEstamos`, `Header`, `Footer` | `getConteudo` |
+| `DadosEstruturados` | `getConteudo`, `getHorarios` |
+
+As **paradas da rota do delivery não vêm do banco**: são a constante `PARADAS`
+no topo de `Delivery.tsx`, cinco bairros, passada ao `RotaMascote`. Se um dia
+virarem conteúdo editável, o caminho é tabela nova mais função nova na
+fachada, não consulta dentro da seção.
+
 **Travessão (em dash) não entra em texto nenhum**, nem no site, nem em copy
 nova, nem em commit: use vírgula, e "às" em faixa de horário. A regra é do
 cliente, de 2026-09-04, e `0004_copy_sem_travessao.sql` foi a migration que
@@ -83,6 +110,33 @@ vai poder trocar `heroTitulo`, e o destaque precisa acompanhar o texto novo.
 
 Mesmo motivo em `lib/horarios.ts` e `lib/costura.ts`: **lógica que dá para
 errar sai do componente e vira função pura com teste.**
+
+O que a JSX do `Hero` guarda dessa repartição, e que se quebra fácil sem
+saber: as três partes são `span` em `block` dentro de **um `h1` só**, com um
+`{" "}` explícito no fim das duas primeiras, senão o JSX cola as palavras e o
+`textContent` que o buscador e o leitor de tela leem vira
+"Sua fomeacendeaqui.". Há e2e cobrando a frase inteira. A abertura e o fecho
+dividem o corpo `--corpo-apoio`, declarado na coluna de texto e **não** na
+classe, porque o mesmo número governa duas coisas que precisam bater no
+pixel: o corpo dessas duas linhas e a altura da faixa em que o botão do
+WhatsApp se encaixa, ao lado do fecho. O alinhamento do fecho à direita sai do
+`w-fit` do `h1`, que encolhe até a largura do foco, e não de recuo calculado.
+
+### A máscara da chama é geometria calculada, não `path` colado
+
+`mascaraChama("borda" | "topo")` monta o SVG da máscara a partir das cúbicas
+de `D_SILHUETA`: `cruzaEmY` acha onde o ombro cruza uma altura,
+`tangenteDaCubica` dá a inclinação ali, e o filete emenda a curva no retângulo
+sem deixar canto. É por isso que os dois consumidores (`Hero` e `Header`)
+recebem a mesma forma sem copiar `path` um do outro.
+
+`AJUSTES.altura` **depende de `AJUSTES.escala`** e não é chute:
+`altura = (113 * escala / 116 - 1) / (escala - 1)`. Mudou a escala, recalcule
+a altura, senão a base da chama sai da dobra e volta o degrau no rodapé que os
+dois valores existem para esconder. `tests/unit/costura.test.ts` cobre o que
+dá para afirmar sem pintar: que a string não traz caractere cru que o parser
+de CSS rejeite, que o SVG declara tamanho intrínseco, que o filete continua
+dentro da silhueta e que a máscara usa `D_SILHUETA`, nunca a chama oficial.
 
 ### Cache e revalidação
 
@@ -131,18 +185,26 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Só seis componentes são `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`. Todo o resto é
+Seis arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`, **mas só cinco
+chegam à página**: `VideoFachada` está órfão, ver logo abaixo. Todo o resto é
 Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
 entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
 cada um verifica `prefers-reduced-motion` antes de animar, e há testes unitários
 e e2e que provam que nada de conteúdo depende de animação.
 
-`VideoFachada` é o mais novo e existe por orçamento, não por interatividade: o
-vídeo do herói tem 1 MB e o elemento candidato a LCP é a foto logo atrás dele,
-então o `<video>` só entra no DOM quando `prefers-reduced-motion` não está
-ativo **e** a primeira pintura já passou. Em CSS puro o arquivo baixaria
-sempre, inclusive para quem pediu menos movimento.
+**`VideoFachada` não está montado em lugar nenhum.** O componente, os testes
+unitários dele e `public/video-fachada.mp4` seguem no repositório, mas o
+`Hero` deixou de renderizá-lo na reforma do título em três linhas, e o e2e
+**cobra a ausência**: o teste "o herói usa a foto IMG_3643 sem montar vídeo"
+afirma zero elementos `<video>` e zero requisições ao mp4. Remontar o vídeo
+quebra a suíte de propósito, é decisão de desenho a retomar com o cliente, não
+descuido a "consertar".
+
+A lógica dele, se voltar: o `<video>` só entra no DOM quando
+`prefers-reduced-motion` não está ativo **e** a primeira pintura já passou,
+porque em CSS puro o arquivo baixaria sempre, inclusive para quem pediu menos
+movimento, e o elemento candidato a LCP é a foto logo atrás dele.
 
 ### O header é recortado pelo herói
 
@@ -190,13 +252,11 @@ sozinha vira mancha, porque é bem mais alta que larga. O `.ico` precisa sair em
 **RGBA**, o Turbopack recusa PNG interno em RGB durante o build.
 `tests/unit/favicon.test.ts` falha se o SVG sair de sincronia com `marca.ts`.
 
-O herói também carrega `public/video-fachada.mp4` (1280×720, 4,4 s, 1,05 MB),
-montado por `VideoFachada` só quando o movimento é permitido e depois da
-primeira pintura. A foto continua sendo o `poster` e o elemento candidato a
-LCP: se o vídeo nunca montar, o herói fica idêntico ao que era. Os dois usam o
-mesmo `AJUSTES.recorteDaFoto`, para a troca não deslocar o enquadramento. O
-arquivo é o único ativo pesado versionado; substituí-lo por um corte mais
-longo ou em 1080p não exige mexer em código.
+`public/video-fachada.mp4` (1280×720, 4,4 s, 1,05 MB) continua versionado e é
+o único ativo pesado do repositório, mas **hoje ninguém o baixa**: o herói não
+monta mais o `VideoFachada` (ver "Fronteira cliente/servidor"). Se ele voltar,
+usa o mesmo `AJUSTES.recorteDaFoto` da foto, para a troca não deslocar o
+enquadramento, e a foto segue sendo o `poster` e o candidato a LCP.
 
 ### SEO
 
@@ -244,25 +304,40 @@ creme e reprova AA.
 Os demais tokens (`--color-brasa-escura`, `--color-creme`, …) são derivados
 criados para atender contraste, não invente novos sem passar pelo teste.
 
-Tipografia, quatro famílias, cada uma com um papel fechado. As três locais
-moram em `app/fontes/` e entram por `localFont`; só a de corpo vem do Google.
+Tipografia, **três** famílias, cada uma com um papel fechado. Só a Owners é
+local (`app/fontes/owners-xnarrow-black.woff2`, por `localFont`); as outras
+duas vêm do Google. As três entram em `app/layout.tsx` e viram os tokens de
+`--font-*` do `@theme`.
 
 | Papel | Família | Token | Onde |
 |---|---|---|---|
 | Display | Owners XNarrow Black | `font-display` | todo título de seção, wordmark, marquee |
-| Display leve | Owners XNarrow Light | `font-display-leve` | as linhas de apoio do título do herói |
-| Desenhada | Authentic Signature | `font-desenhada` | **uma palavra**, o foco do título do herói |
-| Corpo | Hanken Grotesk | `font-corpo` | todo o resto |
+| Desenhada | Kaushan Script (Google) | `font-desenhada` | **uma palavra**, o foco do título do herói |
+| Corpo | Hanken Grotesk (Google) | `font-corpo` | todo o resto, **e** a abertura e o fecho do título do herói |
 
-A Anton, que era substituta provisória, saiu em 2026-09-04.
+**Não existe `font-display-leve`, nem Owners Light**: a trial servida tem uma
+face só, a Black. É por isso que a abertura e o fecho do título do herói
+("sua fome" e "aqui.") saem em `font-corpo font-light`, e não em `font-display`
+como o resto dos títulos de seção: pedido do cliente para essas duas linhas
+ficarem com traço mais fino, e sem um peso Light licenciado da Owners a única
+forma de fazer isso de verdade é a Hanken, que é fonte variável. É a única
+exceção à regra "todo título de display usa Owners", documentada em
+`components/sections/Hero.tsx` junto de `APOIO`. A Anton, que era
+substituta provisória, saiu em 2026-09-04. Versões anteriores deste arquivo
+nomeavam uma "Authentic Signature" no papel de desenhada: ela nunca chegou ao
+código. A Yellowtail serviu o foco do herói até 2026-09-08, quando o cliente
+pediu a troca para Kaushan Script, quem serve hoje.
 
 A desenhada não vem do moodboard, que só traz Owners e Hanken: entrou por
 decisão de desenho, para a palavra dominante do herói destoar das duas linhas
 condensadas em volta dela. **Não aplique `italic` nela**, a inclinação já está
 no desenho da letra e a oblíqua sintética só borra o gesto. Trocar a família
-exige remedir os três `clamp` do `DOMINANTE` em `Hero.tsx`, e a referência é a
-largura da **tinta**, não a da caixa: numa letra inclinada as duas diferem e a
-última letra pode entrar na foto com a caixa ainda cabendo.
+exige remedir os **dois** `clamp` do `DOMINANTE` em `Hero.tsx` (o base e o do
+`lg`, separados porque abaixo e acima de 1024px o título vive em layouts
+diferentes) e os dois de `--corpo-apoio`, e a referência é a largura da
+**tinta**, não a da caixa: numa letra inclinada as duas diferem e a última
+letra pode entrar na foto com a caixa ainda cabendo, que já aconteceu em
+1024px sem nenhuma conta acusar.
 
 A Owners servida é a **versão TRIAL**, licenciada como "Personal Use Only": o
 cliente decidiu publicar assim e a compra está registrada como pendência no

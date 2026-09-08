@@ -37,9 +37,14 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
  * corpo destas linhas e a altura da faixa em que o botão do WhatsApp se
  * encaixa, ao lado do fecho. Repetir o `clamp` nos dois lugares seria pedir
  * para eles saírem de sincronia no primeiro ajuste de escala.
+ *
+ * `font-corpo font-light` é exceção deliberada à regra geral (Owners em todo
+ * título de display, esta linha incluída): pedido do cliente para "sua fome"
+ * e "aqui." ficarem com traço mais fino, e a Owners servida só tem a face
+ * Black. A Hanken tem peso variável de verdade, a Owners não.
  */
 const APOIO =
-  "block text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
+  "block font-corpo font-light text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
 
 /**
  * O fecho, que é o apoio encostado à direita.
@@ -63,7 +68,7 @@ const FECHO = APOIO + " text-right";
 /**
  * Corpo da linha 2, a palavra dominante.
  *
- * É a única linha desenhada, em Yellowtail. As outras duas seguem na
+ * É a única linha desenhada, em Kaushan Script. As outras duas seguem na
  * Owners XNarrow Black, reta e condensada, e o contraste entre o grotesco e o
  * traço manuscrito é justamente o efeito.
  *
@@ -72,11 +77,11 @@ const FECHO = APOIO + " text-right";
  * aplicada por cima: numa fonte já inclinada e de contorno irregular, ela
  * some com o gesto e deixa o traço torto em vez de inclinado.
  *
- * A Yellowtail aproxima a palavra dominante do gesto manuscrito da marca,
+ * A Kaushan Script aproxima a palavra dominante do gesto manuscrito da marca,
  * mantendo uma voz distinta da Owners condensada que enquadra o título.
  *
  * A escala foi ajustada para dar mais protagonismo ao foco sem alterar a
- * família, o peso ou o espaçamento da Yellowtail.
+ * família, o peso ou o espaçamento da Kaushan Script.
  *
  * O número medido é a largura da TINTA, não a da caixa. Numa letra reta os
  * dois são quase o mesmo e a distinção não aparece; numa inclinada, não, e
@@ -203,7 +208,7 @@ export async function Hero() {
         {/* `--corpo-apoio` mora aqui, e não no `APOIO`, porque dois elementos
             precisam do mesmo número: o corpo das linhas 1 e 3 do título e a
             altura da faixa onde o botão se encaixa, logo abaixo. */}
-        <div className="[--corpo-apoio:clamp(2.1rem,7vw,2.8rem)] lg:[--corpo-apoio:clamp(2.1rem,min(4.3vw,6.9vh),3.55rem)] lg:max-w-[52%]">
+        <div className="[--corpo-apoio:clamp(1.6rem,5.4vw,2.2rem)] lg:[--corpo-apoio:clamp(1.6rem,min(3.3vw,5.3vh),2.7rem)] lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>
