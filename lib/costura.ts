@@ -33,12 +33,30 @@ export const AJUSTES = {
   /**
    * Posição vertical da chama, em porcentagem de `mask-position`.
    *
-   * Distribui a sobra criada por `escala` entre cima e baixo. `50%` (atual)
-   * divide igual, então bico e base transbordam na mesma medida.
-   * `0%` alinha o topo da chama ao topo do herói, o que traz de volta o
-   * trecho reto lá em cima; `100%` faz o mesmo no rodapé.
+   * Distribui a sobra criada por `escala` entre cima e baixo. `50%` dividia
+   * igual, e era isso que deixava um canto no rodapé: a base da silhueta
+   * (y=113 no viewBox) caía 40,7px ABAIXO da dobra, então o `overflow-hidden`
+   * do herói cortava a curva enquanto ela ainda descia, e ela encontrava a
+   * borda inferior a uns 25°. Numa janela de 1440x900 o bico ficava visível
+   * por volta de x=975.
+   *
+   * `80%` pousa essa base exatamente na dobra. Ali a tangente da silhueta já
+   * é horizontal, então a curva funde com o sangramento de baixo sem canto
+   * nenhum. O bico segue escondido acima do herói (page y=-81,4), que é o que
+   * `escala` > 1 garante, então nada de novo aparece no topo.
+   *
+   * O valor depende de `escala` e precisa ser recalculado junto com ele:
+   *
+   *     altura = (113 * escala / 116 - 1) / (escala - 1)
+   *
+   * Em `1.15` isso dá 0,8017. A altura do herói se cancela na conta, então a
+   * mesma porcentagem vale em qualquer janela.
+   *
+   * Para referência: `0%` alinha o topo da chama ao topo do herói e traz de
+   * volta o trecho reto lá em cima; `100%` sobe a base para dentro do quadro
+   * e devolve o degrau que o `escala` foi criado para esconder.
    */
-  altura: "50%",
+  altura: "80%",
 
   /**
    * Onde a coluna da foto começa, na prática, onde fica a barriga da chama,
@@ -83,10 +101,162 @@ const LARGURA_SILHUETA = 100;
  *
  * Não use a cintura (58, a meia altura): ali o contorno ainda desce
  * inclinado, e a união com o retângulo termina num fiapo solto, com a lambida
- * da lateral morrendo no ar acima da reta. Na parte mais larga a tangente é
- * vertical e a curva encosta na reta sem quebra.
+ * da lateral morrendo no ar acima da reta.
+ *
+ * `74` sai do path, e não do olho: os dois segmentos que fecham o bojo chegam
+ * em (6,74) e (94,74) com a derivada horizontal zerada, ou seja, tangente
+ * vertical. É o ponto mais largo da silhueta. Estava em `78`, quatro unidades
+ * abaixo dele, onde a curva já voltava para dentro: a chama sobrava 0,2
+ * unidade para fora do canto e retornava, que é uma lambida invertida, um
+ * vinco. Dá 0,4px num viewport de 375, invisível na prática, mas `78`
+ * contradizia a justificativa escrita logo acima.
+ *
+ * O canto de 90° em si não sai daqui: topo horizontal do retângulo contra
+ * tangente vertical da chama dá 90° em qualquer valor desta altura. Quem
+ * resolve o ângulo é o filete, logo abaixo, que arredonda o encontro sem
+ * mexer aqui.
  */
-const APOIO_SILHUETA = 78;
+const APOIO_SILHUETA = 74;
+
+type Ponto = readonly [number, number];
+type Cubica = readonly [Ponto, Ponto, Ponto, Ponto];
+/** Qual eixo da curva ler: 0 é x, 1 é y. */
+type Eixo = 0 | 1;
+
+/**
+ * Os dois trechos de `D_SILHUETA` que descem até o ombro, um de cada lado,
+ * com os pontos de controle em coordenadas absolutas.
+ *
+ * São cópias fiéis de dois comandos do path: `C9 52 6 63 6 74`, que leva de
+ * (18,40) a (6,74) pela esquerda, e `c0-19-11-33-19-43`, que leva de (94,74)
+ * a (75,31) pela direita e aparece aqui invertido, para os dois descerem no
+ * mesmo sentido. `tests/unit/costura.test.ts` cobra os dois literais dentro
+ * de `D_SILHUETA`: mexer no desenho da chama quebra o teste em vez de deixar
+ * estes números envelhecerem calados.
+ *
+ * O filete depende deles porque é a tangente do contorno no ponto de encontro
+ * que define o controle da quadrática. Arredondar sem ela daria uma curva que
+ * chega torta no ombro, o que é pior que o canto reto.
+ */
+const OMBRO_ESQUERDO: Cubica = [[18, 40], [9, 52], [6, 63], [6, 74]];
+const OMBRO_DIREITO: Cubica = [[75, 31], [83, 41], [94, 55], [94, 74]];
+
+function naCubica(c: Cubica, t: number, eixo: Eixo): number {
+  const u = 1 - t;
+  return (
+    c[0][eixo] * u ** 3 +
+    3 * c[1][eixo] * t * u ** 2 +
+    3 * c[2][eixo] * t ** 2 * u +
+    c[3][eixo] * t ** 3
+  );
+}
+
+function tangenteDaCubica(c: Cubica, t: number, eixo: Eixo): number {
+  const u = 1 - t;
+  return (
+    3 * u ** 2 * (c[1][eixo] - c[0][eixo]) +
+    6 * u * t * (c[2][eixo] - c[1][eixo]) +
+    3 * t ** 2 * (c[3][eixo] - c[2][eixo])
+  );
+}
+
+/**
+ * Onde a cúbica cruza uma altura, e com que inclinação `dx/dy`.
+ *
+ * Bissecção simples porque o `y` das duas curvas é monotônico, elas só
+ * descem: não existe raiz ambígua para escolher.
+ */
+function cruzaEmY(c: Cubica, y: number): { x: number; inclinacao: number } {
+  // Fora da faixa a bissecção converge para uma das pontas e devolve um ponto
+  // que não é o pedido, sem reclamar. Silenciosamente errado é pior que
+  // quebrado: o filete sairia torto e ninguém saberia por quê.
+  if (y < c[0][1] || y > c[3][1]) {
+    throw new Error(`altura ${y} fora do trecho (${c[0][1]} a ${c[3][1]})`);
+  }
+
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 60; i++) {
+    const meio = (lo + hi) / 2;
+    if (naCubica(c, meio, 1) < y) lo = meio;
+    else hi = meio;
+  }
+  const t = (lo + hi) / 2;
+  return {
+    x: naCubica(c, t, 0),
+    inclinacao: tangenteDaCubica(c, t, 0) / tangenteDaCubica(c, t, 1),
+  };
+}
+
+/**
+ * Raio do filete que arredonda o encontro da chama com o preenchimento.
+ *
+ * A saída óbvia para o canto seria fazer o topo inteiro sair tangente da
+ * chama, mais abaixo. Medido, não serve: as laterais são quase verticais e a
+ * borda da foto está a 53 unidades do eixo, então ancorar em y=50 custaria
+ * 93px de queda numa foto de 375px, e em y=57 custaria 132px. Sobrariam
+ * cantos brancos enormes em cima.
+ *
+ * `20` (36px no mobile) arredonda só o canto e cobra essas mesmas 20 unidades
+ * de altura, localizadas no ombro. Foi escolhido contra `10`, que corrige o
+ * ângulo mas quase não se vê.
+ *
+ * O teto é `34`, e ele é duro, não estético: o ponto de encontro fica em
+ * `APOIO_SILHUETA - RAIO_FILETE`, e os trechos de ombro só existem de y=40 a
+ * y=74. Passar disso pede uma altura que a curva não tem, e `cruzaEmY` lança.
+ */
+const RAIO_FILETE = 20;
+
+/**
+ * Altura por onde o preenchimento atravessa de um ombro ao outro, por dentro
+ * da chama.
+ *
+ * Atravessar reto na altura do encontro taparia a lambida, que fica entre
+ * y=40 e y=57. Por dentro, o trecho some sob a própria chama e nunca aparece:
+ * só precisa ficar abaixo do entalhe e acima da base.
+ */
+const MERGULHO_FILETE = 80;
+
+/** Corta zeros à toa, para o data URI não carregar `259.88000000000002`. */
+function curto(v: number): string {
+  return Number(v.toFixed(2)).toString();
+}
+
+/**
+ * Preenchimento do topo: o retângulo de sempre, com um filete em cada ombro.
+ *
+ * Cada filete é uma quadrática cujo ponto de controle fica no cruzamento da
+ * reta `y = APOIO_SILHUETA` com a tangente do contorno no ponto de encontro.
+ * Com o controle ali, a curva sai horizontal de um lado e chega exatamente na
+ * inclinação da chama do outro, tangente nas duas pontas.
+ */
+function preenchimentoDoTopo(desloca: number): string {
+  const base = APOIO_SILHUETA;
+  const alto = base - RAIO_FILETE;
+  const esq = cruzaEmY(OMBRO_ESQUERDO, alto);
+  const dir = cruzaEmY(OMBRO_DIREITO, alto);
+
+  const xEsq = esq.x + desloca;
+  const xDir = dir.x + desloca;
+  const controleEsq = xEsq + esq.inclinacao * RAIO_FILETE;
+  const controleDir = xDir + dir.inclinacao * RAIO_FILETE;
+
+  const d = [
+    `M0 ${base}`,
+    `L${curto(controleEsq - RAIO_FILETE)} ${base}`,
+    `Q${curto(controleEsq)} ${base} ${curto(xEsq)} ${alto}`,
+    `L${desloca + 20} ${MERGULHO_FILETE}`,
+    `L${desloca + 80} ${MERGULHO_FILETE}`,
+    `L${curto(xDir)} ${alto}`,
+    `Q${curto(controleDir)} ${base} ${curto(controleDir + RAIO_FILETE)} ${base}`,
+    `L${SOBRA} ${base}`,
+    `L${SOBRA} ${SOBRA}`,
+    `L0 ${SOBRA}`,
+    "Z",
+  ].join(" ");
+
+  return `<path d='${d}' fill='black'/>`;
+}
 
 export function mascaraChama(onde: Costura): string {
   // O quadro sobra nos dois eixos em que a foto continua. Ele precisa cobrir
@@ -103,7 +273,7 @@ export function mascaraChama(onde: Costura): string {
   const preenche =
     onde === "borda"
       ? `<rect x='${EIXO_SILHUETA}' y='0' width='${SOBRA - EIXO_SILHUETA}' height='${ALTURA_SILHUETA}' fill='black'/>`
-      : `<rect x='0' y='${APOIO_SILHUETA}' width='${SOBRA}' height='${SOBRA - APOIO_SILHUETA}' fill='black'/>`;
+      : preenchimentoDoTopo(desloca);
 
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>` +

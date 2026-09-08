@@ -38,7 +38,8 @@ const WEBP = "/fachada-nbrasa-900.webp 900w, /fachada-nbrasa-1600.webp 1600w";
  * encaixa, ao lado do fecho. Repetir o `clamp` nos dois lugares seria pedir
  * para eles saírem de sincronia no primeiro ajuste de escala.
  */
-const APOIO = "block text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
+const APOIO =
+  "block text-[length:var(--corpo-apoio)] leading-[1.1] tracking-[-.01em]";
 
 /**
  * O fecho, que é o apoio encostado à direita.
@@ -62,27 +63,20 @@ const FECHO = APOIO + " text-right";
 /**
  * Corpo da linha 2, a palavra dominante.
  *
- * É a única linha desenhada, em Permanent Marker. As outras duas seguem na
- * Owners XNarrow Black, reta e condensada, e o contraste entre traço de
- * marcador e grotesco geométrico é justamente o efeito. A família não vem do
- * moodboard, que só traz Owners e Hanken Grotesk: entrou por decisão de
- * desenho.
+ * É a única linha desenhada, em Yellowtail. As outras duas seguem na
+ * Owners XNarrow Black, reta e condensada, e o contraste entre o grotesco e o
+ * traço manuscrito é justamente o efeito.
  *
  * Não há `italic` aqui, e isso é deliberado. A inclinação já está no desenho
  * da letra, e a oblíqua sintética do navegador é uma matriz de cisalhamento
  * aplicada por cima: numa fonte já inclinada e de contorno irregular, ela
  * some com o gesto e deixa o traço torto em vez de inclinado.
  *
- * Foi escolhida contra brush scripts como Kaushan e Yellowtail, que também
- * leem como desenhadas, porque aquelas são a mesma voz do wordmark manuscrito
- * da marca. Repetir o gesto do logo na manchete faria as duas peças
- * competirem; o marcador é uma mão diferente, mais crua, e convive.
+ * A Yellowtail aproxima a palavra dominante do gesto manuscrito da marca,
+ * mantendo uma voz distinta da Owners condensada que enquadra o título.
  *
- * A troca de família obrigou a refazer os três números, e não só a classe.
- * Medido no navegador, "ACENDE" ocupa 3,78 vezes o próprio corpo
- * contra 2,24 na Owners XNarrow Black. Os valores abaixo são os da versão em
- * Owners multiplicados pelo inverso desse fator, então a palavra ocupa
- * exatamente a mesma largura de antes em qualquer viewport.
+ * A escala foi ajustada para dar mais protagonismo ao foco sem alterar a
+ * família, o peso ou o espaçamento da Yellowtail.
  *
  * O número medido é a largura da TINTA, não a da caixa. Numa letra reta os
  * dois são quase o mesmo e a distinção não aparece; numa inclinada, não, e
@@ -119,7 +113,7 @@ const FECHO = APOIO + " text-right";
  */
 const DOMINANTE =
   "block font-desenhada leading-[.92] tracking-[-.02em] text-brasa ml-[.03em] pr-[.046em] " +
-  "text-[clamp(4.14rem,16vw,7.7rem)] lg:text-[clamp(4.14rem,min(11.8vw,18.9vh),9.45rem)]";
+  "text-[clamp(4.4rem,17.1vw,8.2rem)] lg:text-[clamp(4.4rem,min(12.6vw,20.2vh),10.1rem)]";
 
 /**
  * O título do herói em três linhas, uma palavra por linha, alinhadas à
@@ -143,8 +137,8 @@ const DOMINANTE =
  * enganaria quem fosse ajustar a escala depois.
  *
  * Nenhuma linha carrega `font-weight`. A Owners XNarrow servida tem uma face
- * só, Black, então o peso já é o máximo disponível e pedir mais só
- * convidaria o navegador a engordar o traço por conta.
+ * só, Black, e o foco desenhado também tem uma face única, então pedir mais
+ * só convidaria o navegador a engordar o traço por conta.
  *
  * Quem decide qual palavra é qual é `partesDoTitulo`, em lib/tituloHero.ts,
  * porque a regra é testável e este componente não é.
@@ -209,7 +203,7 @@ export async function Hero() {
         {/* `--corpo-apoio` mora aqui, e não no `APOIO`, porque dois elementos
             precisam do mesmo número: o corpo das linhas 1 e 3 do título e a
             altura da faixa onde o botão se encaixa, logo abaixo. */}
-        <div className="[--corpo-apoio:clamp(2.75rem,9.5vw,3.75rem)] lg:[--corpo-apoio:clamp(2.75rem,min(5.75vw,9.2vh),4.6rem)] lg:max-w-[52%]">
+        <div className="[--corpo-apoio:clamp(2.1rem,7vw,2.8rem)] lg:[--corpo-apoio:clamp(2.1rem,min(4.3vw,6.9vh),3.55rem)] lg:max-w-[52%]">
           <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
             Angra dos Reis · Chopperia | Carnes
           </p>

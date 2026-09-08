@@ -23,8 +23,14 @@ Thumbs.db
 fotos-site/
 
 # material de marca: arquivos-fonte pesados (~85 MB no total).
-# Ficam locais de propósito — inflariam o clone permanentemente.
+# Ficam locais de propósito, inflariam o clone permanentemente.
 # Ver CLAUDE.md para o inventário e como abrir cada um.
+#
+# A pasta inteira entra aqui, e não só as extensões: listar formato por
+# formato deixou passar um .zip de fonte, que o `git add -A` ia levar junto.
+# Os padrões por extensão ficam como segunda barreira, porque o mesmo tipo de
+# arquivo aparece solto em outros cantos do projeto.
+apresentação site/
 *.cdr
 *.pdf
 IMG_*.png

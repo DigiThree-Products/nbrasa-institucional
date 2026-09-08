@@ -18,7 +18,7 @@
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
   /* Fonte desenhada, so para a palavra dominante do heroi. Nao existe
-     equivalente de sistema para traco de marcador, entao o fallback e um
+     equivalente de sistema para traco manuscrito, entao o fallback e um
      grotesco pesado: melhor uma massa parecida durante o swap do que um
      cursivo fino, que mudaria a mancha inteira do bloco. */
   --font-desenhada: var(--fonte-desenhada), "Arial Black", Impact, sans-serif;
@@ -59,8 +59,8 @@ body {
   /*
    * No desktop o header deixa de ser uma faixa de ponta a ponta. A metade
    * esquerda é retangular; a direita usa a máscara do vídeo com composição
-   * `exclude`, portanto pinta somente a área que a foto não ocupa. O fundo e
-   * sua borda inferior terminam no mesmo pixel da costura do herói. Ele fica
+   * `exclude`, portanto pinta somente a área que a foto não ocupa. O fundo
+   * termina no mesmo pixel da costura do herói. Ele fica
    * absoluto junto ao herói (em vez de sticky) para os dois recortes
    * continuarem casados durante o scroll; no mobile o comportamento sticky
    * original permanece.
@@ -84,7 +84,6 @@ body {
     left: 0;
     width: 50%;
     height: 74px;
-    border-bottom: 1px solid var(--color-creme-borda);
     background: rgb(255 255 255 / 85%);
     backdrop-filter: blur(12px);
   }
@@ -95,8 +94,7 @@ body {
     height: 100dvh;
     background: linear-gradient(
       to bottom,
-      rgb(255 255 255 / 85%) 0 73px,
-      var(--color-creme-borda) 73px 74px,
+      rgb(255 255 255 / 85%) 0 74px,
       transparent 74px
     );
     -webkit-backdrop-filter: blur(12px);
