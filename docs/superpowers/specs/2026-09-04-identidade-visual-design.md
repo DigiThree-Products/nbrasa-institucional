@@ -147,7 +147,7 @@ Portanto:
 
 | Constante | Origem | Consumidores |
 |---|---|---|
-| `D_CHAMA_OFICIAL` (novo, dois paths, viewBox 468,1×684,1) | `logo.svg` | `Chama` no Header, no Footer e nos Chips; marca d'água dos cards; marca d'água da Delivery |
+| `D_CHAMA_OFICIAL` (novo, dois paths, viewBox 468,1×684,1) | `logo.svg` | `Chama` no Header e no Footer; marca d'água dos cards; marca d'água da Delivery |
 | `D_SILHUETA` (renomeado de `D_CHAMA`) | desenhado à mão | `mascaraChama` em `lib/costura.ts`; `Mascote` |
 
 `EIXO_CHAMA` continua valendo para `D_SILHUETA` e é renomeado para

@@ -82,8 +82,8 @@ referências**. As referências entram como linguagem de layout e de movimento, 
 sobrescrevendo cor ou tipografia.
 
 - **Referência de estrutura:** "FreshBox — Food Delivery & Restaurant Website"
-  (Behance). Dela vêm a escala tipográfica display, o grid bento assimétrico, a
-  fileira de categorias em chips e os raios generosos.
+  (Behance). Dela vêm a escala tipográfica display, o grid bento assimétrico e
+  os raios generosos.
 - **Referência de movimento:** `cravburgers.shop`. Dela vêm o preloader de marca, as
   divisórias curvas, os reveals de scroll e o componente de rota (§7.3).
 
@@ -198,14 +198,13 @@ limite de tamanho por arquivo e whitelist de tipo (imagem e vídeo).
 
 1. Header fixo — logo, navegação, botão CAMPANHA condicional
 2. Herói — display grande, dois CTAs, foto da fachada, faixa de horário resumido
-3. Chips das 6 categorias — selos circulares de chama, **não fotográficos** (§10)
-4. Cardápio — grid bento assimétrico, 6 cards
-5. **Rota do mascote / Delivery** (§7.3)
-6. Divisória curva ("jelly")
-7. Horários e programação — faixa creme
-8. Depoimentos
-9. Onde estamos — mapa e contato
-10. Rodapé
+3. Cardápio — grid bento assimétrico, 6 cards
+4. **Rota do mascote / Delivery** (§7.3)
+5. Divisória curva ("jelly")
+6. Horários e programação — faixa creme
+7. Depoimentos
+8. Onde estamos — mapa e contato
+9. Rodapé
 
 ### 7.3 Componente de assinatura: rota do mascote
 
@@ -390,8 +389,7 @@ site institucional deste porte, custa mais do que protege.
 2. **Fotografia limpa.** O folder tem copy sobreposta na fotografia, então não é
    possível extrair fotos limpas dele. O mockup usa o que foi extraível, com
    artefatos visíveis. O site final precisa dos arquivos originais das fotos ou de um
-   ensaio novo. Por isso os chips de categoria são selos de chama, e não fotos — o
-   que também é mais fiel à cartela de adesivos do manual.
+   ensaio novo.
 3. **Logo vetorial oficial** para substituir a reprodução em fonte script do mockup.
 4. **Confirmar `--brasa-texto`** com o responsável pela marca.
 5. **Categorias do cardápio:** o spec adota as 6 do site atual (Burgers, Espetinhos,

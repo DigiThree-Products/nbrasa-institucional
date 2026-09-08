@@ -56,8 +56,8 @@ Levantadas no spec (§10) e ainda abertas:
    mesma pasta e rodar `python scripts/gerar-owners.py`. Enquanto isso,
    `tests/unit/owners.test.ts` impede que qualquer título de display use um
    glifo que a trial não tem.
-2. **Fotografia limpa.** O material atual tem copy sobreposta; os chips de
-   categoria e as paradas da rota de entrega ficam sem foto até o cliente
+2. **Fotografia limpa.** O material atual tem copy sobreposta; os cards do
+   cardápio e as paradas da rota de entrega ficam sem foto até o cliente
    enviar os arquivos originais ou um ensaio novo.
 3. **Selo circular e mascote em vetor.** `fotos-site/logo.svg` resolveu
    metade disto: a chama oficial chegou e virou `D_CHAMA_OFICIAL` em
