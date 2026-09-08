@@ -300,34 +300,16 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
   expect(depois).not.toBeNull();
 });
 
-test("o herói não baixa o vídeo sob prefers-reduced-motion", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-
+test("o herói usa a foto IMG_3643 sem montar vídeo", async ({ page }) => {
   const pedidos: string[] = [];
   page.on("request", (r) => pedidos.push(r.url()));
 
   await page.goto("/");
-  // Folga sobre os 1,2 s do adiamento em VideoFachada: se ele fosse montar,
-  // já teria montado.
-  await page.waitForTimeout(2_500);
-
-  // A guarda vale por dois: nada de movimento, e nada de 1 MB na banda.
-  // O expect sobre locator é assíncrono: sem o await ele resolve depois da
-  // asserção e o teste passa mesmo com o vídeo na tela.
   await expect(page.locator("video")).toHaveCount(0);
   expect(pedidos.filter((u) => u.includes("video-fachada.mp4"))).toHaveLength(0);
 
-  // E o herói continua mostrando a fachada, pela foto de sempre.
-  await expect(page.locator('img[src*="fachada-nbrasa"]')).toBeVisible();
-});
-
-test("com movimento permitido, o vídeo monta com a foto de poster", async ({ page }) => {
-  await page.goto("/");
-
-  const video = page.locator("video");
-  await expect(video).toHaveCount(1, { timeout: 8_000 });
-  // O poster é a mesma foto do herói: enquanto o arquivo não chega, e se
-  // nunca chegar, o quadro é idêntico ao de antes.
-  await expect(video).toHaveAttribute("poster", "/fachada-nbrasa-1600.jpg");
-  await expect(video).toHaveAttribute("aria-hidden", "true");
+  const foto = page.locator('img[src="/fachada-nbrasa-1600.jpg"]');
+  await expect(foto).toBeVisible();
+  await expect(foto.locator("xpath=preceding-sibling::source[@type='image/avif']")).toHaveCount(1);
+  await expect(foto.locator("xpath=preceding-sibling::source[@type='image/webp']")).toHaveCount(1);
 });
