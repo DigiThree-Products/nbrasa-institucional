@@ -34,17 +34,44 @@ describe("mascaraChama", () => {
     // só a largura da chama, a máscara não alcançaria as laterais e a foto
     // sumiria fora dela.
     expect(svg).toContain("viewBox='0 0 600 600'");
-    // y=78 é onde a chama é mais larga, e não a cintura dela (58). Na cintura
-    // o contorno chega inclinado e a união com o retângulo deixa um fiapo
-    // solto; na parte mais larga a tangente é vertical e a curva encosta na
-    // reta sem quebra.
-    expect(svg).toContain("<rect x='0' y='78' width='600' height='522'");
+    // O caminho inteiro, e não um pedaço: os números saem calculados da
+    // silhueta em lib/costura.ts, então fixá-los aqui é o que trava a
+    // geometria do filete. Lendo os marcos:
+    //
+    //   M0 74 ... L600 74  a base segue em y=74, o ponto mais largo da chama
+    //   Q ... 259.88 54    filete esquerdo, tangente ao contorno em y=54
+    //   Q ... 339.81 54    filete direito, o espelho dele
+    //   L270 80 L330 80    travessia por DENTRO da chama. Atravessar reto na
+    //                      altura do encontro taparia a lambida, que vive
+    //                      entre y=40 e y=57.
+    expect(svg).toContain(
+      "<path d='M0 74 L231.65 74 Q251.65 74 259.88 54 L270 80 L330 80 " +
+        "L339.81 54 Q348.27 74 368.27 74 L600 74 L600 600 L0 600 Z' fill='black'/>",
+    );
+
+    // O retângulo cru saiu de cena: ele encostava na chama em 90°, porque a
+    // lateral dela tem tangente vertical ali, e a chama lia como peça pousada
+    // sobre a foto em vez de forma saindo dela.
+    expect(svg).not.toContain("<rect x='0' y='74'");
   });
 
   it("no topo, centraliza a chama no quadro", () => {
     const svg = decodificar(mascaraChama("topo"));
 
     expect(svg).toContain("translate(250,0)");
+  });
+});
+
+describe("o filete acompanha a silhueta", () => {
+  it("os trechos de ombro continuam dentro de D_SILHUETA", async () => {
+    const { D_SILHUETA } = await import("@/lib/marca");
+
+    // lib/costura.ts guarda estes dois comandos como pontos de controle, para
+    // achar a tangente do contorno no ombro e apoiar o filete nela. Se o
+    // desenho da chama mudar, aqueles números param de valer em silêncio e o
+    // filete chega torto. Este teste é o alarme.
+    expect(D_SILHUETA).toContain("C9 52 6 63 6 74");
+    expect(D_SILHUETA).toContain("c0-19-11-33-19-43");
   });
 });
 
