@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
-import { getConteudo, getHorarios } from "@/lib/conteudo";
-import { agruparHorarios, FECHADO } from "@/lib/horarios";
+import { getConteudo } from "@/lib/conteudo";
 import { AJUSTES, mascaraChama } from "@/lib/costura";
 import { partesDoTitulo } from "@/lib/tituloHero";
 import { Botao } from "@/components/ui/Botao";
+import { Labaredas } from "@/components/ui/Labaredas";
 
 /**
  * Miniatura de 16px da própria foto, embutida como base64.
@@ -66,59 +66,61 @@ const APOIO =
 const FECHO = APOIO + " text-right";
 
 /**
- * Corpo da linha 2, a palavra dominante.
+ * O respiro entre as três linhas do título.
  *
- * É a única linha desenhada, em Kaushan Script. As outras duas seguem na
- * Owners XNarrow Black, reta e condensada, e o contraste entre o grotesco e o
- * traço manuscrito é justamente o efeito.
+ * Vai como margem, e não como `line-height` maior, porque a altura da linha
+ * do fecho é o número que o botão do WhatsApp usa para se encaixar ao lado
+ * dele (`1.1 * --corpo-apoio`, logo abaixo). Mexer no `leading` obrigaria a
+ * mexer nos dois `calc` do botão junto, e eles sairiam de sincronia no
+ * primeiro ajuste; a margem soma acima de cada linha e deixa a faixa do
+ * fecho do tamanho que sempre foi.
  *
- * Não há `italic` aqui, e isso é deliberado. A inclinação já está no desenho
- * da letra, e a oblíqua sintética do navegador é uma matriz de cisalhamento
- * aplicada por cima: numa fonte já inclinada e de contorno irregular, ela
- * some com o gesto e deixa o traço torto em vez de inclinado.
+ * Por isso ele entra na abertura e no foco, e **não** no fecho: margem
+ * embaixo da última linha empurraria o botão para fora da faixa dela.
  *
- * A Kaushan Script aproxima a palavra dominante do gesto manuscrito da marca,
- * mantendo uma voz distinta da Owners condensada que enquadra o título.
+ * O valor sai de `--corpo-apoio`, na coluna de texto, para o respiro crescer
+ * e encolher junto com o título em vez de virar um vão fixo que fica enorme
+ * no mobile e sumido na tela larga.
+ */
+const RESPIRO = "mb-[var(--respiro-linhas)]";
+
+/**
+ * Corpo da linha 2, a palavra dominante, e a única que pega fogo.
  *
- * A escala foi ajustada para dar mais protagonismo ao foco sem alterar a
- * família, o peso ou o espaçamento da Kaushan Script.
+ * Está na **Owners XNarrow Black**, a display da marca, e a escolha é o que
+ * torna as labaredas possíveis. A referência do cliente (tipografia em chamas,
+ * do Behance) funde letra e fogo num contorno só, e isso exige haste larga e
+ * de topo chato: a língua nasce com a espessura da haste e a emenda some.
+ * Enquanto o foco esteve numa manuscrita, primeiro Yellowtail e depois Kaushan
+ * Script, a fusão era impossível, porque língua saindo de traço fino e
+ * inclinado lê como cabelo, e o máximo que se conseguia era chama flutuando ao
+ * lado da palavra. Ver `lib/labaredas.ts`.
  *
- * O número medido é a largura da TINTA, não a da caixa. Numa letra reta os
- * dois são quase o mesmo e a distinção não aparece; numa inclinada, não, e
- * dimensionar pela caixa já fez o "E" final entrar dentro da foto em 1024px
- * sem nenhuma conta acusar.
+ * Não há `ml` nem `pr` de compensação ótica aqui, e a ausência é deliberada:
+ * eles existiam porque numa letra inclinada a caixa de layout e a tinta não
+ * coincidem. A Owners é reta, e os dois voltaram a ser a mesma coisa.
+ *
+ * A escala subiu junto com a troca. A XNarrow é bem mais estreita que a
+ * Kaushan: medido, a mesma palavra caiu de 612px para 376px no mesmo corpo, um
+ * fator de 1,62. Os `clamp` cresceram 1,5 para devolver à palavra a largura
+ * que ela tinha na coluna, e sobrou folga.
  *
  * São duas regras, e não uma, porque abaixo e acima do `lg` o título vive em
  * layouts diferentes: empilhado, com a coluna inteira à disposição, e em duas
- * colunas, dividindo a largura com a foto. Uma regra só teria que atender a
- * parede mais dura nas duas faixas, e medido isso custava 26% de corpo entre
- * 620px e 1000px, onde parede nenhuma existe.
+ * colunas, dividindo a largura com a foto.
  *
- * O `min(11.8vw,18.9vh)` da regra do `lg` resolve duas paredes que puxam para lados
- * opostos, e nenhuma das duas é onde se procuraria.
+ * O `relative` existe para as labaredas: elas se penduram no topo desta linha
+ * e sobem, numa faixa de altura zero que não custa layout nenhum.
  *
- * A parede de largura não é a tela larga: é `1024px`, onde o `lg` entra e a
- * coluna do texto despenca de `100%` para `52%`. Medido ali: o texto começa
- * em 24px e a foto em 512px, então sobram 488px úteis, não os 507px da
- * coluna, que já invade a foto em 20px. Em 1440px, com o contêiner
- * centralizado, sobram 616px. Um teto fixo teria que atender o pior caso e
- * desperdiçaria corpo na tela larga, que é onde o herói é mais visto.
- *
- * A parede de altura é o botão do WhatsApp, que mora encaixado na terceira
- * linha: tudo que cresce aqui empurra o bloco para baixo. O `vh` é o `32vh`
- * da versão em Owners convertido pelo mesmo fator, para o comportamento em
- * janela baixa ficar igual ao que já estava medido.
- *
- * O `ml` e o `pr` são compensação ótica, e existem porque a caixa de layout e
- * a tinta não são a mesma coisa numa letra inclinada. O alinhamento à
- * esquerda das três linhas e o fecho encostado na direita são pedidos do
- * desenho, e sem isto ficavam certos na conta e errados na tela, que é o tipo
- * de erro que nenhum teste de caixa pega. Os dois valores estão em `em` do
- * próprio foco, então acompanham a escala sozinhos.
+ * O `mt` é o espaço que elas ocupam, e é a única coisa que o fogo cobra do
+ * layout. Medido: sem ele sobram 0,156 em acima das maiúsculas, e as três
+ * labaredas que nascem sob "Sua fome" atravessavam a palavra. Com 0,22 em o
+ * vão vai para 0,44 em, que é o teto dessas três em `lib/labaredas.ts`. Está
+ * em `em` do próprio foco, então acompanha os dois `clamp` sozinho.
  */
 const DOMINANTE =
-  "block font-desenhada leading-[.92] tracking-[-.02em] text-brasa ml-[.03em] pr-[.046em] " +
-  "text-[clamp(4.4rem,17.1vw,8.2rem)] lg:text-[clamp(4.4rem,min(12.6vw,20.2vh),10.1rem)]";
+  "relative mt-[.26em] block font-display leading-[.86] tracking-[-.005em] text-brasa " +
+  "text-[clamp(5.5rem,25.6vw,12.3rem)] lg:text-[clamp(5.5rem,min(18.9vw,30.3vh),15.2rem)]";
 
 /**
  * O título do herói em três linhas, uma palavra por linha, alinhadas à
@@ -153,8 +155,12 @@ function TituloHero({ texto }: { texto: string }) {
 
   return (
     <>
-      {abertura && <span className={APOIO}>{abertura}{" "}</span>}
-      {foco && <span className={DOMINANTE}>{foco}{" "}</span>}
+      {abertura && <span className={APOIO + " " + RESPIRO}>{abertura}{" "}</span>}
+      {foco && (
+        <span className={DOMINANTE + " " + RESPIRO}>
+          <Labaredas />{foco}{" "}
+        </span>
+      )}
       {fecho && <span className={FECHO}>{fecho}</span>}
     </>
   );
@@ -179,8 +185,7 @@ const VARIAVEIS = {
 } as CSSProperties;
 
 export async function Hero() {
-  const [c, horarios] = await Promise.all([getConteudo(), getHorarios()]);
-  const resumo = agruparHorarios(horarios).filter((f) => f.texto !== FECHADO);
+  const c = await getConteudo();
 
   return (
     <section className="relative overflow-hidden" style={VARIAVEIS}>
@@ -208,11 +213,8 @@ export async function Hero() {
         {/* `--corpo-apoio` mora aqui, e não no `APOIO`, porque dois elementos
             precisam do mesmo número: o corpo das linhas 1 e 3 do título e a
             altura da faixa onde o botão se encaixa, logo abaixo. */}
-        <div className="[--corpo-apoio:clamp(1.6rem,5.4vw,2.2rem)] lg:[--corpo-apoio:clamp(1.6rem,min(3.3vw,5.3vh),2.7rem)] lg:max-w-[52%]">
-          <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
-            Angra dos Reis · Chopperia | Carnes
-          </p>
-          <h1 className="mt-4 w-fit font-display uppercase">
+        <div className="[--corpo-apoio:clamp(1.6rem,5.4vw,2.2rem)] lg:[--corpo-apoio:clamp(1.6rem,min(3.3vw,5.3vh),2.7rem)] [--respiro-linhas:calc(.6*var(--corpo-apoio))] lg:max-w-[52%]">
+          <h1 className="w-fit font-display uppercase">
             <TituloHero texto={c.heroTitulo} />
           </h1>
 
@@ -231,25 +233,11 @@ export async function Hero() {
               O botão vem antes do subtítulo no DOM, e não só na tela: com
               `order` do flex a ordem de leitura ficaria diferente da ordem
               visual, que é o tipo de descasamento que leitor de tela paga. */}
-          <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-[calc(-1.1*var(--corpo-apoio))] sm:h-[calc(1.1*var(--corpo-apoio))]">
+          <div className="mt-12 flex flex-wrap items-center gap-3 sm:mt-[calc(-1.1*var(--corpo-apoio))] sm:h-[calc(1.1*var(--corpo-apoio))]">
             <Botao href={c.whatsappUrl} variante="escuro">Pedir no WhatsApp</Botao>
           </div>
 
-          <p className="mt-6 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
-
-          {/* Grade, e não flex-wrap: as três faixas somam 586px numa coluna de
-              641px e só cabem numa linha se o vão encolher, com 7px de folga.
-              Bastaria o dono cadastrar "14h às 22h30" no painel para a linha
-              estourar e sobrar um dia órfão embaixo. Em duas colunas o bloco
-              fica alinhado em qualquer largura e aguenta o texto crescer.
-
-              O @ do Instagram saiu daqui: era a terceira aparição dele na
-              página (rodapé e "Onde estamos", esta como link de verdade), não
-              era clicável, e era ele que emparelhava rede social com horário
-              na mesma linha. */}
-          <div className="mt-9 grid gap-x-8 gap-y-2 border-t border-creme-borda pt-6 text-[.78rem] uppercase tracking-[.11em] text-creme-texto sm:grid-cols-2">
-            {resumo.map((f) => <span key={f.label}>{f.label} · {f.texto}</span>)}
-          </div>
+          <p className="mt-12 max-w-[46ch] text-lg text-creme-texto">{c.heroSubtitulo}</p>
         </div>
       </div>
 

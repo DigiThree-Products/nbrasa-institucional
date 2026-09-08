@@ -166,8 +166,6 @@ test("lista as seis categorias", async ({ page }) => {
 });
 
 test("mostra os horários agrupados corretamente", async ({ page }) => {
-  // "Terça a quinta" aparece duas vezes na página (resumo do herói e lista
-  // de horários na faixa creme); .first() evita a falha do strict mode.
   await expect(page.getByText("Terça a quinta").first()).toBeVisible();
   await expect(page.getByText("16h às 03h").first()).toBeVisible();
 });
