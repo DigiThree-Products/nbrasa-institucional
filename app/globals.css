@@ -56,6 +56,73 @@ body {
 }
 
 @media (min-width: 1024px) {
+  /*
+   * No desktop o header deixa de ser uma faixa de ponta a ponta. A metade
+   * esquerda é retangular; a direita usa a máscara do vídeo com composição
+   * `exclude`, portanto pinta somente a área que a foto não ocupa. O fundo e
+   * sua borda inferior terminam no mesmo pixel da costura do herói. Ele fica
+   * absoluto junto ao herói (em vez de sticky) para os dois recortes
+   * continuarem casados durante o scroll; no mobile o comportamento sticky
+   * original permanece.
+   */
+  .cabecalho-hero {
+    overflow: clip;
+    border-bottom: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .cabecalho-hero::before,
+  .cabecalho-hero::after {
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    content: "";
+  }
+
+  .cabecalho-hero::before {
+    left: 0;
+    width: 50%;
+    height: 74px;
+    border-bottom: 1px solid var(--color-creme-borda);
+    background: rgb(255 255 255 / 85%);
+    backdrop-filter: blur(12px);
+  }
+
+  .cabecalho-hero::after {
+    left: 50%;
+    width: 50%;
+    height: 100dvh;
+    background: linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 85%) 0 73px,
+      var(--color-creme-borda) 73px 74px,
+      transparent 74px
+    );
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    -webkit-mask-image: linear-gradient(#000 0 0), var(--costura-mascara);
+    mask-image: linear-gradient(#000 0 0), var(--costura-mascara);
+    -webkit-mask-repeat: no-repeat, no-repeat;
+    mask-repeat: no-repeat, no-repeat;
+    -webkit-mask-size: 100% 100%, auto calc(var(--costura-escala) * 100%);
+    mask-size: 100% 100%, auto calc(var(--costura-escala) * 100%);
+    -webkit-mask-position: left top, left var(--costura-altura);
+    mask-position: left top, left var(--costura-altura);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Mantém logo e navegação dentro da parte clara, sem deslocar a margem
+     esquerda que eles compartilham com o conteúdo do herói. */
+  .cabecalho-conteudo {
+    width: calc(
+      50vw + 34dvh - max(0px, calc((100vw - 1280px) / 2))
+    );
+    margin-right: 0;
+    margin-left: max(0px, calc((100vw - 1280px) / 2));
+  }
+
   /* desktop: chama deitada na borda esquerda da foto */
   .costura-chama {
     -webkit-mask-image: var(--costura-mascara);
