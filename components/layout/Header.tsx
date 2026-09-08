@@ -27,7 +27,7 @@ export async function Header() {
   const c = await getConteudo();
   return (
     <header
-      className="cabecalho-hero sticky top-0 z-[60] border-b border-creme-borda bg-branco/85 backdrop-blur-md lg:absolute lg:inset-x-0"
+      className="cabecalho-hero sticky top-0 z-[60] bg-branco/85 backdrop-blur-md lg:absolute lg:inset-x-0"
       style={VARIAVEIS}
     >
       <div className="cabecalho-conteudo mx-auto flex h-[74px] max-w-[1280px] items-center gap-5 px-6">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Permanent_Marker } from "next/font/google";
+import { Hanken_Grotesk, Yellowtail } from "next/font/google";
 import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
@@ -9,13 +9,13 @@ import "./globals.css";
 const corpo = Hanken_Grotesk({
   subsets: ["latin"], display: "swap", variable: "--fonte-corpo",
 });
-// Fonte desenhada, usada em UMA palavra: o "acende" do herói. Traço de
-// marcador, peso único, e a inclinação faz parte do desenho da letra: não há
+// Fonte desenhada, usada em UMA palavra: o "acende" do herói. Traço
+// manuscrito, peso único, e a inclinação faz parte do desenho da letra: não há
 // oblíqua sintética por cima, que numa fonte já inclinada e irregular só
 // borraria o gesto. A família não vem do moodboard, que só traz Owners e
 // Hanken Grotesk; entrou por decisão de desenho, para a palavra dominante
 // destoar das duas linhas condensadas em volta dela.
-const desenhada = Permanent_Marker({
+const desenhada = Yellowtail({
   subsets: ["latin"], weight: "400",
   display: "swap", variable: "--fonte-desenhada",
 });
