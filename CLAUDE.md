@@ -183,9 +183,22 @@ relatado pelo cliente em 2026-09-09. Sem a reserva não há o que cobrir. O valo
 do recuo é `hypot(RAIO, 1/2) − RAIO`, a folga mínima: é o quanto a quina de um
 card de perfil avança além do centro. E `transformacaoDoCard` corta o `z` em
 zero, senão a ultrapassagem do pouso, que inverte o sinal do `restante`,
-traria o card à frente do texto justo no estalo. A reserva daqui é reta e
-branca sobre branco, e não denteada como a da FITA, porque lá ela é âmbar sobre
-foto de palco e a aresta apareceria.
+traria o card à frente do texto justo no estalo.
+
+**A beirada direita da reserva é a silhueta da chama**, a pedido do cliente em
+2026-09-09, e sai da mesma `mascaraChama` do herói, na variante `reserva`. Três
+coisas ali quebram calado. A chama vem **espelhada**: `D_SILHUETA` é
+assimétrica, a lambida existe só no lado esquerdo dela, e sem virar a peça o
+recorte vira um calombo liso; espelhar não é publicar a marca ao contrário,
+porque a marca é `D_CHAMA_OFICIAL` e esta é a silhueta de recorte. O corpo do
+papel é uma **segunda camada de máscara**, no CSS, e não um retângulo dentro do
+mesmo SVG: junto, o quadro passaria a ter a altura da chama e o resto da caixa
+ficaria sem máscara, ou seja transparente, e o papel sumiria embaixo do
+parágrafo. E a borda dessa camada cai no eixo da chama por
+`AJUSTES_DA_RESERVA.meiaLargura`, que é a proporção da silhueta dividida por
+dois: errar o número abre um degrau ou tapa a lambida. A altura da chama é um
+`clamp` porque o que a limita é a faixa livre entre o fim da tinta do título e
+a coluna dos cards, e essa faixa encolhe com a janela.
 
 **`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
 custou uma versão inteira: o módulo calculava para cima, o componente escrevia

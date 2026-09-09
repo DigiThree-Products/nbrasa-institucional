@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import { getCategorias } from "@/lib/conteudo";
 import type { Categoria } from "@/lib/conteudo.tipos";
+import { AJUSTES_DA_RESERVA, mascaraChama } from "@/lib/costura";
 import { FileiraEmEspiral } from "@/components/sections/FileiraEmEspiral";
 import { Chama } from "@/components/ui/Chama";
 
@@ -43,10 +45,19 @@ export function CabecalhoDoCardapio() {
           pinta a metade da frente por cima da reserva. Papel sem recuo é papel
           furado.
 
-          Sangra 24px para os lados e para cima, onde só há margem, e PARA no pé
-          da caixa: logo abaixo dela pousam os dois últimos cards, e mais um fio
-          de reserva comeria a borda de cima deles. O respiro até eles é o
-          `lg:pb-8` que já estava aqui.
+          A BEIRADA DIREITA é a silhueta da chama, e não uma reta: é por ali que
+          os cards entram, então é a única aresta que o olho tem chance de ler.
+          Sai da mesma `mascaraChama` do herói, na variante `reserva`, com a
+          chama encostada à direita e o papel maciço dela para a esquerda. A
+          forma não vem espelhada, ela só troca de lado: no herói quem desenha
+          o contorno é o ombro esquerdo da chama, aqui é o direito.
+
+          Sangra 24px à esquerda e para cima, onde só há margem, e 72px à
+          direita, que é quase todo o vão entre as duas metades da grade: é o
+          espaço que a lambida precisa, e os 8px que sobram são a folga até a
+          coluna dos cards. E PARA no pé da caixa: logo abaixo dela
+          pousam os dois últimos cards, e mais um fio de reserva comeria a borda
+          de cima deles. O respiro até eles é o `lg:pb-8` que já estava aqui.
 
           `hidden lg:block` porque abaixo de 1024 não existe cena presa, e
           portanto não há nada a esconder. `aria-hidden` e sem conteúdo: é
@@ -55,7 +66,15 @@ export function CabecalhoDoCardapio() {
           isso venceria o texto em fluxo normal, que pinta antes. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-x-6 -top-6 bottom-0 hidden bg-branco lg:block"
+        className="reserva-chama pointer-events-none absolute -left-6 -right-[4.5rem] -top-6 bottom-0 hidden bg-branco lg:block"
+        style={
+          {
+            "--reserva-mascara": mascaraChama("reserva"),
+            "--reserva-chama": AJUSTES_DA_RESERVA.altura,
+            "--reserva-posicao": AJUSTES_DA_RESERVA.posicao,
+            "--reserva-meia-largura": String(AJUSTES_DA_RESERVA.meiaLargura),
+          } as CSSProperties
+        }
       />
       <h2 className="relative text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]">
         Feito na hora,<br />servido no capricho
