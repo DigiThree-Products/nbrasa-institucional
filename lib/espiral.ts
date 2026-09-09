@@ -236,12 +236,48 @@ export function thetaDaCabeca(progresso: number): number {
 }
 
 /**
+ * Recuo da bobina inteira atrás do plano de pouso, em larguras de card.
+ *
+ * Ele existe para a bobina passar POR TRÁS do texto do Cardápio, sumindo e
+ * reaparecendo, como na FITA. Lá isso sai de graça: a espiral é um canvas de
+ * WebGL numa camada inteira debaixo da coluna de tipografia, e a reserva de
+ * papel do título come o que passa. Aqui não há duas camadas, o card e o texto
+ * são irmãos no mesmo contexto 3D, e quem decide quem cobre quem é a
+ * profundidade. Então a garantia precisa vir da geometria.
+ *
+ * Sem ele a hélice TANGENCIA o plano de pouso: com o desconto do raio o centro
+ * do card chega a z zero em giro zero. E como o card gira em torno de Y, as
+ * duas metades dele ficam uma à frente e outra atrás desse plano. O navegador
+ * então parte o card no cruzamento e pinta a metade da frente por cima do
+ * texto, o que se vê como um card cortado ao meio por uma aresta vertical em
+ * cima do título. Medido em 1512x950, é o que acontecia em quase toda a
+ * travessia da bobina pela coluna de texto.
+ *
+ * O valor sai de uma conta, não do olho. A quina mais adiantada de um card em
+ * giro θ está em `RAIO·cos θ − RAIO + sen θ / 2`, sendo a meia largura o
+ * quanto a quina avança quando o card está de perfil. O máximo disso em θ vale
+ * `hypot(RAIO, 1/2) − RAIO`, cerca de 0,083 largura de card, uns 32px na
+ * medida de 1512. Recuar exatamente isso encosta a quina mais adiantada no
+ * plano sem nunca atravessá-lo, e não recua um fio a mais: afastar a bobina
+ * além disso a encolheria de graça, porque a perspectiva é curta.
+ *
+ * O trilho leva o mesmo recuo, senão os dois filetes descolariam das bordas
+ * dos cards, que é a única coisa que os prende à bobina.
+ *
+ * Ele não mexe no pouso. O voo interpola até a identidade e o fator zera junto
+ * com todo o resto em `voo = 1`, então card parado continua sendo card sem
+ * transformação.
+ */
+export const RECUO_DO_PLANO = Math.hypot(RAIO, 1 / 2) - RAIO;
+
+/**
  * Onde a hélice põe o card, ignorando o pouso.
  *
- * O `- RAIO` no `z` põe a origem no plano de pouso: em giro zero o card está
- * exatamente na profundidade em que vai assentar, o que faz a emenda entre
- * hélice e identidade não ter salto, e garante que a bobina inteira fique
- * ATRÁS desse plano, nunca à frente dele.
+ * O `- RAIO` no `z` põe a origem no plano de pouso, e o `- RECUO_DO_PLANO`
+ * empurra a bobina inteira para trás dele, quinas incluídas, que é o que faz o
+ * texto do Cardápio cobrir o que passa por baixo. A emenda entre hélice e
+ * identidade continua sem salto porque quem a garante é o fator do voo zerar
+ * em `voo = 1`, e não a hélice tocar o plano.
  */
 export function poseNaHelice(progresso: number, indice: number): Pose {
   const giro = thetaDaCabeca(progresso) - indice * PASSO_ANGULAR;
@@ -255,7 +291,7 @@ export function poseNaHelice(progresso: number, indice: number): Pose {
     // o sinal negativo é a conversão para o eixo do CSS, ver `Pose`: giro
     // começa negativo, então o card começa embaixo e sobe conforme a cena anda
     y: -SUBIDA * giro,
-    z: RAIO * Math.cos(giro) - RAIO,
+    z: RAIO * Math.cos(giro) - RAIO - RECUO_DO_PLANO,
     giro,
   };
 }
@@ -335,7 +371,13 @@ export function transformacaoDoCard(
   return {
     x: restante * (pose.x * larguraDaBobina - deslocamento.x),
     y: restante * (pose.y * alturaDaBobina - deslocamento.y),
-    z: restante * (pose.z * larguraDaBobina),
+    // Nunca à frente do plano de pouso, nem no estalo. Durante a ultrapassagem
+    // o `restante` fica NEGATIVO, e multiplicado por uma pose de z negativo
+    // devolveria z positivo: o card daria um passo na direção do olho justo no
+    // encaixe, e os dois últimos, que pousam encostados no pé do texto,
+    // apareceriam por cima da reserva. O estalo mora no x, no y e no giro; em z
+    // ele só quebra a garantia de que a bobina fica atrás do texto.
+    z: Math.min(0, restante * (pose.z * larguraDaBobina)),
     giro: restante * pose.giro,
     escala: 1 + (ESCALA_NA_BOBINA - 1) * restante,
   };
@@ -400,7 +442,7 @@ export function pontosDaBobina(
     pontos.push({
       x: -RAIO * seno + paraBaixo.x * afastamento,
       y: -SUBIDA_EM_LARGURAS * giro + paraBaixo.y * afastamento,
-      z: RAIO * cosseno - RAIO + paraBaixo.z * afastamento,
+      z: RAIO * cosseno - RAIO - RECUO_DO_PLANO + paraBaixo.z * afastamento,
     });
   }
   return pontos;

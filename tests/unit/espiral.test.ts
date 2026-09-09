@@ -15,6 +15,7 @@ import {
   POUSO_DO_PRIMEIRO,
   PROPORCAO,
   RAIO,
+  RECUO_DO_PLANO,
   SUBIDA,
   VAO,
   janelaDoTrilho,
@@ -233,15 +234,57 @@ describe("a transformação escrita no card", () => {
 });
 
 describe("a hélice", () => {
-  it("põe a origem no plano de pouso: giro zero é posição zero", () => {
-    // z leva o desconto do raio justamente para isto: em giro zero o card está
-    // exatamente onde vai pousar, sem salto na emenda. E a bobina inteira fica
-    // ATRÁS desse plano, nunca à frente dele.
+  it("põe a origem no plano de pouso, e a bobina inteira atrás dele", () => {
+    // z leva o desconto do raio para pôr a origem no plano onde o card assenta,
+    // e o recuo para a bobina ficar toda atrás desse plano. O centro do card
+    // nunca alcança zero.
     for (let giro = -6; giro <= 6; giro += 0.25) {
-      expect(RAIO * Math.cos(giro) - RAIO).toBeLessThanOrEqual(1e-12);
+      expect(poseNaHelice(0, 0).z).toBeLessThan(0);
+      expect(RAIO * Math.cos(giro) - RAIO - RECUO_DO_PLANO).toBeLessThan(0);
     }
     expect(-RAIO * Math.sin(0)).toBeCloseTo(0, 10);
-    expect(RAIO * Math.cos(0) - RAIO).toBeCloseTo(0, 10);
+    expect(RAIO * Math.cos(0) - RAIO - RECUO_DO_PLANO).toBeCloseTo(
+      -RECUO_DO_PLANO,
+      10,
+    );
+  });
+
+  // O card passa POR TRÁS do texto do Cardápio, sumindo e reaparecendo, e quem
+  // garante isso é a geometria: a reserva branca do cabeçalho só cobre o que
+  // estiver atrás do plano dela. Card e texto são irmãos no mesmo contexto 3D,
+  // então uma quina adiantada de um fio já faz o navegador partir o card no
+  // cruzamento e pintar a metade da frente por cima do título.
+  it("mantém a bobina atrás do plano do texto, quinas incluídas", () => {
+    for (let giro = -8; giro <= 8; giro += 0.01) {
+      // A quina avança meia largura de card quando ele está de perfil.
+      const quina =
+        RAIO * Math.cos(giro) -
+        RAIO -
+        RECUO_DO_PLANO +
+        Math.abs(Math.sin(giro)) / 2;
+      expect(quina).toBeLessThanOrEqual(1e-12);
+    }
+  });
+
+  it("recua o mínimo: existe um giro em que a quina encosta no plano", () => {
+    // Recuar além disso encolheria a bobina de graça, porque a perspectiva é
+    // curta. O ótimo é onde a derivada de RAIO·cos θ + sen θ/2 zera.
+    const otimo = Math.atan(0.5 / RAIO);
+    const quina =
+      RAIO * Math.cos(otimo) - RAIO - RECUO_DO_PLANO + Math.sin(otimo) / 2;
+    expect(quina).toBeCloseTo(0, 12);
+  });
+
+  it("não deixa o estalo do pouso trazer o card à frente do texto", () => {
+    // Na ultrapassagem o `restante` fica negativo, e sem o corte o produto por
+    // uma pose de z negativo devolveria z positivo.
+    for (const i of CARDS) {
+      const de = pousoDoCard(i);
+      for (let p = de; p <= de + DURACAO_DO_VOO; p += 0.002) {
+        const t = transformacaoDoCard(p, i, deslocamento(i), LARGURA, ALTURA);
+        expect(t.z).toBeLessThanOrEqual(0);
+      }
+    }
   });
 
   it("mantém os seis cards contíguos, um passo angular atrás do outro", () => {

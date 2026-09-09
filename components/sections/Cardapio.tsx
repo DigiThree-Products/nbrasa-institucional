@@ -25,11 +25,42 @@ import { Chama } from "@/components/ui/Chama";
  */
 export function CabecalhoDoCardapio() {
   return (
-    <div className="flex flex-col gap-6 [grid-column:1/-1] lg:pb-8 lg:[grid-column:1/3] lg:[grid-row:1]">
-      <h2 className="text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]">
+    <div className="relative flex flex-col gap-6 [grid-column:1/-1] lg:pb-8 lg:[grid-column:1/3] lg:[grid-row:1]">
+      {/* A RESERVA: o pedaço de papel opaco que a tipografia leva colado às
+          costas, e é ele que faz a bobina SUMIR ao cruzar o texto em vez de
+          passar por cima dele.
+
+          É a mesma peça da FITA (`reservaDoCartaz`), com uma diferença de
+          gramática. Lá a reserva é âmbar sobre foto de palco, e as duas arestas
+          que encontram a fita são denteadas, porque um corte reto ali leria
+          como caixa de texto colada sobre a cena. Aqui o campo é branco e a
+          reserva é branca, então a aresta não existe para o olho: o card
+          simplesmente deixa de ser desenhado, que é o efeito pedido.
+
+          Ela só resolve metade do problema. A outra metade é geométrica e mora
+          em `RECUO_DO_PLANO`, em `lib/espiral.ts`: sem o recuo os cards
+          tangenciam o plano do texto, o navegador parte cada um no cruzamento e
+          pinta a metade da frente por cima da reserva. Papel sem recuo é papel
+          furado.
+
+          Sangra 24px para os lados e para cima, onde só há margem, e PARA no pé
+          da caixa: logo abaixo dela pousam os dois últimos cards, e mais um fio
+          de reserva comeria a borda de cima deles. O respiro até eles é o
+          `lg:pb-8` que já estava aqui.
+
+          `hidden lg:block` porque abaixo de 1024 não existe cena presa, e
+          portanto não há nada a esconder. `aria-hidden` e sem conteúdo: é
+          superfície. Vem antes dos irmãos no DOM, e por isso eles precisam de
+          `relative` para pintar por cima dela: a reserva é posicionada e sem
+          isso venceria o texto em fluxo normal, que pinta antes. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-x-6 -top-6 bottom-0 hidden bg-branco lg:block"
+      />
+      <h2 className="relative text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]">
         Feito na hora,<br />servido no capricho
       </h2>
-      <p className="max-w-[40ch] text-creme-texto">
+      <p className="relative max-w-[40ch] text-creme-texto">
         Ingredientes frescos, ponto certo e porções generosas. Cada item nasceu para ser repetido.
       </p>
     </div>

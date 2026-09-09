@@ -169,6 +169,24 @@ medida crua encolhe a bobina em 28% e desgruda as bordas dos cards, porque o
 vão continua valendo a largura ampliada.
 `tests/unit/espiral.test.ts` cobre o que dá para afirmar sem pintar.
 
+**A bobina passa POR TRÁS do texto, e isso são duas peças que só funcionam
+juntas.** Na FITA sai de graça: a espiral é um canvas de WebGL numa camada
+inteira debaixo da coluna de tipografia, e a reserva de papel do título come o
+que passa. Aqui card e texto são irmãos no mesmo contexto 3D, e quem decide
+quem cobre quem é a profundidade. Então: `RECUO_DO_PLANO`, em `lib/espiral.ts`,
+empurra a hélice inteira para trás do plano de pouso, e a **reserva** do
+`CabecalhoDoCardapio` é o retângulo branco opaco que engole o que passa por
+baixo dela. Uma sem a outra não resolve. Sem o recuo a hélice tangencia o plano,
+o card fica com metade à frente e metade atrás, o navegador o parte no
+cruzamento e pinta a metade da frente por cima do título, que foi o defeito
+relatado pelo cliente em 2026-09-09. Sem a reserva não há o que cobrir. O valor
+do recuo é `hypot(RAIO, 1/2) − RAIO`, a folga mínima: é o quanto a quina de um
+card de perfil avança além do centro. E `transformacaoDoCard` corta o `z` em
+zero, senão a ultrapassagem do pouso, que inverte o sinal do `restante`,
+traria o card à frente do texto justo no estalo. A reserva daqui é reta e
+branca sobre branco, e não denteada como a da FITA, porque lá ela é âmbar sobre
+foto de palco e a aresta apareceria.
+
 **`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
 custou uma versão inteira: o módulo calculava para cima, o componente escrevia
 direto num `translate3d`, e a bobina descia em vez de subir. Passou despercebido
