@@ -175,8 +175,16 @@ divididos pelo tamanho do card dela:
 | Nome | Valor | Significado |
 |---|---|---|
 | `RAIO` | 1,47 largura de card | quanto a bobina se espalha na horizontal |
-| `SUBIDA` | 0,5 altura de card por radiano | quanto a hélice sobe |
-| `VAO` | 0,067 largura de card | folga entre cards vizinhos na bobina |
+| `SUBIDA` | 1,1 altura de card por radiano | quanto a hélice sobe |
+| `VAO` | 0,35 largura de card | folga entre cards vizinhos na bobina |
+
+Os dois últimos saíram dos valores da FITA em 2026-09-09, a pedido do cliente,
+e cada pedido moveu um deles. **Separar os cards é o vão**, que foi de 0,067,
+onde as bordas se tocam, para 0,35, que dá 67px de folga num card de 190px.
+**Fazer a bobina vir de baixo é a subida**, que foi de 0,5 para 1,1: medido em
+1440, do instante em que o card aparece até o pouso ele subia 289px enquanto
+andava 437px na horizontal, e o olho lia balanço lateral. Em 1,1 a conta
+inverte, 539px de subida contra 355px de lado.
 
 O passo angular entre vizinhos é derivado, não escolhido:
 
@@ -192,7 +200,7 @@ altura sobre largura, que aqui vale 1,4. Sem isso a conta roda, devolve número
 plausível e espalha os cards com vão errado ao longo do arco, que é
 exatamente o tipo de defeito que não lança.
 
-Com o card em retrato 1:1,4 isso dá 0,655 rad, ou 37,5 graus. É a conta que
+Com os valores atuais isso dá 0,634 rad, ou 36,3 graus, e um arco de 1,350 largura de card entre um centro e o vizinho. É a conta que
 mantém as bordas dos cards encostadas ao longo do arco, que é o que faz a fila
 ler como corpo contínuo em vez de peças soltas.
 
@@ -258,10 +266,28 @@ graus, com a face do card voltada para quem olha. O primeiro valor tentado,
 1,2, punha o descolamento em 2,4 rad, ou 137 graus, com o card **de costas**:
 ele começaria o voo invisível, ver 6.6, e apareceria no meio do caminho.
 
-Com os números fechados: passo angular 0,655 rad, curso da hélice 7,282 rad,
-θ inicial −2,313 rad.
+Com os números fechados: passo angular 0,634 rad, curso da hélice 7,046 rad,
+θ inicial −2,727 rad. No primeiro quadro os seis cards estão de 798px a 1726px
+ABAIXO da fileira, num card de 266px de altura, e sobem daí.
 
-### 6.5 O voo, e por que o alvo é zero
+`ALTURA_DE_POUSO` acabou em **0,1**, e não em 0,3, e o segundo motivo apareceu
+só no navegador: ela é também o quanto o card sobe acima da fileira antes de
+assentar, e portanto quem decide se ele passa por cima do título. A fileira tem
+40px de respiro até a base do título; 0,3 valia 80px e invadia, 0,1 vale 27px e
+deixa 13px de sobra.
+
+### 6.5 O voo, a pose congelada, e por que o alvo é zero
+
+**A pose congela no instante do descolamento**, e o voo interpola dela até a
+identidade. É o que a FITA faz, e a primeira versão daqui não portou: a hélice
+continuava girando durante o voo e o card ultrapassava o ponto de
+descolamento. Medido: com descolamento a 80px acima da fileira ele chegava a
+83px e invadia o título por 43px. O excesso não vinha da altura de
+descolamento, vinha do que a hélice andava durante o voo, então baixar aquela
+constante quase não resolvia. De quebra, congelada a pose, o voo deixa de ser
+curvo: o card sai de um ponto fixo e vai direto ao lugar dele.
+
+#### O eixo vertical, que já esteve invertido
 
 ```
 voo(p, i) = suavizar(clamp01((p - pouso(i)) / DURACAO_DO_VOO))
@@ -281,6 +307,15 @@ card sem transformação.
 `deslocamento_natural` é o único número que vem do DOM: a distância entre o
 centro do card e o centro da fileira. O componente mede uma vez por
 redimensionamento e passa ao módulo; o módulo continua puro.
+
+**`y` cresce para BAIXO**, como no CSS, e não para cima como em geometria. A
+convenção está escrita no tipo `Pose` porque a troca dela custou uma versão
+inteira: o módulo calculava para cima, o componente escrevia direto num
+`translate3d`, e a bobina descia em vez de subir. Ninguém percebeu de imediato,
+porque uma espiral invertida continua parecendo uma espiral, e o teste que
+deveria pegar isso afirmava `y < 0` para "abaixo da fileira", que é verdade na
+convenção errada. Foi o pedido do cliente, "o espiral tem que vir de baixo",
+que expôs o defeito.
 
 A suavização é `1 - (1 - t)³`, saída rápida e assentamento lento. A FITA usa um
 `back` com ultrapassagem, que dá o estalo no lugar. Fica registrado como ajuste

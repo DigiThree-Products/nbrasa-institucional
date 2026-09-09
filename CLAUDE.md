@@ -159,13 +159,30 @@ a altura de descolamento no seu próprio instante de pouso. Mexeu num, recalcule
 o outro, senão o card descola na altura errada e nada lança. É a mesma
 amarração que `AJUSTES.altura` tem com `AJUSTES.escala` em `lib/costura.ts`.
 
-Dois outros números que erram calados. `PASSO_ANGULAR` divide pela hipotenusa
-de `RAIO` e `SUBIDA * PROPORCAO`, e a proporção é conversão de unidade, não
+Outros números que erram calados. `PASSO_ANGULAR` divide pela hipotenusa de
+`RAIO` e `SUBIDA * PROPORCAO`, e a proporção é conversão de unidade, não
 enfeite: o raio está em larguras de card e a subida em alturas. E
-`ALTURA_DE_POUSO` decide para que lado o card está virado ao descolar, porque o
-ângulo ali vale `ALTURA_DE_POUSO / SUBIDA`; em 0,3 ele descola de frente, em
-1,2 descolava de costas e, com `backface-visibility: hidden` no card, começava
-o voo invisível. `tests/unit/espiral.test.ts` cobre as três.
+`ALTURA_DE_POUSO` decide duas coisas de uma vez, para que lado o card está
+virado ao descolar (o ângulo ali vale `ALTURA_DE_POUSO / SUBIDA`) e o quanto
+ele sobe acima da fileira, que é quem decide se ele passa por cima do título.
+`tests/unit/espiral.test.ts` cobre o que dá para afirmar sem pintar.
+
+**`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
+custou uma versão inteira: o módulo calculava para cima, o componente escrevia
+direto num `translate3d`, e a bobina descia em vez de subir. Passou despercebido
+porque espiral invertida continua parecendo espiral, e porque o teste que
+deveria pegar afirmava `y < 0` para "abaixo da fileira", verdadeiro na
+convenção errada.
+
+**Quem manda na leitura do gesto são dois números, e não o raio.** A separação
+entre os cards é o `VAO`; se a bobina vem de baixo ou de lado é a `SUBIDA`, que
+precisa fazer o card subir mais do que ele anda na horizontal no trecho
+visível. Os dois têm teste que falha se voltarem aos valores da FITA, e as duas
+mudanças são pedido do cliente de 2026-09-09, não desvio acidental.
+
+A pose **congela no descolamento** e o voo interpola dela até a identidade,
+como na FITA. Sem congelar, a hélice segue girando durante o voo e o card
+ultrapassa o ponto de descolamento, invadindo o título.
 
 **Quem cria as três telas de rolagem é o espaçador do ScrollTrigger**, por
 causa do `end: "+=300%"`, e não uma altura no CSS. Sem JavaScript, ou com menos
