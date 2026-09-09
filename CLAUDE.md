@@ -12,7 +12,10 @@ Components; o painel de admin (`/admin/*`) está previsto mas ainda não existe.
 Documento de design completo (paleta, modelo de dados, orçamento de
 performance, critérios de acessibilidade):
 `docs/superpowers/specs/2026-09-02-site-nbrasa-design.md`. Pendências abertas
-com o cliente: seção final do `README.md`.
+com o cliente: seção final do `README.md`. `docs/labaredas-do-heroi.md` é
+**histórico**: descreve o sistema que desenhava as chamas em SVG sobre a
+Owners, aposentado em 2026-09-09 quando o foco passou para a Combust, que já
+traz a chama no glifo.
 
 **Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
 variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
@@ -39,12 +42,17 @@ npx playwright test --project=w320 -g "menu"   # e2e: um viewport, um teste
 
 `npm run e2e` **sempre** roda `npm run build && npm start`
 (`reuseExistingServer: false`), não tente acelerar apontando para um dev
-server já em pé; a suíte já validou build velha por causa disso.
+server já em pé; a suíte já validou build velha por causa disso. O outro lado
+da mesma moeda: com um `npm run dev` ocupando a 3000 o Playwright nem começa,
+ele para dizendo que a porta está em uso. Derrube o preview antes de rodar.
 
 `npm run test:integracao` exige `.env.local` preenchido e as migrations
 aplicadas: ele lê o banco de verdade e afirma contagens do seed (6 categorias
 ativas, 7 horários). `tests/integracao/segredos.test.ts` varre `.next/static`,
-então rode um `npm run build` antes.
+então rode um `npm run build` antes. Ele roda em Node puro, por
+`vitest.integracao.config.mts`, que troca `next/cache` pelo esboço em
+`tests/stubs/next-cache.ts`: fora de um render `unstable_cache` lança, e
+memorizar entre os `it` mascararia mudança de dado no banco.
 
 **`npm test` não passa em clone limpo**, e isso é de propósito:
 `tests/unit/owners.test.ts` lê o OTF de origem em
@@ -54,7 +62,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 16 arquivos e 127 testes e roda em torno de 10 s.
+`w1920`. A suíte unitária tem 19 arquivos e 150 testes e roda em torno de 11 s.
 
 ## Arquitetura
 
@@ -79,7 +87,7 @@ Quem consome o quê, hoje:
 
 | Consumidor | Chama |
 |---|---|
-| `Hero` | `getConteudo`, `getHorarios` |
+| `Hero` | `getConteudo` |
 | `Cardapio` | `getCategorias` |
 | `Delivery` | `getConteudo` |
 | `HorariosProgramacao` | `getConteudo`, `getHorarios`, `getProgramacao` |
@@ -108,8 +116,11 @@ nenhum teste em jsdom conseguiria importá-lo; e porque o painel de admin ainda
 vai poder trocar `heroTitulo`, e o destaque precisa acompanhar o texto novo.
 `tests/unit/tituloHero.test.ts` cobre a repartição.
 
-Mesmo motivo em `lib/horarios.ts` e `lib/costura.ts`: **lógica que dá para
-errar sai do componente e vira função pura com teste.**
+Mesmo motivo em `lib/horarios.ts`, `lib/costura.ts` e `lib/cabecalho.ts`:
+**lógica que dá para errar sai do componente e vira função pura com teste.** O
+`cabecalho` é o caso mais recente e o mais literal: as duas contas do header
+fixo não lançam quando erram, só desalinham o recorte e estendem a barra na
+hora errada, e um `useEffect` não tem como ser testado por isso.
 
 O que a JSX do `Hero` guarda dessa repartição, e que se quebra fácil sem
 saber: as três partes são `span` em `block` dentro de **um `h1` só**, com um
@@ -137,6 +148,43 @@ dois valores existem para esconder. `tests/unit/costura.test.ts` cobre o que
 dá para afirmar sem pintar: que a string não traz caractere cru que o parser
 de CSS rejeite, que o SVG declara tamanho intrínseco, que o filete continua
 dentro da silhueta e que a máscara usa `D_SILHUETA`, nunca a chama oficial.
+
+### O fogo do foco vem da fonte, não de SVG por cima
+
+O foco do título do herói ("ACENDE") está na **Combust**, e ela traz as
+labaredas dentro do próprio glifo. É a única exceção à regra "todo display é
+Owners", junto com a abertura e o fecho, que são Hanken.
+
+A decisão é do cliente, de 2026-09-09, tomada comparando três caminhos lado a
+lado no mesmo layout: a Owners com as chamas desenhadas em SVG, a Vaguard e a
+Combust. O que foi medido e aceito na troca:
+
+- a Combust é mais larga que a Owners XNarrow, então **na mesma largura de
+  coluna a letra sai cerca de 18% mais baixa**;
+- **a chama é igual em toda letra**, porque quem a desenha é a fonte, e a
+  fonte não sabe onde a palavra está no layout. O skyline irregular da
+  referência do Behance não sobreviveu à troca.
+
+O que a troca eliminou: `lib/labaredas.ts`, `components/ui/Labaredas.tsx`, uma
+tabela de sete topos de haste que precisava ser remedida a cada mudança de
+tipografia, e o `mt` que o fogo cobrava do layout. `docs/labaredas-do-heroi.md`
+descreve esse sistema e virou **documento histórico**: nada nele descreve o
+código de hoje.
+
+`scripts/gerar-combust.py` gera o WOFF2 servido, lendo o OTF de dentro de
+`apresentação site/combust.zip`. Ele **subseta de propósito**: caixa alta
+acentuada, dígitos e pontuação, o que derruba o arquivo de 84 kB para 28 kB.
+Minúscula fica de fora porque o `h1` aplica `uppercase` e ela nunca chega a ser
+desenhada. `tests/unit/combust.test.ts` lê a constante `GLIFOS` do script e
+falha se o foco do `heroTitulo` do seed pedir um caractere que ficou de fora,
+que é o mesmo perigo que `owners.test.ts` cobre para o resto do display.
+
+Por isso `heroTitulo` **saiu** de `textosDoSeed()` em `owners.test.ts`: nenhuma
+das três linhas do título é Owners hoje.
+
+A Combust servida é a versão **FREE TRIAL**, igual à Owners. São duas
+pendências de licença de webfont agora, não uma, ambas registradas no
+`README.md`.
 
 ### Cache e revalidação
 
@@ -185,9 +233,10 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Seis arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`, **mas só cinco
-chegam à página**: `VideoFachada` está órfão, ver logo abaixo. Todo o resto é
+Sete arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `RotaMascote`, `RolagemDoCabecalho`, `VideoFachada` e
+`app/error.tsx`, **mas só seis chegam à página**: `VideoFachada` está órfão,
+ver logo abaixo. Todo o resto é
 Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
 entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
 cada um verifica `prefers-reduced-motion` antes de animar, e há testes unitários
@@ -206,16 +255,49 @@ A lógica dele, se voltar: o `<video>` só entra no DOM quando
 porque em CSS puro o arquivo baixaria sempre, inclusive para quem pediu menos
 movimento, e o elemento candidato a LCP é a foto logo atrás dele.
 
-### O header é recortado pelo herói
+### O header é fixo, e o recorte do herói corre atrás dele
 
 No desktop (`min-width: 1024px`) o header deixa de ser faixa de ponta a ponta.
 A regra `.cabecalho-hero`, em `app/globals.css`, o deixa transparente e pinta o
 fundo em dois pseudoelementos: a metade esquerda é retangular, e a direita usa
 a **mesma máscara da chama** com composição `exclude`, portanto só pinta onde
-a foto não está. Ele fica absoluto junto ao herói, e não `sticky`, para os
-dois recortes continuarem casados durante o scroll. No mobile o comportamento
-`sticky` original permanece. Mexer no recorte do herói (`AJUSTES`, em
-`lib/costura.ts`) move os dois de uma vez, que é justamente a intenção.
+a foto não está. Mexer no recorte do herói (`AJUSTES`, em `lib/costura.ts`)
+move os dois de uma vez, que é justamente a intenção. No mobile ele sempre foi
+barra cheia e `sticky`, e continua sendo.
+
+Ele é **fixo**, e já foi absoluto. Absoluto, header e foto desciam juntos e as
+duas máscaras nunca se separavam, de graça; o preço da barra fixa é que ela
+fica parada enquanto a foto sobe. Quem paga é `RolagemDoCabecalho`, que a cada
+quadro de scroll escreve `--costura-rolagem` no header, e o CSS subtrai esse
+valor da posição da máscara. As duas contas moram em `lib/cabecalho.ts`,
+com teste, porque erram caladas. **A variável precisa de `0px` de reserva no
+`calc`**: ausente na primeira pintura, ela invalida a declaração inteira e a
+`mask-position` cai no canto, levando o recorte junto.
+
+O recorte só vale enquanto existe foto atrás dele. Quando a base do herói
+cruza a base do header, `data-fora-do-heroi` estende a metade esquerda até a
+borda e apaga a mascarada: a barra abre da esquerda para a direita e engole o
+recorte. A transição é presa a `data-pronto`, que o componente liga um quadro
+depois da primeira pintura, senão quem recarrega a página no meio do site vê a
+barra nascer recortada e se abrir sozinha.
+
+**A largura de `.cabecalho-conteudo` é o pior caso, não o caso do topo**, e
+esse é o detalhe que mais surpreende quem chega. Com a máscara deslizando, por
+volta de meia tela de rolagem a barriga da chama cruza a faixa e empurra a
+borda da parte clara bem para a esquerda: numa janela de 1440 ela sai de 1122
+no topo para 774 no mínimo. Esse mínimo é `50vw + 6dvh`, porque o ponto mais
+gordo da silhueta está a 6 unidades das 100 do viewBox e a chama tem quase
+exatamente a altura do herói. O valor era `34dvh` e só servia ao header antigo.
+
+Medido, o conteúdo precisa de 637px (logo 115, os quatro links 453, mais gaps
+e recuos) e a área segura dá 558px em 1024x768, 624px em 1152x800 e 688px em
+1280x800. Por isso **entre 1024px e 1279px a navegação de desktop dá lugar ao
+hambúrguer**, numa regra própria em `globals.css`, inclusive com a barra já
+estendida, onde caberia: aparecer e sumir conforme a rolagem seria pior que
+ficar recolhida nessa faixa. O e2e "a navegação do header nunca cai em cima da
+foto" mede isso no pior scroll e falha no dia em que a navegação crescer, por
+exemplo com o botão de campanha ligado no banco, que sozinho come a folga de
+51px que sobra em 1280.
 
 ### Tokens de marca
 
@@ -273,6 +355,12 @@ avisar, e o Next só lê `.env.local`). As mesmas variáveis precisam existir na
 Vercel marcadas em Production/Preview/Development: sem elas o build falha ao
 coletar as páginas, não em runtime.
 
+**Screenshot de conferência tirado na raiz entra no commit por descuido.** O
+`.gitignore` só cobre `nbrasa-*.png`, e três capturas de outra rodada já estão
+versionadas (`layout-telas.png`, `preview-1440.png`, `preview-check.png`).
+Grave a captura com o prefixo `nbrasa-`, ou fora do repositório, como manda a
+regra dos intermediários de marca.
+
 ## Identidade visual e conteúdo
 
 Paleta oficial (valores exatos, do moodboard):
@@ -304,46 +392,66 @@ creme e reprova AA.
 Os demais tokens (`--color-brasa-escura`, `--color-creme`, …) são derivados
 criados para atender contraste, não invente novos sem passar pelo teste.
 
-Tipografia, **três** famílias, cada uma com um papel fechado. Só a Owners é
-local (`app/fontes/owners-xnarrow-black.woff2`, por `localFont`); as outras
-duas vêm do Google. As três entram em `app/layout.tsx` e viram os tokens de
-`--font-*` do `@theme`.
+Tipografia, **três** famílias carregadas e as três em uso, cada uma com um
+papel fechado. Duas são locais, a Owners
+(`app/fontes/owners-xnarrow-black.woff2`) e a Combust
+(`app/fontes/combust.woff2`), ambas por `localFont`; só a Hanken vem do
+Google. As três entram em `app/layout.tsx` e viram os tokens de `--font-*` do
+`@theme`.
 
 | Papel | Família | Token | Onde |
 |---|---|---|---|
 | Display | Owners XNarrow Black | `font-display` | todo título de seção, wordmark, marquee |
-| Desenhada | Kaushan Script (Google) | `font-desenhada` | **uma palavra**, o foco do título do herói |
 | Corpo | Hanken Grotesk (Google) | `font-corpo` | todo o resto, **e** a abertura e o fecho do título do herói |
+| Foco | Combust | `font-foco` | uma palavra só: o foco do título do herói, que é onde estão as chamas |
 
 **Não existe `font-display-leve`, nem Owners Light**: a trial servida tem uma
 face só, a Black. É por isso que a abertura e o fecho do título do herói
-("sua fome" e "aqui.") saem em `font-corpo font-light`, e não em `font-display`
-como o resto dos títulos de seção: pedido do cliente para essas duas linhas
-ficarem com traço mais fino, e sem um peso Light licenciado da Owners a única
-forma de fazer isso de verdade é a Hanken, que é fonte variável. É a única
-exceção à regra "todo título de display usa Owners", documentada em
-`components/sections/Hero.tsx` junto de `APOIO`. A Anton, que era
+("sua fome" e "aqui.") saem em `font-corpo`, e não em `font-display` como o
+resto dos títulos de seção: pedido do cliente para essas duas linhas ficarem
+com traço mais fino que o do foco, e sem um peso Light licenciado da Owners a
+única forma de fazer isso de verdade é a Hanken, que é fonte variável. É a
+única exceção à regra "todo título de display usa Owners", documentada em
+`components/sections/Hero.tsx` junto de `APOIO`.
+
+O peso dessas duas linhas é **400**, e já foi 300. O cliente pediu o traço um
+pouco mais grosso em 2026-09-09, junto com um corpo cerca de 9% menor, depois
+de ver o título com a Combust: o foco engordou de aparência ao trocar de
+família e o apoio em `font-light` tinha ficado fino demais ao lado dele. Os
+dois `clamp` de `--corpo-apoio` carregam essa redução. A Anton, que era
 substituta provisória, saiu em 2026-09-04. Versões anteriores deste arquivo
 nomeavam uma "Authentic Signature" no papel de desenhada: ela nunca chegou ao
-código. A Yellowtail serviu o foco do herói até 2026-09-08, quando o cliente
-pediu a troca para Kaushan Script, quem serve hoje.
+código.
 
-A desenhada não vem do moodboard, que só traz Owners e Hanken: entrou por
-decisão de desenho, para a palavra dominante do herói destoar das duas linhas
-condensadas em volta dela. **Não aplique `italic` nela**, a inclinação já está
-no desenho da letra e a oblíqua sintética só borra o gesto. Trocar a família
-exige remedir os **dois** `clamp` do `DOMINANTE` em `Hero.tsx` (o base e o do
-`lg`, separados porque abaixo e acima de 1024px o título vive em layouts
-diferentes) e os dois de `--corpo-apoio`, e a referência é a largura da
-**tinta**, não a da caixa: numa letra inclinada as duas diferem e a última
-letra pode entrar na foto com a caixa ainda cabendo, que já aconteceu em
-1024px sem nenhuma conta acusar.
+**A linhagem do foco**: Yellowtail até 2026-09-08, Kaushan Script no lugar
+dela, Owners XNarrow Black na branch das labaredas, e **Combust desde
+2026-09-09**. O papel "desenhada" e a Kaushan saíram do `layout.tsx` e do
+`@theme` na mesma troca: estavam órfãos desde que o foco voltou para uma
+letra reta, e eram webfont do Google baixada à toa.
+
+O `DOMINANTE` voltou a ter **compensação ótica**, um `-ml` de 0,01 em. A
+Combust é irregular e recua a tinta 0,0135 em da borda da caixa, contra
+0,0142 em da Hanken, e como os dois corpos são muito diferentes o foco entra
+cerca de 2px mais que a abertura. O valor exato varia de 0,0090 a 0,0102 em ao
+longo dos `clamp`, então um número só erra menos de 0,1px em toda a faixa. É o
+mesmo tipo de acerto que existia na fonte inclinada e que tinha saído quando o
+foco virou Owners.
+
+Trocar a família do foco segue exigindo remedir os **dois** `clamp` do
+`DOMINANTE` em `Hero.tsx` (o base e o do `lg`, separados porque abaixo e acima
+de 1024px o título vive em layouts diferentes) e conferir os dois de
+`--corpo-apoio`. Medido nesta troca: "ACENDE" mede 2,325 em na Owners e
+2,541 em na Combust, e os `clamp` foram multiplicados por 0,915, que é a razão
+entre as duas, o que devolveu à palavra exatamente a largura que ela tinha na
+coluna, 565px em 1440.
 
 A Owners servida é a **versão TRIAL**, licenciada como "Personal Use Only": o
 cliente decidiu publicar assim e a compra está registrada como pendência no
-`README.md`. Ela tem **73 glifos, sem nenhuma letra acentuada e sem apóstrofo
-reto**, e por isso a grafia da marca no site usa a aspa curva (`n’Brasa`,
-`N’brasando`). `tests/unit/owners.test.ts` lê o `cmap` do OTF e falha se
+`README.md`. Ela tem **72 code points mapeados, sem nenhuma letra acentuada e
+sem apóstrofo reto** (o número que `owners.test.ts` fixa; o OTF traz uma
+subtabela Macintosh que mapeia tab e CR para o glifo de espaço, e ela não
+conta, porque não é a que o navegador usa), e por isso a grafia da marca no
+site usa a aspa curva (`n’Brasa`, `N’brasando`). `tests/unit/owners.test.ts` lê o `cmap` do OTF e falha se
 qualquer string de display usar glifo ausente; todo título de display novo
 escrito direto na JSX ganha uma linha em `LITERAIS_DE_DISPLAY` lá. É por causa
 disso que os links do `MenuMobile` e as etiquetas de bairro da rota usam fonte

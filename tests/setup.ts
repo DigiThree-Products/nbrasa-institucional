@@ -17,6 +17,18 @@ if (typeof window !== "undefined" && !window.matchMedia) {
   }) as unknown as MediaQueryList;
 }
 
+// jsdom também não implementa ResizeObserver, e não faz layout nenhum, então
+// ele nunca dispararia de verdade. O esboço existe só para os componentes que
+// observam tamanho poderem montar; quem depende de altura em teste fixa
+// offsetHeight na mão.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+}
+
 afterEach(() => {
   cleanup();
 });

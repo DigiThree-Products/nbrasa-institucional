@@ -33,8 +33,23 @@ async function rolarAteOMeioDaRota(page: Page, alvo: AlvoRota) {
   }
 }
 
+/**
+ * Espera as webfonts trocarem antes de qualquer medição.
+ *
+ * Sem isto, todo teste que mede tinta é uma corrida: `goto` resolve quando a
+ * página carrega, mas as fontes podem chegar depois, e a medição cai sobre as
+ * métricas da fonte de fallback. O sintoma é falha intermitente com valores
+ * que não se repetem entre execuções, e ele já produziu relatos de desvio de
+ * 0,32, 1,82 e 24,34px para a MESMA asserção, o que sozinho já denuncia
+ * medição instável em vez de layout errado.
+ *
+ * Vale para as três famílias, e mais ainda para a Combust do foco, que carrega
+ * com `display: block`: no período de bloqueio o texto não pinta, mas a caixa
+ * já ocupa espaço com as métricas do fallback.
+ */
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
 });
 
 test("mostra o título do herói", async ({ page }) => {
@@ -56,13 +71,16 @@ test("o h1 continua sendo a frase inteira, apesar das três linhas", async ({ pa
 });
 
 test("o fecho do título encosta na direita do foco, medindo a tinta", async ({ page }) => {
-  // Mede TINTA, e não a caixa de layout, de propósito. A linha do meio é
-  // desenhada e inclinada: o traço sangra para fora da caixa nos dois lados,
-  // e o alinhamento que o desenho pede é o que se vê, não o que a caixa diz.
-  // O componente compensa isso com `ml` e `pr` no foco, o que faz as caixas
-  // ficarem DESALINHADAS de propósito. Um teste de caixa aqui reprovaria o
-  // acerto e aprovaria o erro, que foi exatamente o que aconteceu quando a
-  // fonte passou a ser inclinada.
+  // Mede TINTA, e não a caixa de layout, de propósito. A linha do meio está
+  // na Combust, que é irregular e traz labareda no topo de cada letra: a
+  // tinta não coincide com a caixa, e o alinhamento que o desenho pede é o
+  // que se vê, não o que a caixa diz. O componente compensa a diferença com
+  // um `-ml` no foco, o que deixa as caixas DESALINHADAS de propósito. Um
+  // teste de caixa aqui reprovaria o acerto e aprovaria o erro, que foi
+  // exatamente o que aconteceu quando o foco virou fonte inclinada.
+  //
+  // Medido nos cinco viewports depois da troca para a Combust: a diferença
+  // fica entre 0,1 e 1,45px contra letras de 80 a 222px de corpo.
   const bordas = await page.locator("h1").evaluate((h1) => {
     const caixa = (el: Element) => {
       const faixa = document.createRange();
@@ -166,8 +184,6 @@ test("lista as seis categorias", async ({ page }) => {
 });
 
 test("mostra os horários agrupados corretamente", async ({ page }) => {
-  // "Terça a quinta" aparece duas vezes na página (resumo do herói e lista
-  // de horários na faixa creme); .first() evita a falha do strict mode.
   await expect(page.getByText("Terça a quinta").first()).toBeVisible();
   await expect(page.getByText("16h às 03h").first()).toBeVisible();
 });
@@ -312,4 +328,76 @@ test("o herói usa a foto IMG_3643 sem montar vídeo", async ({ page }) => {
   await expect(foto).toBeVisible();
   await expect(foto.locator("xpath=preceding-sibling::source[@type='image/avif']")).toHaveCount(1);
   await expect(foto.locator("xpath=preceding-sibling::source[@type='image/webp']")).toHaveCount(1);
+});
+
+/**
+ * Rola até um ponto e espera a página chegar nele. Com o Lenis no meio, o
+ * `scrollTo` não é instantâneo, e ler a posição no quadro seguinte devolve o
+ * valor antigo.
+ */
+async function rolarAte(page: Page, y: number) {
+  await page.evaluate((v) => window.scrollTo(0, v), y);
+  await expect
+    .poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8_000 })
+    .toBeGreaterThanOrEqual(y - 5);
+}
+
+function alturaDoHeroi(page: Page) {
+  return page.evaluate(() => document.getElementById("heroi")!.offsetHeight);
+}
+
+test("o header fica preso no topo depois que o herói sai", async ({ page }) => {
+  await rolarAte(page, (await alturaDoHeroi(page)) + 400);
+
+  const cabecalho = page.locator("#cabecalho");
+  await expect(cabecalho).toBeVisible();
+  const caixa = await cabecalho.boundingBox();
+  expect(Math.round(caixa!.y)).toBe(0);
+});
+
+test("a barra do header se estende quando o herói sai de trás dela", async ({ page }) => {
+  test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 o header nunca é recortado");
+
+  const estendida = () =>
+    page.evaluate(() => document.getElementById("cabecalho")!.hasAttribute("data-fora-do-heroi"));
+  const altura = await alturaDoHeroi(page);
+
+  // Enquanto a foto cobre a faixa, o recorte é legítimo e a barra não estende.
+  await rolarAte(page, Math.round(altura * 0.55));
+  expect(await estendida()).toBe(false);
+
+  await rolarAte(page, altura + 200);
+  await expect.poll(estendida, { timeout: 4_000 }).toBe(true);
+});
+
+test("a navegação do header nunca cai em cima da foto", async ({ page }) => {
+  const largura = page.viewportSize()!.width;
+  test.skip(largura < 1024, "abaixo de 1024 o header é barra cheia e não há recorte");
+
+  // O pior caso não é o topo: por volta de meia tela de rolagem a barriga da
+  // chama cruza a faixa do header e a parte clara fica no mínimo. Este teste
+  // existe para pegar o dia em que a navegação crescer, por exemplo com o
+  // botão de campanha ligado no banco, e voltar a vazar para cima da foto.
+  await rolarAte(page, Math.round((await alturaDoHeroi(page)) * 0.55));
+
+  const medida = await page.evaluate(() => {
+    const cab = document.getElementById("cabecalho")!;
+    const nav = cab.querySelector<HTMLElement>(".cabecalho-nav")!;
+    const botao = cab.querySelector<HTMLElement>(".cabecalho-menu button")!;
+    const visivel = (el: HTMLElement) => getComputedStyle(el).display !== "none";
+    return {
+      navVisivel: visivel(nav),
+      fim: (visivel(nav) ? nav : botao).getBoundingClientRect().right,
+      // 6dvh é a meia largura da silhueta no ponto mais gordo, ver
+      // `.cabecalho-conteudo` em app/globals.css.
+      seguro:
+        0.5 * window.innerWidth
+        + 0.06 * document.getElementById("heroi")!.offsetHeight,
+    };
+  });
+
+  // Entre 1024 e 1279 a área segura não comporta os quatro links, e ali quem
+  // aparece é o hambúrguer.
+  expect(medida.navVisivel).toBe(largura >= 1280);
+  expect(medida.fim).toBeLessThanOrEqual(medida.seguro);
 });
