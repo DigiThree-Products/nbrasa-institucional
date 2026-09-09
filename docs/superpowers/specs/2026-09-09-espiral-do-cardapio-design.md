@@ -38,7 +38,7 @@ O que a primeira passada tinha de próprio, e voltou para o valor da referência
 | `PROPORCAO` | 1,4, card retrato | 0,667, card paisagem 3:2 | o crop da referência |
 | `ALTURA_DE_POUSO` | 0,1 altura | 2,3 alturas | o card sobe até o topo do palco e mergulha na grade, em vez de encaixar a um passo do destino |
 | Suavização do voo | cúbica sem ultrapassagem | `backOut` 1,7 | o estalo do encaixe, como em `peel` na FITA |
-| Layout do pouso | fileira única de seis, largura cheia | duas colunas: texto à esquerda, grade 2×3 à direita | o arranjo da seção "Programação completa" |
+| Layout do pouso | fileira única de seis, largura cheia | uma grade de cinco colunas: texto e dois cards à esquerda, 2×2 à direita | o arranjo da seção "Programação completa" |
 
 O que entrou e não existia na primeira passada:
 
@@ -59,9 +59,16 @@ O que entrou e não existia na primeira passada:
   câmera da FITA ao plano da grade dela. O componente escreve `perspective` e
   `perspective-origin` na medida, e o trilho refaz a mesma projeção.
 - **O eixo da bobina é o centro do palco**, e não o centro da grade. Assim a
-  bobina varre o meio da tela e os cards voam para a coluna da direita, como na
+  bobina varre o meio da tela e os cards voam para as células deles, como na
   referência. O deslocamento natural de cada card passou a ter as duas
   componentes, porque a grade tem linhas além de colunas.
+- **Os dois últimos cards pousam embaixo do texto**, e não numa terceira linha
+  da grade da direita. É pedido do cliente, depois de ver a primeira versão do
+  porte no ar, e o motivo é de composição: numa grade 2×3 eles sobravam numa
+  fileira com meia tela vazia à esquerda. A grade da direita voltou a ser 2×2,
+  como na FITA, e a seção encurtou 180px de altura. Quem decide a célula é
+  `CELULAS`, em `Cardapio.tsx`, indexado pela posição do card no array, o mesmo
+  número que decide o instante do pouso.
 
 O que não veio, e continua não vindo: a curvatura do card (`SPIRAL_BEND`), que
 CSS 3D não faz num elemento só, e o apagamento por altura, que aqui o

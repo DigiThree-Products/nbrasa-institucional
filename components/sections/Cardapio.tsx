@@ -4,16 +4,20 @@ import { FileiraEmEspiral } from "@/components/sections/FileiraEmEspiral";
 import { Chama } from "@/components/ui/Chama";
 
 /**
- * A coluna de texto do Cardápio.
+ * O texto do Cardápio, que é a primeira peça da grade da seção.
  *
- * De 1024px para cima ela fica PARADA à esquerda enquanto a bobina varre o
- * meio da tela e entrega os cards na grade à direita, que é o arranjo da seção
- * "Programação completa" da FITA. Abaixo disso ela é só o cabeçalho de sempre,
- * empilhado antes dos cards.
+ * De 1024px para cima ele ocupa a metade ESQUERDA da primeira linha e fica
+ * parado ali enquanto a bobina varre o meio da tela e entrega os cards. Abaixo
+ * disso é o cabeçalho de sempre, atravessado, antes dos cards.
  *
- * Ela não é enfeite ao lado da cena: prender o palco exige que a seção caiba
- * numa janela, e é a coluna de texto que deixa a grade estreita o bastante
- * para as três linhas caberem com folga em 1024x768.
+ * Ele não é enfeite ao lado da cena: prender o palco exige que a seção caiba
+ * numa janela, e é a metade de texto que deixa a grade de cards baixa o
+ * bastante para caber em 1024x768 com folga.
+ *
+ * O `pb` de 1024 para cima é o respiro até os dois cards que pousam logo
+ * abaixo dele, na segunda linha. Ele engorda a primeira linha da grade, e é de
+ * propósito: os dois cards da metade direita que dividem essa linha usam
+ * `self-end`, então descem junto e continuam encostados nos de baixo.
  *
  * A `ParedeDeTipos` saiu daqui em 2026-09-09, a pedido do cliente. A cópia da
  * Delivery continua, e lá ela é outra coisa: `opacity-90` sobre o vermelho,
@@ -21,12 +25,7 @@ import { Chama } from "@/components/ui/Chama";
  */
 export function CabecalhoDoCardapio() {
   return (
-    /* `self-start` alinha o topo do título ao topo da primeira linha de cards,
-       e não é só arrumação: centrado na vertical o título cai no meio do palco,
-       que é justamente por onde a bobina passa, e a banda de cards cobre a
-       frase inteira no meio da cena. Na referência o título mora no alto da
-       coluna e a bobina cruza por baixo dele. */
-    <div className="flex flex-col gap-6 lg:self-start">
+    <div className="flex flex-col gap-6 [grid-column:1/-1] lg:pb-8 lg:[grid-column:1/3] lg:[grid-row:1]">
       <h2 className="text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]">
         Feito na hora,<br />servido no capricho
       </h2>
@@ -36,6 +35,30 @@ export function CabecalhoDoCardapio() {
     </div>
   );
 }
+
+/**
+ * Onde cada card pousa na grade, de 1024px para cima.
+ *
+ * A ordem do array é a ordem de pouso, porque quem decide o instante do voo é
+ * o índice do card. Os quatro primeiros formam o 2x2 da metade direita, como
+ * na FITA; os dois últimos pousam embaixo do texto, na metade esquerda.
+ *
+ * **Os dois primeiros usam `self-end`.** A primeira linha da grade é tão alta
+ * quanto o texto, que é mais alto que um card; sem isso eles ficariam colados
+ * no topo e abriria um vão entre eles e a linha de baixo, desmanchando o 2x2.
+ *
+ * A cascata pula da metade direita para a esquerda no fim, e isso é a
+ * referência, não descuido: lá a grade também preenche em varredura e o
+ * terceiro card aparece na ponta oposta à do segundo.
+ */
+const CELULAS = [
+  "lg:[grid-column:4] lg:[grid-row:1] lg:self-end",
+  "lg:[grid-column:5] lg:[grid-row:1] lg:self-end",
+  "lg:[grid-column:4] lg:[grid-row:2]",
+  "lg:[grid-column:5] lg:[grid-row:2]",
+  "lg:[grid-column:1] lg:[grid-row:2]",
+  "lg:[grid-column:2] lg:[grid-row:2]",
+];
 
 /**
  * Um card de categoria: uma caixa 3D com duas faces.
@@ -60,6 +83,11 @@ export function CabecalhoDoCardapio() {
  * ela que `PROPORCAO` em `lib/espiral.ts` converte para as contas da hélice.
  * Mexer numa sem a outra desalinha o trilho das bordas do card.
  *
+ * O `indice` decide duas coisas de uma vez, e é o mesmo número nas duas: a
+ * célula onde o card pousa, por `CELULAS`, e o instante em que ele pousa, que
+ * `lib/espiral.ts` tira da posição dele entre os irmãos. Não há como as duas
+ * saírem de sincronia.
+ *
  * A descrição só aparece de `xl` para cima. Numa grade de duas colunas dentro
  * da coluna direita, a 1024px de janela o card tem 231px de largura, e três
  * linhas de descrição ali viram mancha. Kicker e nome aparecem sempre.
@@ -68,9 +96,17 @@ export function CabecalhoDoCardapio() {
  * nulo, é aqui que a foto entra, e a espiral não precisa ser tocada: ela anima
  * o elemento, não o que está pintado dentro dele.
  */
-export function CardDeCategoria({ categoria }: { categoria: Categoria }) {
+export function CardDeCategoria({
+  categoria,
+  indice,
+}: {
+  categoria: Categoria;
+  indice: number;
+}) {
   return (
-    <article className="relative aspect-[3/2] [transform-style:preserve-3d]">
+    <article
+      className={`relative aspect-[3/2] [transform-style:preserve-3d] ${CELULAS[indice] ?? ""}`}
+    >
       <div className="absolute inset-0 flex flex-col justify-end overflow-hidden rounded-[22px] border border-creme-borda bg-creme p-5 [backface-visibility:hidden] transition-colors hover:border-brasa lg:p-4">
         {/* Textura, nao conteudo: a Chama ja e aria-hidden. A opacidade
             baixa e deliberada, este par nao entra em contraste.test.ts
@@ -106,9 +142,10 @@ export function CardDeCategoria({ categoria }: { categoria: Categoria }) {
  *
  * O bento de quatro colunas saiu em 2026-09-09, porque prender o palco da
  * espiral exige que ele caiba numa janela e a seção media 1137px de altura. A
- * fileira única de seis cards que o substituiu saiu no mesmo dia: o porte da
- * espiral da FITA pede o arranjo de lá, título parado numa coluna e os cards
- * pousando numa grade na outra. Ver a seção 4 do spec.
+ * fileira única de seis cards que o substituiu saiu no mesmo dia, e a grade
+ * que substituiu a fileira também: o porte da espiral da FITA pede o arranjo
+ * de lá, texto parado numa metade e os cards pousando na outra. Ver a seção 4
+ * do spec e a seção 0 dele.
  *
  * O `destaque` de `Categoria` continua sem consumidor aqui, e isso é anterior
  * a esta mudança: quem escolhia o tile grande era a posição no array, apesar
@@ -121,18 +158,17 @@ export function CardDeCategoria({ categoria }: { categoria: Categoria }) {
  * aceito por ter um dono só do `transform`. `Reveal` segue em uso nas outras
  * seções.
  *
- * A ORDEM importa: os cards pousam na ordem do DOM, e a grade preenche em
- * varredura, primeira linha da esquerda para a direita e depois a de baixo. É
- * a mesma cascata ordenada da referência, e ela sai de graça porque quem
- * decide o instante do pouso é o índice do card.
+ * A ORDEM importa: os cards pousam na ordem do DOM, e é ela que `CELULAS`
+ * traduz em posição na grade. Sai de graça porque quem decide o instante do
+ * pouso é o índice do card.
  */
 export async function Cardapio() {
   const cats = await getCategorias();
   return (
     <section id="cardapio">
       <FileiraEmEspiral cabecalho={<CabecalhoDoCardapio />}>
-        {cats.map((c) => (
-          <CardDeCategoria key={c.slug} categoria={c} />
+        {cats.map((c, i) => (
+          <CardDeCategoria key={c.slug} categoria={c} indice={i} />
         ))}
       </FileiraEmEspiral>
     </section>

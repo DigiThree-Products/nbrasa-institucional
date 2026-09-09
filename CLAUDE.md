@@ -221,13 +221,28 @@ ser o espaçador.
 exige que ele caiba numa janela, e a seção media 1137px de altura, o que não
 cabia nem em 1920x1080; quem estourava era o tile grande, de 440px.
 
-No lugar entrou, na mesma data, o arranjo da referência: **duas colunas de
-1024px para cima**, título e texto de apoio parados à esquerda e uma grade de
-duas colunas por três linhas à direita, com os cards em paisagem 3:2, 231x154
-em 1024 e 297x198 daí para cima. A coluna de texto não é enfeite ao lado da
-cena, é ela que deixa a grade estreita o bastante para as três linhas caberem
-numa janela de 768px de altura. O título usa `self-start` porque centrado na
-vertical ele cai bem no caminho da bobina e some sob os cards no meio da cena.
+No lugar entrou, na mesma data, o arranjo da referência: de 1024px para cima a
+seção é **uma grade só, de cinco colunas**, sendo a do meio um vão de 3rem que
+separa as duas metades. O texto ocupa a metade esquerda da primeira linha,
+quatro cards pousam na metade direita em 2x2, e **os dois últimos pousam
+embaixo do texto**, dividindo a segunda linha com os de baixo do 2x2. Os cards
+são paisagem 3:2, 216x144 em 1024 e 280x187 daí para cima.
+
+Os dois últimos foram para debaixo do texto a pedido do cliente, e o motivo é
+de composição: numa grade de duas colunas por três linhas eles sobravam numa
+terceira fileira com meia tela vazia à esquerda, e liam como resto. De quebra a
+seção encurtou 180px, o que dá folga para o palco preso caber em janela baixa.
+
+**É uma grade só, e não duas colunas com uma grade em cada**, e a diferença não
+é estilo: os seis cards precisam ser irmãos no mesmo contexto 3D para o
+navegador ordená-los por profundidade. Em dois contêineres cada metade vira uma
+camada chapada e a ordem de pintura passa a ser a do DOM, com o card do fundo
+da bobina por cima do da frente durante metade da cena. Quem decide a célula de
+cada card é `CELULAS`, em `Cardapio.tsx`, indexado pela posição dele no array:
+o mesmo número decide onde ele pousa e quando. Os dois primeiros usam
+`self-end` porque a primeira linha é tão alta quanto o texto, e sem isso
+abriria um vão no meio do 2x2.
+
 O `Reveal` saiu da grade junto, porque dois donos escrevendo `transform` no
 mesmo elemento brigam.
 

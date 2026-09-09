@@ -20,12 +20,24 @@ import {
  * mede, se prende e se escreve `transform` e `d`.
  *
  * ── O layout é o da referência, e não decoração em volta dela ───────────────
- * Duas colunas a partir de 1024px: o título e o texto de apoio ficam parados à
- * esquerda enquanto a bobina varre o meio da tela e entrega os cards numa
- * grade de duas colunas por três linhas à direita. É o arranjo da seção
- * "Programação completa" da FITA, e ele não é enfeite: prender o palco exige
- * que a seção caiba numa janela, e a coluna de texto ao lado da grade é o que
- * deixa a grade curta o bastante para caber com a bobina passando por cima.
+ * De 1024px para cima a seção é UMA grade só, de cinco colunas, sendo a do
+ * meio um vão de 3rem que separa as duas metades. O texto ocupa a metade
+ * esquerda da primeira linha; quatro cards pousam na metade direita, em 2x2; e
+ * os dois últimos pousam na segunda linha da metade esquerda, logo abaixo do
+ * texto. É o arranjo da seção "Programação completa" da FITA, onde a grade
+ * também é 2x2 e a coluna de texto nunca fica órfã.
+ *
+ * Os dois últimos foram para debaixo do texto em 2026-09-09, a pedido do
+ * cliente, e o motivo é de composição: numa grade de duas colunas por três
+ * linhas eles sobravam numa terceira fileira com meia tela vazia à esquerda,
+ * e liam como resto. De quebra a seção encurtou 180px de altura, o que dá
+ * folga para o palco preso caber em janela baixa.
+ *
+ * **É uma grade só, e não duas colunas com uma grade em cada.** A diferença
+ * não é estilo: os seis cards precisam ser irmãos no MESMO contexto 3D para o
+ * navegador ordená-los por profundidade. Em dois contêineres cada metade vira
+ * uma camada chapada, e a ordem de pintura passa a ser a do DOM: o card do
+ * fundo da bobina apareceria por cima do da frente durante metade da cena.
  *
  * O EIXO da bobina é o centro do PALCO, não o centro da grade. Ela varre o meio
  * da tela, cruza por cima do título, e os cards descolam do alto e mergulham
@@ -95,7 +107,11 @@ export function FileiraEmEspiral({
       mm.add(
         "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
         () => {
-          const cards = Array.from(alvoFileira.children) as HTMLElement[];
+          // `:scope > article` e não `children`: o cabeçalho é irmão dos cards
+          // dentro da mesma grade, e entraria na lista como se fosse um deles.
+          const cards = Array.from(
+            alvoFileira.querySelectorAll(":scope > article"),
+          ) as HTMLElement[];
           let medidas: {
             deslocamento: Deslocamento;
             largura: number;
@@ -288,17 +304,23 @@ export function FileiraEmEspiral({
         />
       </svg>
 
-      <div className="relative mx-auto flex w-full max-w-[1280px] flex-col gap-10 px-6 py-20 lg:grid lg:h-full lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:gap-14 lg:py-10">
-        {cabecalho}
-        {/* `preserve-3d` para os seis cards serem ordenados por profundidade
-            entre si: sem ele o navegador achata cada um no plano do pai e pinta
-            na ordem do DOM, e o card do fundo da bobina passa por cima do da
+      <div className="relative mx-auto flex w-full max-w-[1280px] flex-col justify-center px-6 py-20 lg:h-full lg:py-10">
+        {/* Uma grade só, com o cabeçalho dentro dela: quem decide a célula de
+            cada peça são as classes que elas próprias carregam, em
+            `Cardapio.tsx`. A coluna do meio, de 3rem, é o vão entre as duas
+            metades, e é ela que impede a segunda linha de ler como uma fileira
+            corrida de quatro cards.
+
+            `preserve-3d` para os seis serem ordenados por profundidade entre
+            si: sem ele o navegador achata cada um no plano do pai e pinta na
+            ordem do DOM, e o card do fundo da bobina passa por cima do da
             frente. A perspectiva em si é escrita pelo efeito, junto com a
             origem dela, ver `medir`. */}
         <div
           ref={fileira}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:[transform-style:preserve-3d]"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(2,minmax(0,1fr))_3rem_repeat(2,minmax(0,1fr))] lg:items-start lg:[transform-style:preserve-3d]"
         >
+          {cabecalho}
           {children}
         </div>
       </div>

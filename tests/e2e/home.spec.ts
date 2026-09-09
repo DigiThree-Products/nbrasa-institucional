@@ -411,22 +411,41 @@ test("no desktop os seis cards terminam a cena sem transformação", async ({ pa
     expect(t).toContain("scale(1)");
   }
 
-  // Pousados quer dizer na GRADE: três linhas de dois, cada linha na mesma
-  // altura, e a coluna da direita à direita da esquerda. É o que prova que o
-  // alvo do pouso é a posição do layout, e não uma coordenada calculada que
-  // por acaso deu perto.
+  // Pousados quer dizer nas células da grade. O arranjo é o da referência: os
+  // quatro primeiros formam o 2x2 da metade direita, os dois últimos pousam
+  // embaixo do texto, na metade esquerda, dividindo a segunda linha com os de
+  // baixo do 2x2. É o que prova que o alvo do pouso é a posição do layout, e
+  // não uma coordenada calculada que por acaso deu perto.
   const caixas = await page.locator("#cardapio article").evaluateAll((es) =>
     es.map((e) => {
       const r = e.getBoundingClientRect();
       return { topo: Math.round(r.top), esquerda: Math.round(r.left) };
     }),
   );
-  for (let i = 0; i < caixas.length; i += 2) {
-    expect(caixas[i + 1]!.topo).toBe(caixas[i]!.topo);
-    expect(caixas[i + 1]!.esquerda).toBeGreaterThan(caixas[i]!.esquerda);
-    expect(caixas[i]!.esquerda).toBe(caixas[0]!.esquerda);
-    if (i > 0) expect(caixas[i]!.topo).toBeGreaterThan(caixas[i - 2]!.topo);
-  }
+  const [c0, c1, c2, c3, c4, c5] = caixas;
+
+  // primeira linha: o par de cima do 2x2
+  expect(c1!.topo).toBe(c0!.topo);
+  expect(c1!.esquerda).toBeGreaterThan(c0!.esquerda);
+
+  // segunda linha: os quatro restantes, na mesma altura
+  for (const c of [c3, c4, c5]) expect(c!.topo).toBe(c2!.topo);
+  expect(c2!.topo).toBeGreaterThan(c0!.topo);
+
+  // as duas metades: os dois últimos ficam à esquerda do 2x2, embaixo do texto
+  expect(c5!.esquerda).toBeLessThan(c2!.esquerda);
+  expect(c4!.esquerda).toBeLessThan(c5!.esquerda);
+  expect(c3!.esquerda).toBeGreaterThan(c2!.esquerda);
+
+  // as colunas do 2x2 são as mesmas nas duas linhas
+  expect(c2!.esquerda).toBe(c0!.esquerda);
+  expect(c3!.esquerda).toBe(c1!.esquerda);
+
+  // e o vão entre as metades é maior que o vão entre cards vizinhos, senão a
+  // segunda linha lê como uma fileira corrida de quatro
+  const vaoInterno = c5!.esquerda - c4!.esquerda;
+  const vaoEntreMetades = c2!.esquerda - c5!.esquerda;
+  expect(vaoEntreMetades).toBeGreaterThan(vaoInterno);
 });
 
 test("no desktop o trilho é desenhado durante a cena e some no fim", async ({ page }) => {
