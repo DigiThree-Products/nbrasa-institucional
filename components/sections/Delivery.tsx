@@ -42,7 +42,7 @@ export async function Delivery() {
       {/* Fora da coluna de 760px de proposito: um marquee precisa da largura
           inteira da secao, senao ele desliza dentro de uma coluna estreita e
           o efeito se perde. */}
-      <ParedeDeTipos className="relative mt-12 opacity-90" corTexto="text-carvao" />
+      <ParedeDeTipos className="relative mt-12" corTexto="text-carvao" faixaBranca />
 
       <RotaMascote paradas={PARADAS} />
 

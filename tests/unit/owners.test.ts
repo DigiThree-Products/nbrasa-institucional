@@ -107,9 +107,11 @@ const LITERAIS_DE_DISPLAY = [
   "Estamos a um passo",                       // OndeEstamos.tsx
   "da vista mar",                             // OndeEstamos.tsx
   "n’Brasa",                                  // Header.tsx e Footer.tsx
-  "FIRE",                                     // ParedeDeTipos.tsx
-  "N’BRASA",                                  // ParedeDeTipos.tsx
-  "VAI N’BRASANDO",                           // ParedeDeTipos.tsx
+  // A ParedeDeTipos NÃO entra mais aqui, e a ausência é deliberada: a frase
+  // dela virou uma unidade só, com acento, e `classeDaFamilia` manda o
+  // conjunto inteiro para a fonte de corpo. Listar qualquer pedaço aqui
+  // seria cobrar da Owners um glifo que ela nunca desenha. Quem guarda essa
+  // regra hoje é tests/unit/ParedeDeTipos.test.tsx.
 ];
 
 /**
