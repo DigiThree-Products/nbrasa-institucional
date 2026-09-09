@@ -220,12 +220,16 @@ Três constantes de tempo:
 
 | Nome | Valor | Significado |
 |---|---|---|
-| `POUSO_DO_PRIMEIRO` | 0,42 | progresso em que o card 0 começa a pousar |
-| `PASSO_DO_POUSO` | 0,055 | intervalo entre um pouso e o seguinte |
+| `POUSO_DO_PRIMEIRO` | 0,40 | progresso em que o card 0 começa a pousar |
+| `PASSO_DO_POUSO` | 0,09 | intervalo entre um pouso e o seguinte |
 | `DURACAO_DO_VOO` | 0,15 | quanto dura o voo de um card até a identidade |
 
-O último card começa a pousar em 0,695 e termina em 0,845, deixando o fim da
-cena para o conjunto assentar.
+O último card começa a pousar em 0,85 e termina exatamente em 1,00.
+
+O passo do pouso é 0,09 e não 0,055, e a razão é que 0,055 deixava rolagem
+morta. Com ele o último card pousava em 0,845 e sobravam 15% da cena, ou 45vh,
+sem nada acontecendo na tela. Espaçar os pousos gasta a cena inteira sem
+apressar nenhum card.
 
 O curso da hélice **não é escolhido**, é derivado. Para que todo card alcance
 a altura de descolamento exatamente no seu instante de pouso, é preciso que:
@@ -244,8 +248,18 @@ descolar na altura errada**. É o mesmo tipo de amarração que
 `AJUSTES.altura` tem com `AJUSTES.escala` em `lib/costura.ts`.
 
 `θ_inicial` sai de `SUBIDA · (θ_inicial + POUSO_DO_PRIMEIRO · Δθ) =
-ALTURA_DE_POUSO`, com `ALTURA_DE_POUSO` fixada em 1,2 altura de card acima do
+ALTURA_DE_POUSO`, com `ALTURA_DE_POUSO` em **0,3 altura de card** acima do
 plano da fileira.
+
+O 0,3 não é folga escolhida no olho, ele decide para que lado o card está
+virado na hora de descolar. O ângulo de descolamento vale
+`ALTURA_DE_POUSO / SUBIDA`, então 0,3 põe o descolamento em 0,6 rad, ou 34
+graus, com a face do card voltada para quem olha. O primeiro valor tentado,
+1,2, punha o descolamento em 2,4 rad, ou 137 graus, com o card **de costas**:
+ele começaria o voo invisível, ver 6.6, e apareceria no meio do caminho.
+
+Com os números fechados: passo angular 0,655 rad, curso da hélice 7,282 rad,
+θ inicial −2,313 rad.
 
 ### 6.5 O voo, e por que o alvo é zero
 
@@ -273,12 +287,24 @@ A suavização é `1 - (1 - t)³`, saída rápida e assentamento lento. A FITA u
 possível, não como partida: ultrapassagem em card de texto sobre fundo claro
 tende a ler como tremor.
 
-### 6.6 Esmaecimento
+### 6.6 Nada de opacidade, e o verso do card no lugar dela
 
-Opacidade cheia enquanto a altura absoluta for menor que 3,4 alturas de card,
-apagando por completo além de 4,8. São os valores da FITA convertidos para
-proporção. Serve para o card que ainda está fundo na bobina não aparecer
-flutuando sobre o título.
+O spec previa esmaecimento por altura, portado da FITA. **Ele foi removido
+antes de existir**, porque não teria consumidor: com os números de 6.4 os seis
+cards ficam entre −2,79 e +0,6 altura de card, e o limiar da FITA convertido é
+3,4. Nenhum card chegaria perto. Seriam duas constantes exportadas sem nada
+que as acionasse, que é exatamente o defeito registrado no `CLAUDE.md` sobre
+`lib/labaredas.ts`.
+
+O que resolve de verdade o problema que o esmaecimento resolveria na FITA é
+`backface-visibility: hidden` no card. A hélice gira os cards por trás do eixo,
+e um card de costas mostraria o texto espelhado. Com a propriedade, ele
+simplesmente não é pintado enquanto está virado, e reaparece ao vir para a
+frente. É CSS, não é constante, e não pode sair de sincronia com nada.
+
+Quem tira os cards de quadro por baixo é o `overflow: hidden` do palco, não
+opacidade: no começo da cena eles estão até 2,79 alturas de card abaixo da
+fileira, bem fora da tela.
 
 ### 6.7 API exportada
 
