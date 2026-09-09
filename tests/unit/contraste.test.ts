@@ -98,7 +98,7 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
 
   it("carvao sobre brasa só serve para display grande", () => {
     // 3,09:1 passa em AA-grande (>= 3:1) e reprova em AA normal. É o que
-    // autoriza carvão no "N’brasando", no "feel the fire", no traço da rota e
+    // autoriza carvão no "N’brasando", na parede de tipos, no traço da rota e
     // no mascote, e o que proíbe carvão em parágrafo dentro da faixa.
     const razao = razaoDeContraste(CARVAO, BRASA);
     expect(razao).toBeGreaterThanOrEqual(3);

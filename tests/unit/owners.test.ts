@@ -107,9 +107,6 @@ const LITERAIS_DE_DISPLAY = [
   "Estamos a um passo",                       // OndeEstamos.tsx
   "da vista mar",                             // OndeEstamos.tsx
   "n’Brasa",                                  // Header.tsx e Footer.tsx
-  "feel",                                     // Delivery.tsx, empilhado
-  "the",                                      // Delivery.tsx, empilhado
-  "fire",                                     // Delivery.tsx, empilhado
   "FIRE",                                     // ParedeDeTipos.tsx
   "N’BRASA",                                  // ParedeDeTipos.tsx
   "VAI N’BRASANDO",                           // ParedeDeTipos.tsx
