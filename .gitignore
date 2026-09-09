@@ -53,3 +53,7 @@ supabase/.temp/
 # artefatos de execucao do Playwright
 test-results/
 playwright-report/
+
+# Worktrees do Claude Code: moram dentro do projeto e trazem build e
+# dependencias proprias. Nunca entram no controle de versao.
+.claude/worktrees/

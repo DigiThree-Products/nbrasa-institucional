@@ -115,9 +115,14 @@ const LITERAIS_DE_DISPLAY = [
   "VAI N’BRASANDO",                           // ParedeDeTipos.tsx
 ];
 
+/**
+ * `heroTitulo` NÃO entra aqui, e a ausência é deliberada: desde a troca do
+ * foco para a Combust, nenhuma das três linhas do título do herói é Owners.
+ * A abertura e o fecho são Hanken, o foco é Combust. Quem cobre o foco é
+ * `combust.test.ts`.
+ */
 function textosDoSeed(): string[] {
   return [
-    conteudoSeed.heroTitulo,
     conteudoSeed.depoimentosTitulo,
     conteudoSeed.horariosTitulo,
     ...categoriasSeed.map((c) => c.nome),
