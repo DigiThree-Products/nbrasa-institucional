@@ -1,6 +1,6 @@
 import { getCategorias } from "@/lib/conteudo";
 import type { Categoria } from "@/lib/conteudo.tipos";
-import { Reveal } from "@/components/motion/Reveal";
+import { FileiraEmEspiral } from "@/components/sections/FileiraEmEspiral";
 import { Chama } from "@/components/ui/Chama";
 import { ParedeDeTipos } from "@/components/ui/ParedeDeTipos";
 
@@ -76,21 +76,22 @@ export function CardDeCategoria({ categoria }: { categoria: Categoria }) {
  * a esta mudança: quem escolhia o tile grande era a posição no array, apesar
  * de o comentário do tipo afirmar o contrário. Quando o card ganhar foto, ele
  * é o candidato natural a decidir qual card é o maior da fileira.
+ *
+ * O `Reveal` saiu da fileira de propósito. Dois donos escrevendo `transform`
+ * no mesmo elemento brigam, e no desktop a espiral já é a revelação. Abaixo de
+ * 1024px os cards passam a aparecer sem animação de entrada, que é o preço
+ * aceito por ter um dono só do `transform`. `Reveal` segue em uso nas outras
+ * seções.
  */
 export async function Cardapio() {
   const cats = await getCategorias();
   return (
-    <section id="cardapio" className="flex min-h-dvh items-center">
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
-        <CabecalhoDoCardapio />
-        <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-6">
-          {cats.map((c) => (
-            <Reveal key={c.slug}>
-              <CardDeCategoria categoria={c} />
-            </Reveal>
-          ))}
-        </div>
-      </div>
+    <section id="cardapio">
+      <FileiraEmEspiral cabecalho={<CabecalhoDoCardapio />}>
+        {cats.map((c) => (
+          <CardDeCategoria key={c.slug} categoria={c} />
+        ))}
+      </FileiraEmEspiral>
     </section>
   );
 }
