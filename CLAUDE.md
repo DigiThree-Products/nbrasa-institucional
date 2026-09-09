@@ -54,7 +54,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 16 arquivos e 127 testes e roda em torno de 10 s.
+`w1920`. A suíte unitária tem 18 arquivos e 149 testes e roda em torno de 9 s.
 
 ## Arquitetura
 
@@ -138,6 +138,60 @@ dá para afirmar sem pintar: que a string não traz caractere cru que o parser
 de CSS rejeite, que o SVG declara tamanho intrínseco, que o filete continua
 dentro da silhueta e que a máscara usa `D_SILHUETA`, nunca a chama oficial.
 
+### A espiral do cardápio é hélice calculada, com pouso na identidade
+
+`lib/espiral.ts` diz onde cada card do Cardápio está em cada instante da cena
+presa, e `components/sections/FileiraEmEspiral.tsx` prende o palco e escreve a
+`transform`. O gesto é portado da seção "Programação completa" da FITA
+(`fita.art.br`), que o resolve em WebGL; aqui é CSS 3D, porque three.js sozinho
+estoura o orçamento de primeira carga. Spec completo em
+`docs/superpowers/specs/2026-09-09-espiral-do-cardapio-design.md`.
+
+O que o porte ganha, e que explica o tamanho do módulo: **quem gira é o próprio
+`<article>` do card**, e não um plano de WebGL separado. Por isso o alvo do
+pouso é a **transformação identidade**, e não há destino para calcular nem para
+medir. Card parado é card sem `transform`. A FITA precisa de um aparato inteiro
+de entrega justamente porque os planos dela não são os cards.
+
+**`CURSO_DA_HELICE` depende de `PASSO_ANGULAR` e de `PASSO_DO_POUSO`**, e a
+razão é fixa: `curso = passo angular / passo do pouso`. Só nela todo card cruza
+a altura de descolamento no seu próprio instante de pouso. Mexeu num, recalcule
+o outro, senão o card descola na altura errada e nada lança. É a mesma
+amarração que `AJUSTES.altura` tem com `AJUSTES.escala` em `lib/costura.ts`.
+
+Dois outros números que erram calados. `PASSO_ANGULAR` divide pela hipotenusa
+de `RAIO` e `SUBIDA * PROPORCAO`, e a proporção é conversão de unidade, não
+enfeite: o raio está em larguras de card e a subida em alturas. E
+`ALTURA_DE_POUSO` decide para que lado o card está virado ao descolar, porque o
+ângulo ali vale `ALTURA_DE_POUSO / SUBIDA`; em 0,3 ele descola de frente, em
+1,2 descolava de costas e, com `backface-visibility: hidden` no card, começava
+o voo invisível. `tests/unit/espiral.test.ts` cobre as três.
+
+**Quem cria as três telas de rolagem é o espaçador do ScrollTrigger**, por
+causa do `end: "+=300%"`, e não uma altura no CSS. Sem JavaScript, ou com menos
+movimento pedido, o gatilho nunca é criado e não existe palco preso nem 300vh
+de vazio. Uma altura declarada deixaria três telas em branco justamente para
+quem pediu menos movimento.
+
+O elemento preso é o invólucro largo, e não a coluna de conteúdo: o `pin`
+substitui o elemento por um `div.pin-spacer` e assume o posicionamento dele, e
+prender a coluna centrada entregaria a centralização ao espaçador. Vale saber
+disso ao escrever teste: dentro de `#cardapio`, o `firstElementChild` passa a
+ser o espaçador.
+
+**O bento do Cardápio saiu em 2026-09-09, e não por gosto.** Prender o palco
+exige que ele caiba numa janela, e a seção media 1137px de altura, o que não
+cabia nem em 1920x1080; quem estourava era o tile grande, de 440px. No lugar
+entrou uma fileira única de seis cards em retrato, 148x207 em 1024 e 190x266
+daí para cima. O `Reveal` saiu da fileira junto, porque dois donos escrevendo
+`transform` no mesmo elemento brigam.
+
+`Categoria.destaque` **continua sem consumidor na interface, e já estava assim
+antes disso**: o comentário do campo em `lib/conteudo.tipos.ts` afirma que ele
+substitui a escolha por posição no array, mas quem escolhia o tile grande era a
+posição no array. Quando o card ganhar foto pelo painel, ele é o candidato
+natural a decidir qual card é o maior da fileira.
+
 ### Cache e revalidação
 
 `TAGS` (em `lib/conteudo.ts`) é a lista fechada de tags válidas.
@@ -185,13 +239,20 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Seis arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote`, `VideoFachada` e `app/error.tsx`, **mas só cinco
-chegam à página**: `VideoFachada` está órfão, ver logo abaixo. Todo o resto é
-Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
-entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
-cada um verifica `prefers-reduced-motion` antes de animar, e há testes unitários
-e e2e que provam que nada de conteúdo depende de animação.
+Sete arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `RotaMascote`, `FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`,
+**mas só seis chegam à página**: `VideoFachada` está órfão, ver logo abaixo.
+Todo o resto é Server Component `async` que aguarda a fachada. GSAP,
+ScrollTrigger e Lenis entram por `await import()` dentro de `useEffect`, nunca
+no bundle inicial, e cada um verifica `prefers-reduced-motion` antes de animar,
+e há testes unitários e e2e que provam que nada de conteúdo depende de
+animação.
+
+`FileiraEmEspiral` é o único que checa a preferência por `gsap.matchMedia` em
+vez de uma leitura única na montagem, e a diferença é de propósito: os outros
+não mudam de comportamento com o tamanho da janela, e ele muda. Quem começa
+numa janela larga e reduz para menos de 1024 precisa perder a cena presa na
+travessia, senão fica com 300vh de rolagem num layout de coluna única.
 
 **`VideoFachada` não está montado em lugar nenhum.** O componente, os testes
 unitários dele e `public/video-fachada.mp4` seguem no repositório, mas o
