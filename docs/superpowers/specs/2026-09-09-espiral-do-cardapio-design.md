@@ -1,6 +1,7 @@
 # Espiral do Cardápio, revelação em bobina com pouso em fileira
 
 Data: 2026-09-09
+Revisão: 2026-09-09, segunda passada, ver seção 0
 Estado: aprovado, pronto para virar plano de implementação
 Spec anterior: `2026-09-04-identidade-visual-design.md`, cuja seção 7 desenhou
 o bento que este documento remove
@@ -19,6 +20,54 @@ O porte é para CSS 3D dirigido por ScrollTrigger, que já está no projeto.
 
 Este documento também registra a remoção do bento do Cardápio, que é
 consequência direta da cena presa e não uma mudança de gosto.
+
+## 0. Revisão de 2026-09-09, a segunda passada
+
+O cliente voltou à referência depois de ver a primeira versão no ar e pediu que
+a espiral do Cardápio ficasse **como a da FITA**, autorizando explicitamente
+mudar o layout da seção para isso. Esta seção registra o que mudou e o que ela
+substitui; o resto do documento fica como está, porque continua explicando por
+que a primeira versão era o que era.
+
+O que a primeira passada tinha de próprio, e voltou para o valor da referência:
+
+| O que | Primeira passada | Agora | Por quê |
+|---|---|---|---|
+| `VAO` | 0,35 largura, cards separados | 0,067, bordas encostadas | é o vão que faz a fila ler como corpo contínuo, a cobra da referência |
+| `SUBIDA` | 1,1 altura por radiano | 0,5 | o valor da FITA; a bobina volta a varrer de lado enquanto sobe |
+| `PROPORCAO` | 1,4, card retrato | 0,667, card paisagem 3:2 | o crop da referência |
+| `ALTURA_DE_POUSO` | 0,1 altura | 2,3 alturas | o card sobe até o topo do palco e mergulha na grade, em vez de encaixar a um passo do destino |
+| Suavização do voo | cúbica sem ultrapassagem | `backOut` 1,7 | o estalo do encaixe, como em `peel` na FITA |
+| Layout do pouso | fileira única de seis, largura cheia | duas colunas: texto à esquerda, grade 2×3 à direita | o arranjo da seção "Programação completa" |
+
+O que entrou e não existia na primeira passada:
+
+- **O trilho.** Dois filetes de SVG correm rente às bordas de cima e de baixo
+  dos cards, projetados com a mesma conta que o navegador aplica neles. Na FITA
+  são tubos de WebGL, e são metade do gesto: sem eles a bobina é um punhado de
+  retângulos girando. Ver `pontosDaBobina`, `janelaDoTrilho` e
+  `projetarNoPalco` em `lib/espiral.ts`.
+- **O verso do card.** O `<article>` virou caixa 3D com duas faces, frente em
+  creme e verso em brasa chapada. A hélice gira o card quase volta e meia, e
+  com a face escondida no elemento inteiro ele sumia em metade do percurso,
+  desmanchando a banda. Isto substitui a decisão da seção 6.6.
+- **A ampliação na bobina.** O card é 1,4 vez maior enquanto voa do que depois
+  de pousado, que é o `GRID_SCALE` da FITA lido ao contrário. É o que faz a
+  bobina dominar a tela; sem ela a cena roda igual e lê pequena.
+- **A perspectiva calculada.** Deixou de ser uma classe com valor fixo e passa
+  a sair de `DISTANCIA_DA_CAMERA`, 2,3 larguras de card, que é a distância da
+  câmera da FITA ao plano da grade dela. O componente escreve `perspective` e
+  `perspective-origin` na medida, e o trilho refaz a mesma projeção.
+- **O eixo da bobina é o centro do palco**, e não o centro da grade. Assim a
+  bobina varre o meio da tela e os cards voam para a coluna da direita, como na
+  referência. O deslocamento natural de cada card passou a ter as duas
+  componentes, porque a grade tem linhas além de colunas.
+
+O que não veio, e continua não vindo: a curvatura do card (`SPIRAL_BEND`), que
+CSS 3D não faz num elemento só, e o apagamento por altura, que aqui o
+`overflow-hidden` do palco já resolve.
+
+A cena encurtou de `+=300%` para `+=240%`, mais perto dos 200% da referência.
 
 ## 2. A referência, e o que dela é portável
 
@@ -126,6 +175,8 @@ natural a decidir qual card é o maior da fileira. Ver a seção 11.
 
 ### 5.2 O que entra
 
+> **Superado pela seção 0.** O pouso deixou de ser uma fileira única de seis e passou a ser uma grade de duas colunas por três linhas, na coluna da direita, com o texto parado à esquerda.
+
 Uma fileira única de seis cards em retrato, embaixo do título.
 
 | Janela | Largura do card | Altura do card | Palco ocupado |
@@ -169,40 +220,46 @@ hora de escrever a transformação.
 
 ### 6.2 Constantes da hélice
 
-Convertidas da FITA para proporção. Os três primeiros são os valores dela
-divididos pelo tamanho do card dela:
+Convertidas da FITA para proporção: são os valores dela divididos pelo tamanho
+do card dela, que mede 3,0 de largura por 2,0 de altura.
 
-| Nome | Valor | Significado |
+| Nome | Valor | Origem na FITA |
 |---|---|---|
-| `RAIO` | 1,47 largura de card | quanto a bobina se espalha na horizontal |
-| `SUBIDA` | 1,1 altura de card por radiano | quanto a hélice sobe |
-| `VAO` | 0,35 largura de card | folga entre cards vizinhos na bobina |
+| `PROPORCAO` | 0,667 altura sobre largura | `CARD_ASPECT` 3/2, card paisagem |
+| `RAIO` | 1,467 largura de card | `SPIRAL.radius` 4,4 sobre 3,0 |
+| `SUBIDA` | 0,5 altura por radiano | `SPIRAL.climb` 1,0 sobre 2,0 |
+| `VAO` | 0,067 largura de card | `SPIRAL_GAP` 0,2 sobre 3,0 |
+| `ESCALA_NA_BOBINA` | 1,399 | inverso de `GRID_SCALE` 1,43/2,0 |
+| `DISTANCIA_DA_CAMERA` | 2,3 largura de card | `cameraZ` 9,5 menos `gridZ` 2,6, sobre 3,0 |
 
-Os dois últimos saíram dos valores da FITA em 2026-09-09, a pedido do cliente,
-e cada pedido moveu um deles. **Separar os cards é o vão**, que foi de 0,067,
-onde as bordas se tocam, para 0,35, que dá 67px de folga num card de 190px.
-**Fazer a bobina vir de baixo é a subida**, que foi de 0,5 para 1,1: medido em
-1440, do instante em que o card aparece até o pouso ele subia 289px enquanto
-andava 437px na horizontal, e o olho lia balanço lateral. Em 1,1 a conta
-inverte, 539px de subida contra 355px de lado.
+O vão é quase nulo de propósito: é ele que encosta as bordas e faz a fila ler
+como **um corpo contínuo**, a cobra da referência. Separar os cards aqui, como
+a primeira passada fazia, desmancha o gesto: sem bordas se tocando não há
+banda, só seis retângulos em órbita. Há teste que falha se o vão voltar a
+crescer.
 
 O passo angular entre vizinhos é derivado, não escolhido:
 
 ```
-PASSO_ANGULAR = (1 + VAO) / hypot(RAIO, SUBIDA · proporção)
+PASSO_ANGULAR = (1 + VAO) / hypot(RAIO, SUBIDA · PROPORCAO)
 ```
 
-**A `proporção` não é enfeite, é uma conversão de unidade, e esquecê-la é o
+**A `PROPORCAO` não é enfeite, é uma conversão de unidade, e esquecê-la é o
 erro silencioso mais fácil deste módulo.** `RAIO` está em larguras de card e
 `SUBIDA` está em alturas de card, e as duas entram na mesma hipotenusa. Antes
-de somar é preciso levar a subida para largura, multiplicando pela proporção
-altura sobre largura, que aqui vale 1,4. Sem isso a conta roda, devolve número
-plausível e espalha os cards com vão errado ao longo do arco, que é
+de somar é preciso levar a subida para largura. Sem isso a conta roda, devolve
+número plausível e espalha os cards com vão errado ao longo do arco, que é
 exatamente o tipo de defeito que não lança.
 
-Com os valores atuais isso dá 0,634 rad, ou 36,3 graus, e um arco de 1,350 largura de card entre um centro e o vizinho. É a conta que
-mantém as bordas dos cards encostadas ao longo do arco, que é o que faz a fila
-ler como corpo contínuo em vez de peças soltas.
+Com os valores atuais isso dá 0,7092 rad, ou 40,6 graus, que é exatamente o que
+`dTheta()` devolve na FITA. Há teste comparando os dois.
+
+**Toda distância deste módulo está em larguras de card DA BOBINA**, que é o
+card ampliado por `ESCALA_NA_BOBINA`, e não o card medido no DOM. Quem mede o
+card precisa multiplicar antes de usar qualquer coisa daqui;
+`transformacaoDoCard` já faz isso e o trilho recebe a unidade pronta. Separar
+as duas coisas encolhe a bobina em 28% e desgruda as bordas dos cards, porque
+o vão continua valendo a largura ampliada.
 
 ### 6.3 Posição na hélice
 
@@ -278,6 +335,8 @@ deixa 13px de sobra.
 
 ### 6.5 O voo, a pose congelada, e por que o alvo é zero
 
+> **Parcialmente superado pela seção 0.** O congelamento e o alvo na identidade continuam valendo; a suavização passou a ser `backOut` com ultrapassagem 1,7, e o voo agora carrega também a escala.
+
 **A pose congela no instante do descolamento**, e o voo interpola dela até a
 identidade. É o que a FITA faz, e a primeira versão daqui não portou: a hélice
 continuava girando durante o voo e o card ultrapassava o ponto de
@@ -323,6 +382,8 @@ possível, não como partida: ultrapassagem em card de texto sobre fundo claro
 tende a ler como tremor.
 
 ### 6.6 Nada de opacidade, e o verso do card no lugar dela
+
+> **Superado pela seção 0.** O card ganhou um verso de verdade, em brasa chapada, porque com a face escondida no elemento inteiro ele sumia em metade do percurso da hélice.
 
 O spec previa esmaecimento por altura, portado da FITA. **Ele foi removido
 antes de existir**, porque não teria consumidor: com os números de 6.4 os seis
@@ -393,6 +454,8 @@ A ponte com o Lenis já existe em `SmoothScrollProvider`, que chama
 GSAP. Não é preciso `scrollerProxy`.
 
 ### 7.2 Quem cria as três telas de rolagem
+
+> **Superado pela seção 0 quanto ao número:** são 240% de rolagem, não 300%. Quem as cria continua sendo o espaçador do ScrollTrigger, e é isso que faz a degradação sair de graça.
 
 O espaçador do próprio ScrollTrigger, por conta do `end: "+=300%"`, e **não**
 uma altura fixa no CSS.

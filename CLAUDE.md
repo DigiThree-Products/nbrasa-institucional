@@ -161,10 +161,12 @@ amarração que `AJUSTES.altura` tem com `AJUSTES.escala` em `lib/costura.ts`.
 
 Outros números que erram calados. `PASSO_ANGULAR` divide pela hipotenusa de
 `RAIO` e `SUBIDA * PROPORCAO`, e a proporção é conversão de unidade, não
-enfeite: o raio está em larguras de card e a subida em alturas. E
-`ALTURA_DE_POUSO` decide duas coisas de uma vez, para que lado o card está
-virado ao descolar (o ângulo ali vale `ALTURA_DE_POUSO / SUBIDA`) e o quanto
-ele sobe acima da fileira, que é quem decide se ele passa por cima do título.
+enfeite: o raio está em larguras de card e a subida em alturas. E **toda
+distância do módulo está em larguras do card DA BOBINA**, que é o card medido
+no DOM ampliado por `ESCALA_NA_BOBINA`: o card é 1,4 vez maior enquanto voa do
+que depois de pousado, que é o `GRID_SCALE` da FITA lido ao contrário. Usar a
+medida crua encolhe a bobina em 28% e desgruda as bordas dos cards, porque o
+vão continua valendo a largura ampliada.
 `tests/unit/espiral.test.ts` cobre o que dá para afirmar sem pintar.
 
 **`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
@@ -174,21 +176,40 @@ porque espiral invertida continua parecendo espiral, e porque o teste que
 deveria pegar afirmava `y < 0` para "abaixo da fileira", verdadeiro na
 convenção errada.
 
-**Quem manda na leitura do gesto são dois números, e não o raio.** A separação
-entre os cards é o `VAO`; se a bobina vem de baixo ou de lado é a `SUBIDA`, que
-precisa fazer o card subir mais do que ele anda na horizontal no trecho
-visível. Os dois têm teste que falha se voltarem aos valores da FITA, e as duas
-mudanças são pedido do cliente de 2026-09-09, não desvio acidental.
+**Os números são os da FITA convertidos, e não escolhidos no olho.** Cada
+constante geométrica traz a conta da conversão no comentário, contra o
+`lib/spiral-reel.ts` de lá: `RAIO` é 4,4/3,0, `SUBIDA` é 1,0/2,0, `VAO` é
+0,2/3,0, `ALTURA_DE_POUSO` é 4,6/2,0. Uma passada anterior deste mesmo dia
+tinha vão largo e subida alta, a pedido do cliente, e o cliente reverteu no
+mesmo dia pedindo o gesto da referência. **O vão quase nulo é o que faz a fila
+ler como corpo contínuo**, a cobra da referência; separar os cards desmancha o
+gesto, e há teste que falha se ele voltar a crescer.
+
+**O trilho é metade do gesto.** Dois filetes de SVG correm rente às bordas de
+cima e de baixo dos cards, e saem da mesma equação da hélice, então não têm
+como divergir dela. `projetarNoPalco` refaz em JavaScript exatamente a projeção
+que o navegador aplica nos cards, e é por isso que a perspectiva é escrita pelo
+componente, na medida, em vez de morar numa classe: o número em dois lugares
+faria a linha escorregar dos cards no dia em que um dos dois mudasse.
+
+**O card tem duas faces.** A hélice o gira quase volta e meia entre nascer e
+pousar, e com `backface-visibility` no `<article>` inteiro ele sumiria em
+metade do percurso, desmanchando a banda. Então o article é só a caixa 3D com
+`preserve-3d`, e frente (creme, com o conteúdo) e verso (brasa chapada) são
+filhas absolutas. O canto arredondado e o `overflow-hidden` moram nas faces:
+`overflow` diferente de `visible` achata o conteúdo 3D e o `preserve-3d` se
+perde.
 
 A pose **congela no descolamento** e o voo interpola dela até a identidade,
 como na FITA. Sem congelar, a hélice segue girando durante o voo e o card
 ultrapassa o ponto de descolamento, invadindo o título.
 
-**Quem cria as três telas de rolagem é o espaçador do ScrollTrigger**, por
-causa do `end: "+=300%"`, e não uma altura no CSS. Sem JavaScript, ou com menos
-movimento pedido, o gatilho nunca é criado e não existe palco preso nem 300vh
-de vazio. Uma altura declarada deixaria três telas em branco justamente para
-quem pediu menos movimento.
+**Quem cria as telas de rolagem é o espaçador do ScrollTrigger**, por causa do
+`end: "+=240%"`, e não uma altura no CSS. Sem JavaScript, ou com menos
+movimento pedido, o gatilho nunca é criado e não existe palco preso nem 240vh
+de vazio. Uma altura declarada deixaria duas telas e meia em branco justamente
+para quem pediu menos movimento. Pelo mesmo motivo os dois `path` do trilho
+nascem com o `d` vazio.
 
 O elemento preso é o invólucro largo, e não a coluna de conteúdo: o `pin`
 substitui o elemento por um `div.pin-spacer` e assume o posicionamento dele, e
@@ -198,10 +219,17 @@ ser o espaçador.
 
 **O bento do Cardápio saiu em 2026-09-09, e não por gosto.** Prender o palco
 exige que ele caiba numa janela, e a seção media 1137px de altura, o que não
-cabia nem em 1920x1080; quem estourava era o tile grande, de 440px. No lugar
-entrou uma fileira única de seis cards em retrato, 148x207 em 1024 e 190x266
-daí para cima. O `Reveal` saiu da fileira junto, porque dois donos escrevendo
-`transform` no mesmo elemento brigam.
+cabia nem em 1920x1080; quem estourava era o tile grande, de 440px.
+
+No lugar entrou, na mesma data, o arranjo da referência: **duas colunas de
+1024px para cima**, título e texto de apoio parados à esquerda e uma grade de
+duas colunas por três linhas à direita, com os cards em paisagem 3:2, 231x154
+em 1024 e 297x198 daí para cima. A coluna de texto não é enfeite ao lado da
+cena, é ela que deixa a grade estreita o bastante para as três linhas caberem
+numa janela de 768px de altura. O título usa `self-start` porque centrado na
+vertical ele cai bem no caminho da bobina e some sob os cards no meio da cena.
+O `Reveal` saiu da grade junto, porque dois donos escrevendo `transform` no
+mesmo elemento brigam.
 
 A `ParedeDeTipos` do Cardápio saiu no mesmo dia, a pedido do cliente, e essa
 não teve motivo técnico. **A da Delivery continua**, e as duas nunca foram a
@@ -276,7 +304,7 @@ animação.
 vez de uma leitura única na montagem, e a diferença é de propósito: os outros
 não mudam de comportamento com o tamanho da janela, e ele muda. Quem começa
 numa janela larga e reduz para menos de 1024 precisa perder a cena presa na
-travessia, senão fica com 300vh de rolagem num layout de coluna única.
+travessia, senão fica com 240vh de rolagem num layout de coluna única.
 
 **`VideoFachada` não está montado em lugar nenhum.** O componente, os testes
 unitários dele e `public/video-fachada.mp4` seguem no repositório, mas o

@@ -358,8 +358,16 @@ test("abaixo de 1024 o cardápio não prende a rolagem", async ({ page }) => {
 
   // O `pin` do ScrollTrigger envolve o palco num `div.pin-spacer`. A ausência
   // dele é a prova de que a consulta de mídia barrou a cena: sem isto, o
-  // celular ganharia três telas de rolagem presa para seis cards.
+  // celular ganharia duas telas e meia de rolagem presa para seis cards.
   await expect(page.locator("#cardapio .pin-spacer")).toHaveCount(0);
+
+  // E sem cena não há trilho: os dois filetes existem no DOM sempre, mas
+  // nascem com o `d` vazio e só o efeito escreve neles.
+  const trilhos = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+    es.map((e) => e.getAttribute("d")),
+  );
+  expect(trilhos).toHaveLength(2);
+  expect(trilhos.every((d) => d === "")).toBe(true);
 });
 
 test("no desktop o palco fica preso enquanto a cena corre", async ({ page }) => {
@@ -388,30 +396,55 @@ test("no desktop os seis cards terminam a cena sem transformação", async ({ pa
   test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 não há cena");
 
   await rolarAteOCardapio(page);
-  await rolarTelas(page, 3.4);
+  await rolarTelas(page, 2.8);
 
   const transformacoes = await transformacoesDoCardapio(page);
   expect(transformacoes).toHaveLength(6);
 
   // O navegador normaliza o valor: o componente escreve "0.00px" e a leitura
   // devolve "0px". Casar com casas decimais aqui falharia sem haver defeito.
+  // A escala volta a 1 junto com o resto: o card cresce 40% na bobina e o
+  // encolhimento faz parte do pouso, não é um passo separado.
   for (const t of transformacoes) {
     expect(t).toContain("translate3d(0px, 0px, 0px)");
     expect(t).toContain("rotateY(0deg)");
+    expect(t).toContain("scale(1)");
   }
 
-  // Pousados quer dizer na fileira: mesma altura, e cada um à direita do
-  // anterior. É o que prova que o alvo do pouso é a posição do layout, e não
-  // uma coordenada calculada que por acaso deu perto.
+  // Pousados quer dizer na GRADE: três linhas de dois, cada linha na mesma
+  // altura, e a coluna da direita à direita da esquerda. É o que prova que o
+  // alvo do pouso é a posição do layout, e não uma coordenada calculada que
+  // por acaso deu perto.
   const caixas = await page.locator("#cardapio article").evaluateAll((es) =>
     es.map((e) => {
       const r = e.getBoundingClientRect();
       return { topo: Math.round(r.top), esquerda: Math.round(r.left) };
     }),
   );
-  for (let i = 1; i < caixas.length; i++) {
-    expect(caixas[i]!.topo).toBe(caixas[0]!.topo);
-    expect(caixas[i]!.esquerda).toBeGreaterThan(caixas[i - 1]!.esquerda);
+  for (let i = 0; i < caixas.length; i += 2) {
+    expect(caixas[i + 1]!.topo).toBe(caixas[i]!.topo);
+    expect(caixas[i + 1]!.esquerda).toBeGreaterThan(caixas[i]!.esquerda);
+    expect(caixas[i]!.esquerda).toBe(caixas[0]!.esquerda);
+    if (i > 0) expect(caixas[i]!.topo).toBeGreaterThan(caixas[i - 2]!.topo);
+  }
+});
+
+test("no desktop o trilho é desenhado durante a cena e some no fim", async ({ page }) => {
+  test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 não há cena");
+
+  await rolarAteOCardapio(page);
+  await rolarTelas(page, 0.9);
+
+  // Os dois filetes acompanham a bobina. Um `d` vazio no meio da cena quer
+  // dizer que a projeção deixou de bater com a medida do card, e o gesto perde
+  // metade do que faz a bobina ler como trilho.
+  const noMeio = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+    es.map((e) => e.getAttribute("d") ?? ""),
+  );
+  expect(noMeio).toHaveLength(2);
+  for (const d of noMeio) {
+    expect(d.startsWith("M")).toBe(true);
+    expect(d.length).toBeGreaterThan(200);
   }
 });
 
@@ -431,5 +464,10 @@ test.describe("cardápio com movimento reduzido", () => {
 
     const transformacoes = await transformacoesDoCardapio(page);
     expect(transformacoes.every((t) => t === "")).toBe(true);
+
+    const trilhos = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+      es.map((e) => e.getAttribute("d")),
+    );
+    expect(trilhos.every((d) => d === "")).toBe(true);
   });
 });
