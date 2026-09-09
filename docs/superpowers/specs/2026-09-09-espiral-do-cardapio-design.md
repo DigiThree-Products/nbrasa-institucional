@@ -454,7 +454,12 @@ O que **não** entra: three.js, `next/image`, qualquer arquivo de imagem.
 3. O campo `destaque`, que já não tinha consumidor na interface e continua no
    banco, no tipo e na fachada. Ligar o destaque ao tamanho do card na fileira
    é trabalho de outra leva, junto com a foto.
-4. A `ParedeDeTipos`, que permanece onde está, entre o texto e a fileira.
+4. A `ParedeDeTipos` da Delivery, que continua onde está. A do Cardápio saiu
+   em 2026-09-09, a pedido do cliente, depois de a espiral estar pronta: ela
+   corria entre o texto e a fileira, em `opacity-10` sobre o branco. As duas
+   nunca foram a mesma coisa. Na Delivery ela é `opacity-90` sobre o vermelho,
+   elemento gráfico da faixa; no Cardápio era textura de fundo. O componente
+   segue em uso e `tests/unit/ParedeDeTipos.test.tsx` segue valendo.
 5. Qualquer alteração em `contraste.test.ts`, já que nenhum par novo de cor
    nasce aqui.
 

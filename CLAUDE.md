@@ -186,6 +186,13 @@ entrou uma fileira única de seis cards em retrato, 148x207 em 1024 e 190x266
 daí para cima. O `Reveal` saiu da fileira junto, porque dois donos escrevendo
 `transform` no mesmo elemento brigam.
 
+A `ParedeDeTipos` do Cardápio saiu no mesmo dia, a pedido do cliente, e essa
+não teve motivo técnico. **A da Delivery continua**, e as duas nunca foram a
+mesma coisa: lá ela é `opacity-90` sobre o vermelho, elemento gráfico da faixa;
+aqui era `opacity-10` sobre o branco, textura de fundo. O componente e o teste
+dele seguem em uso, e os literais `FIRE`, `N’BRASA` e `VAI N’BRASANDO`
+continuam em `LITERAIS_DE_DISPLAY` por causa da Delivery.
+
 `Categoria.destaque` **continua sem consumidor na interface, e já estava assim
 antes disso**: o comentário do campo em `lib/conteudo.tipos.ts` afirma que ele
 substitui a escolha por posição no array, mas quem escolhia o tile grande era a

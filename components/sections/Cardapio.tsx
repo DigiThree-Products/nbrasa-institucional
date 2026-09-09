@@ -2,28 +2,30 @@ import { getCategorias } from "@/lib/conteudo";
 import type { Categoria } from "@/lib/conteudo.tipos";
 import { FileiraEmEspiral } from "@/components/sections/FileiraEmEspiral";
 import { Chama } from "@/components/ui/Chama";
-import { ParedeDeTipos } from "@/components/ui/ParedeDeTipos";
 
 /**
  * O texto do topo do Cardápio, extraído para a espiral poder montá-lo dentro
  * do palco preso sem duplicar marcação.
+ *
+ * A `ParedeDeTipos` saiu daqui em 2026-09-09, a pedido do cliente. Ela corria
+ * entre este texto e a fileira, em `opacity-10` sobre o branco do body. A
+ * cópia da Delivery continua, e lá ela é outra coisa: `opacity-90` sobre o
+ * vermelho, elemento gráfico da faixa e não textura de fundo.
+ *
+ * De brinde, o palco preso ganhou os 120px que ela ocupava, entre corpo e
+ * margem. Não era problema, o palco já cabia com folga, mas a folga agora é
+ * maior e o card pode engordar sem refazer conta.
  */
 export function CabecalhoDoCardapio() {
   return (
-    <>
-      <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-        <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
-          Feito na hora,<br />servido no capricho
-        </h2>
-        <p className="max-w-[44ch] text-creme-texto">
-          Ingredientes frescos, ponto certo e porções generosas. Cada item nasceu para ser repetido.
-        </p>
-      </div>
-
-      {/* Mais apagada que na Delivery: aqui ela corre sobre o branco do body,
-          e o mesmo peso que funciona sobre o vermelho viraria ruido. */}
-      <ParedeDeTipos className="mb-10 opacity-10" corTexto="text-carvao" />
-    </>
+    <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+      <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
+        Feito na hora,<br />servido no capricho
+      </h2>
+      <p className="max-w-[44ch] text-creme-texto">
+        Ingredientes frescos, ponto certo e porções generosas. Cada item nasceu para ser repetido.
+      </p>
+    </div>
   );
 }
 
