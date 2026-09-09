@@ -307,7 +307,7 @@ test("o mascote se move ao longo da rota ao rolar", async ({ page }) => {
     .poll(() => page.evaluate(() => window.scrollY), { timeout: 8_000 })
     .toBeGreaterThan(scrollAntes);
 
-  // O scrub do ScrollTrigger (scrub: 1) converge suavemente até o progresso
+  // O scrub do ScrollTrigger (scrub: 2,5) converge suavemente até o progresso
   // alvo; poll em vez de sleep fixo, mais rápido quando a máquina está
   // livre, sem flakar quando não está.
   await expect.poll(() => lerTransform(mascote), { timeout: 8_000 }).not.toBe(antes);

@@ -37,13 +37,6 @@ export async function Delivery() {
         <p className="mx-auto mt-4 max-w-[52ch] text-branco">
           O sabor sai da brasa e vai até você. Role a página e siga a rota, de Angra ao seu sofá, sem perder a temperatura.
         </p>
-
-        {/* Caixa baixa de proposito: e assim que aparece na embalagem. Em
-            carvao, que sobre o vermelho faz 3,09:1, valido porque o menor
-            corpo aqui e 41,6px, bem acima do limite de texto grande. */}
-        <p className="mt-10 font-display text-[clamp(2.6rem,7vw,4.6rem)] leading-[.82] text-carvao">
-          feel<br />the<br />fire
-        </p>
       </div>
 
       {/* Fora da coluna de 760px de proposito: um marquee precisa da largura

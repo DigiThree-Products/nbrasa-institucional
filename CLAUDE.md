@@ -11,7 +11,10 @@ Components; o painel de admin (`/admin/*`) está previsto mas ainda não existe.
 
 Documento de design completo (paleta, modelo de dados, orçamento de
 performance, critérios de acessibilidade):
-`docs/superpowers/specs/2026-09-02-site-nbrasa-design.md`. Pendências abertas
+`docs/superpowers/specs/2026-09-02-site-nbrasa-design.md`, com a virada de
+identidade de dois dias depois em
+`docs/superpowers/specs/2026-09-04-identidade-visual-design.md` (página clara,
+Delivery em brasa, saída da Anton). Pendências abertas
 com o cliente: seção final do `README.md`. `docs/labaredas-do-heroi.md` é
 **histórico**: descreve o sistema que desenhava as chamas em SVG sobre a
 Owners, aposentado em 2026-09-09 quando o foco passou para a Combust, que já
@@ -62,7 +65,9 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 19 arquivos e 150 testes e roda em torno de 11 s.
+`w1920`. A suíte unitária tem 19 arquivos e 147 testes e roda em torno de 11 s.
+O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 19 testes que os cinco
+viewports multiplicam por cinco: um `-g` errado custa 95 execuções e um build.
 
 ## Arquitetura
 
@@ -325,6 +330,13 @@ deliberado**: o componente do Next é de cliente e subiu a primeira carga de
 acrescenta latência justamente no elemento candidato a LCP. Não "corrija" para
 `next/image`.
 
+**Esse orçamento de 130 kB não tem teste que o guarde.** Nenhuma suíte lê o
+tamanho do bundle; o número sai da tabela de First Load JS que o `npm run
+build` imprime, e conferir é trabalho de quem mexe em dependência de cliente.
+É por isso que GSAP e Lenis entram por `await import()` e que a parede de tipos
+é CSS puro: cada decisão dessas foi tomada contra um número que ninguém vai
+cobrar automaticamente.
+
 O favicon sai de `python scripts/gerar-favicon.py`, que lê a chama de
 `lib/marca.ts` e grava três arquivos em `app/`, de onde o App Router os serve
 sozinho: `icon.svg` (Chrome e Firefox), `favicon.ico` (Safari e o pedido cru a
@@ -361,6 +373,15 @@ versionadas (`layout-telas.png`, `preview-1440.png`, `preview-check.png`).
 Grave a captura com o prefixo `nbrasa-`, ou fora do repositório, como manda a
 regra dos intermediários de marca.
 
+**Há um worktree parado dentro do repositório e ele engana busca por `grep -r`.**
+`.claude/worktrees/espiral-cardapio` é um worktree travado na branch
+`espiral-no-cardapio`, com cópia completa de `app/`, `components/`, `lib/` e
+`tests/`, mais um `node_modules` próprio. O `.gitignore` o cobre, então as
+ferramentas que respeitam ignore (Grep, Glob, ripgrep) não o enxergam, mas um
+`grep -r` ou um `find` disparado da raiz devolve dois `Hero.tsx`, e o segundo é
+código de outra branch. Ao buscar pelo shell, aponte para `app components lib
+tests` em vez da raiz.
+
 ## Identidade visual e conteúdo
 
 Paleta oficial (valores exatos, do moodboard):
@@ -379,7 +400,7 @@ saída precisa de `corOrigem`, senão a metade de cima da curva vira branco).
 
 Consequência prática, medida e testada: **sobre `#cf2434` só o branco passa AA
 para texto normal** (5,31:1). Carvão fica em 3,09:1 e só vale para display
-grande e grafismo, que é o que autoriza o `N’brasando`, o `feel the fire`, o
+grande e grafismo, que é o que autoriza o `N’brasando`, a parede de tipos, o
 traço da rota e o corpo do mascote. A hierarquia secundária da seção vem de
 corpo, peso e tracking, não de cor, porque não existe cinza intermediário que
 passe AA sobre esse vermelho. `brasa-funda` (`#8a1a24`) é a superfície dos
