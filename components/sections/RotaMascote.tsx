@@ -116,10 +116,12 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
       />
 
       {paradas.map((p, i) => (
-        <div key={p.id}
+        <div key={p.id} data-parada={p.id}
              className={`absolute z-[3] w-[158px] md:w-[190px] lg:w-[250px] ${POSICOES[i] ?? ""}`}>
-          {/* Fonte de corpo, e não display: "Japuíba" é nome de bairro e não
-              se reescreve, e a Owners TRIAL não tem letra acentuada. */}
+          {/* Fonte de corpo, e não display: nome de bairro não se reescreve, e
+              a Owners TRIAL não tem letra acentuada. A lista de hoje calha de
+              não ter acento nenhum, mas ela muda a pedido do cliente e já
+              teve "Japuíba"; trocar para display aqui só adia o problema. */}
           <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-carvao px-4 py-1.5 text-base font-extrabold uppercase tracking-wide">
             {p.bairro}
           </span>

@@ -4,12 +4,21 @@ import { Chama } from "@/components/ui/Chama";
 import { ParedeDeTipos } from "@/components/ui/ParedeDeTipos";
 import { RotaMascote } from "./RotaMascote";
 
+/**
+ * As paradas da rota, na ordem da viagem: a primeira fica no topo da seção e
+ * a última na base. São cinco porque `POSICOES`, em RotaMascote.tsx, tem
+ * cinco lugares; uma sexta parada entraria sem posição e empilharia no canto.
+ *
+ * O par de pontas conversa com a fita logo acima, que promete entrega "do
+ * Pontal até a Verolme": mudar um sem o outro deixa a seção dizendo duas
+ * coisas diferentes sobre a mesma área de entrega.
+ */
 const PARADAS = [
   { id: "centro", bairro: "Centro" },
   { id: "anil", bairro: "Praia do Anil" },
-  { id: "japuiba", bairro: "Japuíba" },
   { id: "grande", bairro: "Praia Grande" },
-  { id: "mambucaba", bairro: "Mambucaba" },
+  { id: "pontal", bairro: "Pontal" },
+  { id: "verolme", bairro: "Verolme" },
 ];
 
 /**
