@@ -25,9 +25,11 @@ const variantes = {
   // de texto em vez de competir com o titulo. Branco sobre carvao da 16,4:1,
   // par que contraste.test.ts ja mede.
   //
-  // Nao virou o `solido` porque o solido tambem serve o "Chamar no WhatsApp"
-  // do Onde estamos e o botao de campanha do Header, onde o vermelho nao
-  // disputa com nada e continua sendo o certo.
+  // Nao virou o `solido` porque o solido serve o botao de campanha do
+  // Header, onde o vermelho nao disputa com nada e continua sendo o certo.
+  // Ele tambem servia o "Chamar no WhatsApp" do Onde estamos, ate a secao
+  // sair em 2026-09-10; com ela foi embora o unico uso de `fantasma`, que
+  // segue aqui coberto por teste, a espera do painel.
   escuro: "bg-carvao text-branco hover:brightness-150",
 } as const;
 

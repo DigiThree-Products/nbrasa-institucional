@@ -102,8 +102,7 @@ const LITERAIS_DE_DISPLAY = [
   "servido no capricho",                      // Cardapio.tsx
   "Vai",                                      // Delivery.tsx
   "N’brasando",                               // Delivery.tsx
-  "Estamos a um passo",                       // OndeEstamos.tsx
-  "da vista mar",                             // OndeEstamos.tsx
+  "Quem veio, volta",                         // Depoimentos.tsx
   "n’Brasa",                                  // Header.tsx e Footer.tsx
   // A ParedeDeTipos NÃO entra mais aqui, e a ausência é deliberada: a frase
   // dela virou uma unidade só, com acento, e `classeDaFamilia` manda o
@@ -117,10 +116,15 @@ const LITERAIS_DE_DISPLAY = [
  * foco para a Combust, nenhuma das três linhas do título do herói é Owners.
  * A abertura e o fecho são Hanken, o foco é Combust. Quem cobre o foco é
  * `combust.test.ts`.
+ *
+ * `depoimentosTitulo` saiu pelo mesmo motivo em 2026-09-10: ele era o título
+ * da seção de avaliações e virou o subtítulo que apresenta os cards, em fonte
+ * de corpo. Quem titula a seção agora é o literal "Quem veio, volta", que já
+ * está em `LITERAIS_DE_DISPLAY`. Se o campo voltar a ser display, ele volta
+ * para cá e a copy perde o direito ao acento.
  */
 function textosDoSeed(): string[] {
   return [
-    conteudoSeed.depoimentosTitulo,
     conteudoSeed.horariosTitulo,
     ...categoriasSeed.map((c) => c.nome),
     ...programacaoSeed.map((p) => p.titulo),

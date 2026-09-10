@@ -109,8 +109,33 @@ Quem consome o quê, hoje:
 | `Delivery` | `getConteudo` |
 | `HorariosProgramacao` | `getConteudo`, `getHorarios`, `getProgramacao` |
 | `Depoimentos` | `getConteudo`, `getDepoimentos` |
-| `OndeEstamos`, `Header`, `Footer` | `getConteudo` |
+| `Header`, `Footer` | `getConteudo` |
 | `DadosEstruturados` | `getConteudo`, `getHorarios` |
+
+**A seção "Venha nos visitar" saiu em 2026-09-10**, a pedido do cliente, e com
+ela o componente `OndeEstamos`. O motivo é repetição: endereço e contato já
+viviam no rodapé, que vinha logo abaixo, e a seção gastava uma tela cheia para
+dizer o mesmo. Duas coisas foram junto com ela e precisaram de destino, senão
+sumiriam caladas. O link "Onde estamos" do menu passou a apontar para
+`#rodape`, que é o `id` novo do `Footer`: âncora que não existe mais não leva
+a lugar nenhum e nada avisa. E o "Como chegar" era **o único link para o mapa
+no site inteiro**, então a montagem da URL do Google Maps mudou de arquivo e o
+endereço do rodapé virou esse link. A seção também levou o único uso da
+variante `fantasma` do `Botao`, que segue exportada e com teste.
+
+`Depoimentos` fechou a página no lugar dela, e os dois textos do topo dela
+trocaram de papel no mesmo dia. "Quem veio, volta", que era a linha de apoio,
+subiu a título de display, e por ser literal da JSX ganhou linha em
+`LITERAIS_DE_DISPLAY`. O `depoimentosTitulo` do banco desceu a subtítulo, com
+copy nova, escolhida pelo cliente, que apresenta os cards em vez de titular a
+seção.
+
+**Essa descida é o que autoriza o acento na frase**, e o par de mudanças anda
+junto: o campo **saiu de `textosDoSeed()`** em `owners.test.ts` porque agora é
+fonte de corpo, e a Owners trial não desenha "música" nem "já". Devolver o
+campo ao display obriga a desfazer as duas coisas. `0007_subtitulo_depoimentos.sql`
+é o lado banco da troca, e o `0003` foi atualizado junto, como manda o fluxo
+de duas pontas.
 
 As **paradas da rota do delivery não vêm do banco**: são a constante `PARADAS`
 no topo de `Delivery.tsx`, cinco bairros, passada ao `RotaMascote`. Se um dia
