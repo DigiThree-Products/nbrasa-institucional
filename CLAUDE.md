@@ -72,6 +72,15 @@ Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
+`vitest.config.mts` só enxerga `tests/unit/**/*.test.{ts,tsx}`: teste gravado
+em outra pasta não roda e não avisa. O alias `@` aponta para a raiz, o mesmo
+`@/*` do `tsconfig.json`, e todo teste importa por ele, nunca por caminho
+relativo. `tests/setup.ts` carrega o `jest-dom`, faz `cleanup` entre os `it` e
+esboça duas coisas que o jsdom não tem: `matchMedia`, que devolve `matches:
+false` e é o que deixa montar todo componente que consulta
+`prefers-reduced-motion`, e `ResizeObserver`, que nunca dispara porque o jsdom
+não faz layout. Teste que depende de altura fixa `offsetHeight` na mão.
+
 ## Arquitetura
 
 ### A fachada de conteúdo é a única porta para o banco
@@ -809,6 +818,9 @@ Nenhum é texto:
 
 `pdftoppm`/poppler não está instalado; o Python 3.13 local tem **PyMuPDF
 (`fitz`)**, `pypdf`, `pdfminer` e **Pillow**, use `fitz` para extrair texto e
-rasterizar páginas. O `.cdr` é binário proprietário: nenhuma ferramenta local
+rasterizar páginas. Os cinco scripts de `scripts/` se dividem entre esses dois
+mundos: os de imagem e favicon pedem só Pillow, e os de fonte
+(`gerar-owners.py`, `gerar-combust.py`) pedem **fonttools e brotli**, sem os
+quais não sai WOFF2. O `.cdr` é binário proprietário: nenhuma ferramenta local
 abre, peça um export em SVG/PNG. Grave intermediários fora do repositório, não
 ao lado dos ativos.

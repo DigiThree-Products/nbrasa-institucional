@@ -40,12 +40,13 @@ npm run build    # build de produção (confere o orçamento de JS de primeira c
 Next.js 15 · TypeScript · Tailwind CSS v4 · Lenis (scroll suave) · GSAP +
 ScrollTrigger + MotionPathPlugin · Vitest + Testing Library · Playwright.
 
-Tudo é Server Component por padrão. Seis componentes são cliente:
-`SmoothScrollProvider`, `MenuMobile`, `Reveal`, `RotaMascote`,
-`RolagemDoCabecalho` e `VideoFachada` (mais `app/error.tsx`, que o Next
-exige), e só cinco chegam à página: `VideoFachada` está órfão desde a reforma
-do título do herói em três linhas, e há e2e que cobra a ausência do `<video>`.
-A lista citava um `Preloader` que nunca existiu no código.
+Tudo é Server Component por padrão. Nove arquivos carregam `"use client"`:
+`SmoothScrollProvider`, `MenuMobile`, `Reveal`, `TextoQueAcende`,
+`RotaMascote`, `RolagemDoCabecalho`, `FileiraEmEspiral` e `VideoFachada`, mais
+`app/error.tsx`, que o Next exige. Só oito chegam à página: `VideoFachada`
+está órfão desde a reforma do título do herói em três linhas, e há e2e que
+cobra a ausência do `<video>`. A lista já citou um `Preloader` que nunca
+existiu no código.
 
 ## Pendências do cliente
 
