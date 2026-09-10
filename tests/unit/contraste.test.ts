@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { opacidadeDoVeu, sobrepor, TETO_DO_TEXTO } from "@/lib/veuDaFoto";
 
 /**
  * Razão de contraste WCAG 2.x, calculada diretamente a partir da fórmula de
@@ -91,6 +92,39 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
     ["creme sobre o véu (subtítulo e texto da avaliação)", CREME, VEU_SOBRE_FOTO],
   ])("%s atinge AA (≥ %s:1)", (_descricao, cor, fundo) => {
     expect(razaoDeContraste(cor, fundo)).toBeGreaterThanOrEqual(AA_NORMAL);
+  });
+
+  /**
+   * O card do Cardápio com foto, que é o par sem fundo fixo.
+   *
+   * Todos os pares acima têm duas cores conhecidas. Este não: embaixo da letra
+   * branca há fotografia, e ela muda de pixel para pixel. O que se mede é o
+   * PIOR caso possível, uma foto de branco puro, com o véu de carvão composto
+   * por cima na opacidade que aquela altura do card oferece. Se o branco passa
+   * AA nesse fundo, passa sobre qualquer foto, porque nenhuma foto é mais
+   * clara que branco.
+   *
+   * As duas alturas medidas são as duas pontas da faixa onde o texto vive: o
+   * rodapé do card e `TETO_DO_TEXTO`, o limite declarado em `lib/veuDaFoto.ts`
+   * para o topo do bloco de kicker mais nome.
+   */
+  it.each([
+    ["rente ao rodapé do card", 0],
+    ["no teto declarado do bloco de texto", TETO_DO_TEXTO],
+  ])(
+    "branco sobre o véu %s atinge AA mesmo com foto branca por baixo",
+    (_onde, altura) => {
+      const veu = sobrepor(CARVAO, BRANCO, opacidadeDoVeu(altura as number));
+      expect(razaoDeContraste(BRANCO, veu)).toBeGreaterThanOrEqual(AA_NORMAL);
+    },
+  );
+
+  it("sem o véu o mesmo texto reprova, que é a razão de ele existir", () => {
+    // Prova por contradição: com opacidade zero sobra a foto crua, e branco
+    // sobre branco é 1:1. O véu não é enfeite de composição, é o que sustenta
+    // o par inteiro. Apagá-lo do card não quebra build nenhum.
+    const semVeu = sobrepor(CARVAO, BRANCO, 0);
+    expect(razaoDeContraste(BRANCO, semVeu)).toBeLessThan(AA_NORMAL);
   });
 
   it("cf2434 (brasa) sobre creme NÃO atinge AA para texto normal, e é por isso que brasa-escura existe", () => {

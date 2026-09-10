@@ -8,12 +8,12 @@
 -- Inclui de proposito as linhas INATIVAS (categoria 'chopp', depoimento 'd4'):
 -- elas provam que o filtro de ativo funciona e servem de fixture do painel.
 insert into public.categorias (slug, nome, kicker, descricao, foto_path, ordem, ativo, destaque) values
-  ('burgers', 'Burgers', 'O mais pedido da casa', 'Blend suculento selado na chapa, pão com a marca da casa e a nossa geleia de pimenta que vira assunto na mesa.', null, 1, true, true),
-  ('espetinhos', 'Espetinhos', 'Combina com chopp gelado', 'Cortes selecionados e grelhados, farofa artesanal e vinagrete fresquinho. Simples, generoso e perfeito com chopp.', null, 2, true, false),
-  ('carnes-nobres', 'Carnes Nobres', 'Nossa porção premium', 'Iscas de carne nobre na chapa, fritas douradas e molho de blue cheese cremoso. Porção farta servida na tábua.', null, 3, true, false),
-  ('petiscos', 'Petiscos', 'Feito para compartilhar', 'Porções fartas para dividir (ou não): carne na chapa, fritas douradas e acompanhamentos que ninguém deixa sobrar.', null, 4, true, false),
-  ('drinks', 'Drinks', 'Autorais da casa', 'Coquetelaria autoral com gin, frutas frescas e especiarias. Bonito de ver, difícil de tomar só um.', null, 5, true, false),
-  ('sobremesas', 'Sobremesas', 'O final perfeito', 'Petit gâteau com recheio quente escorrendo e sorvete cremoso. O final feliz que a sua noite merece.', null, 6, true, false),
+  ('burgers', 'Burgers', 'O mais pedido da casa', 'Blend suculento selado na chapa, pão com a marca da casa e a nossa geleia de pimenta que vira assunto na mesa.', '/prato-burgers', 1, true, true),
+  ('espetinhos', 'Espetinhos', 'Combina com chopp gelado', 'Cortes selecionados e grelhados, farofa artesanal e vinagrete fresquinho. Simples, generoso e perfeito com chopp.', '/prato-espetinhos', 2, true, false),
+  ('carnes-nobres', 'Carnes Nobres', 'Nossa porção premium', 'Iscas de carne nobre na chapa, fritas douradas e molho de blue cheese cremoso. Porção farta servida na tábua.', '/prato-carnes-nobres', 3, true, false),
+  ('petiscos', 'Petiscos', 'Feito para compartilhar', 'Porções fartas para dividir (ou não): carne na chapa, fritas douradas e acompanhamentos que ninguém deixa sobrar.', '/prato-petiscos', 4, true, false),
+  ('drinks', 'Drinks', 'Autorais da casa', 'Coquetelaria autoral com gin, frutas frescas e especiarias. Bonito de ver, difícil de tomar só um.', '/prato-drinks', 5, true, false),
+  ('sobremesas', 'Sobremesas', 'O final perfeito', 'Petit gâteau com recheio quente escorrendo e sorvete cremoso. O final feliz que a sua noite merece.', '/prato-sobremesas', 6, true, false),
   ('chopp', 'Chopp', 'Descontinuada nesta versão', 'Categoria do mockup inicial, substituída por Carnes Nobres e Sobremesas na versão final do spec.', null, 7, false, false);
 
 -- `dias` segue Date.getDay() e tem que bater com dias_label, que e so a copy:

@@ -75,7 +75,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 23 arquivos e 229 testes e roda em torno de 12 s.
+`w1920`. A suíte unitária tem 25 arquivos e 256 testes e roda em torno de 12 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -338,10 +338,46 @@ faria a linha escorregar dos cards no dia em que um dos dois mudasse.
 **O card tem duas faces.** A hélice o gira quase volta e meia entre nascer e
 pousar, e com `backface-visibility` no `<article>` inteiro ele sumiria em
 metade do percurso, desmanchando a banda. Então o article é só a caixa 3D com
-`preserve-3d`, e frente (creme, com o conteúdo) e verso (brasa chapada) são
-filhas absolutas. O canto arredondado e o `overflow-hidden` moram nas faces:
+`preserve-3d`, e frente (a foto do prato, com o conteúdo) e verso (brasa
+chapada) são filhas absolutas. O canto arredondado e o `overflow-hidden` moram nas faces:
 `overflow` diferente de `visible` achata o conteúdo 3D e o `preserve-3d` se
 perde.
+
+**A frente tem dois estados, e quem decide é `fotoPath`.** Desde 2026-09-10
+ela é fotografia sangrando nos quatro lados, com um véu de carvão na base e
+texto em branco. Com `fotoPath` nulo ela volta ao creme chapado que a seção
+inteira era, com tinta carvão, kicker em brasa-escura e a descrição de volta
+no `xl`. **O caminho sem foto não é sobra**: é o que a seção mostra enquanto
+uma categoria nova não tem fotografia, e apagá-lo obrigaria o dono a esperar
+o fotógrafo para publicar um item. A categoria inativa `chopp` guarda esse
+caso no seed.
+
+**O véu é a única superfície do site cujo fundo ninguém consegue medir**, e
+por isso a conta dele saiu do componente e virou `lib/veuDaFoto.ts`, com
+teste, como `costura` e `cabecalho`. Embaixo da letra branca há foto, e foto
+muda de pixel para pixel: um chantili, o gelo de um drink, e a letra some. O
+que se mede é o **pior caso**, uma foto de branco puro, com o véu composto
+por cima; se o branco passa AA ali, passa sobre qualquer foto. `sobrepor` faz
+essa composição e `contraste.test.ts` mede o par como mede qualquer outro.
+
+A rampa tem **platô** porque o degradê de duas pontas cai rápido demais: na
+altura do kicker ele já perdeu metade da força e o par reprova. E o que erra
+calado ali é `TETO_DO_TEXTO`, a altura máxima que o bloco de kicker mais nome
+pode alcançar. Corpo maior ou recuo menor sobe o texto para véu mais fraco, e
+nada lança: a letra continua lá, só fica difícil de ler, e só sobre algumas
+fotos. O teto é declarado com folga larga sobre a medida real, que é 0,45 no
+card mais apertado, o de 216x144 entre 1024px e 1279px.
+
+O último ponto do degradê é o carvão a zero por cento, e **não** a palavra
+`transparent` sozinha: `transparent` é preto transparente, e onde o motor
+interpola sem premultiplicar o miolo da rampa acinzenta sobre a foto.
+
+**O card mora em `CardDeCategoria.tsx`, e não em `Cardapio.tsx`.** Saiu de lá
+quando ganhou foto, pelo mesmo motivo que `lib/tituloHero.ts` existe:
+`Cardapio` é Server Component `async` que importa a fachada do Supabase, e
+nenhum teste em jsdom consegue montar aquele módulo. O card passou a citar
+arquivo por nome e a sustentar um par de contraste, e nada disso podia ficar
+sem teste.
 
 A pose **congela no descolamento** e o voo interpola dela até a identidade,
 como na FITA. Sem congelar, a hélice segue girando durante o voo e o card
@@ -400,8 +436,11 @@ uso, e os literais `FIRE`, `N’BRASA` e `VAI N’BRASANDO` continuam em
 `Categoria.destaque` **continua sem consumidor na interface, e já estava assim
 antes disso**: o comentário do campo em `lib/conteudo.tipos.ts` afirma que ele
 substitui a escolha por posição no array, mas quem escolhia o tile grande era a
-posição no array. Quando o card ganhar foto pelo painel, ele é o candidato
-natural a decidir qual card é o maior da fileira.
+posição no array. Versões anteriores desta seção apostavam que ele voltaria a
+ter uso quando o card ganhasse foto. **O card ganhou foto em 2026-09-10 e
+`destaque` seguiu sem consumidor**, porque a grade da referência tem seis
+células do mesmo tamanho e não há tile grande para escolher. Ele volta ao
+jogo se algum dia a grade voltar a ter um card maior que os outros.
 
 ### O horário de funcionamento mora dentro do card, e o card é uma chama
 
@@ -523,7 +562,15 @@ horários abria com dois títulos lado a lado e passou a ter um só, o do banco.
 Ela é a demonstração do fluxo de duas pontas descrito no parágrafo abaixo. A
 sexta é `0006_dias_da_programacao.sql`, do mesmo dia, e é a única que mexe em
 **schema**: acrescenta `programacao.dias`. Por ser schema, ela é o caso em que
-o fluxo de duas pontas inclui o `0001`, e não só o `0003`.
+o fluxo de duas pontas inclui o `0001`, e não só o `0003`. Depois dela vêm
+**duas numeradas `0007`**, pelo mesmo motivo que as duas `0004`: nasceram no
+mesmo dia, em frentes diferentes, e não dependem uma da outra.
+`0007_subtitulo_depoimentos.sql` é a das avaliações, documentada mais acima.
+`0007_fotos_das_categorias.sql` preenche `foto_path` nas seis categorias
+ativas com o caminho base dos derivados dos pratos. **Sem esta aplicada o site
+continua com os cards creme**, porque a página lê o banco e não o seed, e nada
+acusa: o caminho sem foto é um estado legítimo do card. Ela já foi aplicada no
+projeto Supabase em 2026-09-10.
 Aplicadas manualmente no projeto Supabase: SQL editor ou
 `npx supabase link --project-ref <ref> && npx supabase db push`. Migrations
 devem ser reentrantes: a de RLS já quebrou por ter sido aplicada pela metade.
@@ -626,7 +673,9 @@ Declarados uma vez em `app/globals.css`, bloco `@theme` do Tailwind v4
 `text-creme-texto`). `tests/unit/tokens.test.ts` fixa os valores hex, **e
 também afirma que `cinza`, `fumaca` e `brasa-texto` continuam ausentes**, e
 `tests/unit/contraste.test.ts` calcula a razão WCAG de cada par texto/fundo.
-**Todo par novo ganha uma linha lá**; um token de contraste já falhou quatro
+**Todo par novo ganha uma linha lá**, inclusive o par sem fundo fixo do card
+com foto, que é medido contra o pior caso do véu (ver a seção do Cardápio);
+um token de contraste já falhou quatro
 vezes neste projeto por não ser medido contra a superfície real.
 
 ### Imagens
@@ -648,6 +697,29 @@ botão desse corte. A do Centro é a única fora de 0,5: o letreiro
 "EU ♥ ANGRA DOS REIS" é mais largo que a janela e 0,70 é o foco que deixa
 uma frase inteira em pé. `tests/unit/RotaMascote.test.tsx` falha se o
 `<picture>` citar arquivo que não existe em `public/`.
+
+As seis fotos dos pratos dos cards do Cardápio seguem o mesmo molde, com uma
+diferença: `python scripts/gerar-pratos.py` lê de **`fotos-site/`**, e não de
+`apresentação site/`. Ele grava `public/prato-<slug>-{320,640}.{avif,webp}`
+mais um `.jpg` de reserva em 640, e o `<slug>` é o da categoria no seed.
+Categoria nova com foto obriga a rodar o script, senão o card fica com buraco,
+e `tests/unit/CardDeCategoria.test.tsx` falha nesse caso.
+
+O corte é o outro lado do das paradas: cinco das seis origens são **retrato** e
+o card é 3:2 deitado, então aqui ele tira **altura**, e `FOCO` é vertical. A
+dos petiscos é a única mais deitada que o card e perde largura, então o mesmo
+número muda de eixo, o que `cortar` decide sozinho pelo aspecto da origem. Os
+focos foram escolhidos comparando os cortes lado a lado, e cada um traz o
+motivo no comentário: o neon da marca atrás do burger, o chantili no terço de
+cima da sobremesa, o prato da marca no canto da travessa de petiscos.
+
+A qualidade do AVIF aqui é mais alta que a das paradas, e isso é de propósito:
+lá metade do quadro é céu e água, superfície lisa onde o banding aparece
+primeiro; aqui é comida em close, onde o que some antes é a textura fina.
+
+Um arquivo de origem tem nome torto, `espetihos.png`, sem o primeiro `n`. Ele
+está mapeado assim numa linha do script, e não foi renomeado porque a pasta é
+do cliente.
 
 A foto do herói é um `<img>` com `<picture>`, **não `next/image`, e isso é
 deliberado**: o componente do Next é de cliente e subiu a primeira carga de
@@ -887,10 +959,12 @@ Nenhum é texto:
 | `IMG_3643.png` | foto da fachada, 4892×7732 (32 MB) |
 | `centro.png`, `praia do anil.png`, `praia grande.png`, `pontal.png`, `verolme.png` | as cinco paradas da rota, 14 MB no total, entrada de `scripts/gerar-paradas.py` |
 | `mascote.cdr` | vetor editável do mascote |
+| `burger.jpg`, `espetihos.png`, `carne.jpg`, `petiscos.png`, `drink.jpg`, `sobremesa.png` | as seis fotos dos pratos, em `fotos-site/`, entrada de `scripts/gerar-pratos.py`. `espetihos` está grafado sem o primeiro `n` na origem |
+| `DSC09797.jpg`, `fking_cheddar@4x.png`, `quem veio volta .png` | sobras sem uso hoje: dois burgers além do que está no site e um brinde de chopp no deque, que o cliente destinou a outra seção |
 
 `pdftoppm`/poppler não está instalado; o Python 3.13 local tem **PyMuPDF
 (`fitz`)**, `pypdf`, `pdfminer` e **Pillow**, use `fitz` para extrair texto e
-rasterizar páginas. Os cinco scripts de `scripts/` se dividem entre esses dois
+rasterizar páginas. Os sete scripts de `scripts/` se dividem entre esses dois
 mundos: os de imagem e favicon pedem só Pillow, e os de fonte
 (`gerar-owners.py`, `gerar-combust.py`) pedem **fonttools e brotli**, sem os
 quais não sai WOFF2. O `.cdr` é binário proprietário: nenhuma ferramenta local
