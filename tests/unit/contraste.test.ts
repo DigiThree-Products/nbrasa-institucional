@@ -45,19 +45,20 @@ const BRASA_ESCURA = "#b81f2c";
 const BRASA_FUNDA = "#8a1a24";
 
 /**
- * Pior caso do véu da seção de avaliações, que é `bg-carvao/70` sobre a foto.
+ * Pior caso do véu da seção de avaliações, que é `bg-carvao/78` sobre a foto.
  *
  * Foto não tem cor única, então não dá para medir contra ela. O que dá para
  * medir é o limite: quanto mais clara a foto, mais claro o composto, e o
- * extremo é branco puro atrás. Carvão a 70% sobre branco fecha em #666262, e
+ * extremo é branco puro atrás. Carvão a 78% sobre branco fecha em #545050, e
  * é contra este valor que todo texto da seção precisa passar. Qualquer pixel
  * real da foto é mais escuro que isto, então quem passa aqui passa em toda a
  * seção.
  *
- * A conta: 255 * (1 - 0,70) + canal do carvão * 0,70, canal a canal. Mexeu na
- * opacidade em `Depoimentos.tsx`, refaça a conta e troque este valor.
+ * A conta: 255 * (1 - 0,78) + canal do carvão * 0,78, canal a canal. Mexeu na
+ * opacidade em `Depoimentos.tsx`, refaça a conta e troque este valor. O véu
+ * nasceu em 70% (#666262) e o cliente pediu mais escuro em 2026-09-10.
  */
-const VEU_SOBRE_FOTO = "#666262";
+const VEU_SOBRE_FOTO = "#545050";
 
 const AA_NORMAL = 4.5;
 

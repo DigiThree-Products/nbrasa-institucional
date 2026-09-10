@@ -4,19 +4,21 @@ Rodar so quando a foto de origem mudar:
 
     python scripts/gerar-quem-veio-volta.py
 
-A origem e "quem veio volta .png", em fotos-site/ (fora do repo). O espaco
-antes do ponto esta no nome do arquivo de verdade, nao e engano deste
-comentario; renomear a origem obriga a mexer aqui.
+A origem e "quem veio volta.png", em fotos-site/ (fora do repo). O cliente
+trocou a foto em 2026-09-10, e a nova chegou com nome diferente da primeira,
+que tinha um espaco antes do ponto. Se as duas ainda estiverem lado a lado na
+pasta, a boa e apagar a antiga: nada aqui a usa.
 
 **Nao ha corte.** As outras fotos do site entram em janela de proporcao fixa
 e o corte e decidido aqui; esta cobre uma secao inteira, cuja proporcao muda
 com a janela do visitante, entao quem corta e o `object-cover` do navegador.
 O que este script faz e so converter e reduzir.
 
-A origem tem 1080x1350, retrato de 4:5. **1080 e o teto**: ampliar aqui so
-inventaria pixel e peso. Numa tela de 1920 o navegador amplia 1,8x, o que
-seria visivel numa foto nua e nao e atras do veu de carvao a 70% que a secao
-pinta por cima. Se um dia chegar um arquivo maior, acrescente a largura em
+A origem tem 1122x1402, retrato de 4:5. **1080 e o teto** que este script
+grava: ampliar so inventaria pixel e peso, e os 42px que sobram nao pagam uma
+largura a mais no <picture>. Numa tela de 1920 o navegador amplia 1,8x, o que
+seria visivel numa foto nua e nao e atras do veu de carvao a 78% que a secao
+pinta por cima. Se um dia chegar um arquivo bem maior, acrescente a largura em
 LARGURAS e o <picture> da secao aproveita sozinho.
 """
 
@@ -25,11 +27,11 @@ from pathlib import Path
 from PIL import Image
 
 RAIZ = Path(__file__).resolve().parent.parent
-ORIGEM = RAIZ / "fotos-site" / "quem veio volta .png"
+ORIGEM = RAIZ / "fotos-site" / "quem veio volta.png"
 DESTINO = RAIZ / "public"
 BASE = "quem-veio-volta"
 
-# 640 cobre o telefone em tela 2x; 1080 e a largura nativa da origem.
+# 640 cobre o telefone em tela 2x; 1080 e o teto (origem tem 1122).
 LARGURAS = (640, 1080)
 
 # Ceu liso ocupa o terco de cima da foto, e e nele que o banding aparece
