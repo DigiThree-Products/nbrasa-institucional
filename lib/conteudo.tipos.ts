@@ -3,6 +3,14 @@ export type Categoria = {
   nome: string;
   kicker: string;
   descricao: string;
+  /** Caminho BASE dos derivados da foto do prato, sem largura e sem extensão:
+   *  `/prato-burgers` vira `/prato-burgers-640.avif` no card. Quem os grava em
+   *  `public/` é `scripts/gerar-pratos.py`, e há teste que falha se um arquivo
+   *  citado pelo card não existir lá.
+   *
+   *  Nulo é caminho legítimo, não pendência: o card sem foto volta a ser o
+   *  creme chapado que a seção inteira era até 2026-09-10. A categoria inativa
+   *  `chopp` existe no seed guardando esse caso. */
   fotoPath: string | null;
   ordem: number;
   ativo: boolean;
