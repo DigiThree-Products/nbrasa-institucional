@@ -662,6 +662,28 @@ build` imprime, e conferir é trabalho de quem mexe em dependência de cliente.
 é CSS puro: cada decisão dessas foi tomada contra um número que ninguém vai
 cobrar automaticamente.
 
+**O fundo da seção de avaliações é foto com véu, e o véu é conta, não gosto.**
+`python scripts/gerar-quem-veio-volta.py` lê `quem veio volta .png` de
+`fotos-site/` (o espaço antes do ponto está no nome do arquivo de verdade) e
+grava AVIF e WebP em 640 e 1080, mais um JPEG de reserva. Ele é o único dos
+scripts de imagem que **não corta**: a seção cobre a janela inteira, cuja
+proporção muda com o visitante, então quem corta é o `object-cover`. E 1080 é
+o teto porque é a largura da origem: numa tela de 1440 o navegador já amplia
+1,33 vez, o que passa despercebido atrás do véu e não passaria numa foto nua.
+
+O véu é `bg-carvao/70` e a opacidade governa a legibilidade de todo texto da
+seção. Foto não tem cor única, então o que se mede é o pior caso: quanto mais
+clara a foto, mais claro o composto, e o extremo é branco puro atrás. Carvão a
+70% sobre branco fecha em `#666262`, que dá 6,0:1 com o branco e 4,9:1 com o
+creme. A 62% o branco cairia para 4,6:1, no fio. **Baixar a opacidade não
+lança nada**, só deixa o texto ilegível sobre a parte clara da foto, que é o
+céu no topo dela.
+
+Foi essa troca que tirou o fundo e a borda dos cards de avaliação, a pedido do
+cliente, e **as três cores do card mudaram junto, por obrigação**: as estrelas
+eram `brasa`, que sobre o véu dá 1,1:1 e some. Sobre foto só valem branco e
+creme, e há teste que registra o número para a conversa não recomeçar.
+
 O favicon sai de `python scripts/gerar-favicon.py`, que lê a chama de
 `lib/marca.ts` e grava três arquivos em `app/`, de onde o App Router os serve
 sozinho: `icon.svg` (Chrome e Firefox), `favicon.ico` (Safari e o pedido cru a
@@ -729,8 +751,11 @@ Paleta oficial (valores exatos, do moodboard):
 | Branco | `#ffffff` |
 
 **A página é clara.** O fundo padrão do `body` é branco e o carvão virou a cor
-do texto; `creme` é a superfície dos cards sobre esse branco. A **Delivery é a
-única faixa de cor saturada**, e desde 2026-09-04 ela é `bg-brasa text-branco`,
+do texto; `creme` é a superfície dos cards sobre esse branco. Duas seções
+fogem disso, e só duas: a Delivery, que é a **única faixa de cor saturada**, e
+as avaliações, que desde 2026-09-10 são foto com véu de carvão. Nas duas o
+texto é claro, e nas duas o par de cores está medido em `contraste.test.ts`.
+Desde 2026-09-04 a Delivery é `bg-brasa text-branco`,
 não mais carvão, com uma `DivisoriaCurva` na entrada e outra na saída (a de
 saída precisa de `corOrigem`, senão a metade de cima da curva vira branco).
 
