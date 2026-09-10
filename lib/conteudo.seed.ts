@@ -88,7 +88,12 @@ export const conteudoSeed: Conteudo = {
   instagram: "@nbrasaangra",
   campanhaAtiva: false,
   campanhaTitulo: "",
-  depoimentosTitulo: "Nota 4,2 de quase 300 clientes",
+  // Virou subtítulo da seção em 2026-09-10, e por isso é fonte de corpo: a
+  // frase apresenta os cards de avaliação em vez de titular a seção, papel
+  // que passou para o literal "Quem veio, volta" da JSX. O que ela promete
+  // precisa continuar batendo com o que os depoimentos dizem.
+  depoimentosTitulo:
+    "Ambiente acolhedor, chopp gelado e música ao vivo. Palavra de quem já sentou aqui.",
   // Não cita um horário específico: os horários mudam por edição no painel e
   // este título não pode ficar contradizendo a lista logo abaixo dele.
   horariosTitulo: "A semana inteira pede brasa",

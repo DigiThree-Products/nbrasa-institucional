@@ -5,7 +5,6 @@ import { Cardapio } from "@/components/sections/Cardapio";
 import { Delivery } from "@/components/sections/Delivery";
 import { HorariosProgramacao } from "@/components/sections/HorariosProgramacao";
 import { Depoimentos } from "@/components/sections/Depoimentos";
-import { OndeEstamos } from "@/components/sections/OndeEstamos";
 import { DivisoriaCurva } from "@/components/ui/DivisoriaCurva";
 
 export default function Home() {
@@ -27,8 +26,12 @@ export default function Home() {
           className="-mt-px"
         />
         <HorariosProgramacao />
+        {/* As avaliações fecham a página desde 2026-09-10. A seção "Venha nos
+            visitar" saiu a pedido do cliente: endereço e contato já estavam
+            repetidos no rodapé, logo abaixo dela, e ela custava uma tela
+            cheia para dizer o mesmo. Quem herdou o link "Onde estamos" do
+            menu foi o rodapé, e o endereço de lá virou link para o mapa. */}
         <Depoimentos />
-        <OndeEstamos />
       </main>
       <Footer />
     </>
