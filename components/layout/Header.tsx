@@ -10,7 +10,10 @@ const LINKS: LinkNav[] = [
   { href: "#cardapio", rotulo: "Cardápio" },
   { href: "#delivery", rotulo: "Delivery" },
   { href: "#programacao", rotulo: "Programação" },
-  { href: "#onde", rotulo: "Onde estamos" },
+  // Aponta para o rodapé desde 2026-09-10, quando a seção "Venha nos
+  // visitar" saiu: o endereço passou a existir só lá, e um link para uma
+  // âncora que não existe mais não leva a lugar nenhum, calado.
+  { href: "#rodape", rotulo: "Onde estamos" },
 ];
 
 /**

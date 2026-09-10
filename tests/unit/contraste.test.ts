@@ -44,6 +44,22 @@ const CREME_TEXTO = "#6b5c55";
 const BRASA_ESCURA = "#b81f2c";
 const BRASA_FUNDA = "#8a1a24";
 
+/**
+ * Pior caso do véu da seção de avaliações, que é `bg-carvao/78` sobre a foto.
+ *
+ * Foto não tem cor única, então não dá para medir contra ela. O que dá para
+ * medir é o limite: quanto mais clara a foto, mais claro o composto, e o
+ * extremo é branco puro atrás. Carvão a 78% sobre branco fecha em #545050, e
+ * é contra este valor que todo texto da seção precisa passar. Qualquer pixel
+ * real da foto é mais escuro que isto, então quem passa aqui passa em toda a
+ * seção.
+ *
+ * A conta: 255 * (1 - 0,78) + canal do carvão * 0,78, canal a canal. Mexeu na
+ * opacidade em `Depoimentos.tsx`, refaça a conta e troque este valor. O véu
+ * nasceu em 70% (#666262) e o cliente pediu mais escuro em 2026-09-10.
+ */
+const VEU_SOBRE_FOTO = "#545050";
+
 const AA_NORMAL = 4.5;
 
 describe("contraste WCAG — pares de superfície realmente usados no site", () => {
@@ -69,6 +85,10 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
     ["branco sobre brasa (texto principal da Delivery)", BRANCO, BRASA],
     ["branco sobre brasa-funda (texto nos blocos da Delivery)", BRANCO, BRASA_FUNDA],
     ["carvao sobre branco (texto do botão claro na Delivery)", CARVAO, BRANCO],
+    // Seção de avaliações sobre foto: os cards perderam fundo e borda, então
+    // o texto encosta no véu direto. Só branco e creme sobrevivem ali.
+    ["branco sobre o véu (título, estrelas e assinatura)", BRANCO, VEU_SOBRE_FOTO],
+    ["creme sobre o véu (subtítulo e texto da avaliação)", CREME, VEU_SOBRE_FOTO],
   ])("%s atinge AA (≥ %s:1)", (_descricao, cor, fundo) => {
     expect(razaoDeContraste(cor, fundo)).toBeGreaterThanOrEqual(AA_NORMAL);
   });
@@ -95,6 +115,15 @@ describe("contraste WCAG — pares de superfície realmente usados no site", () 
       expect(razaoDeContraste(cor, BRASA)).toBeLessThan(AA_NORMAL);
     },
   );
+
+  it("brasa sobre o véu é invisível, e é por isso que as estrelas viraram brancas", () => {
+    // 1,13:1, praticamente o mesmo tom. As estrelas das avaliações eram
+    // `brasa` enquanto o card tinha fundo creme; sobre a foto elas sumiriam,
+    // e não existe vermelho de marca que passe ali sem clarear a ponto de
+    // deixar de ser vermelho. Se alguém propuser devolver a cor, o número
+    // está medido.
+    expect(razaoDeContraste(BRASA, VEU_SOBRE_FOTO)).toBeLessThan(1.5);
+  });
 
   it("carvao sobre brasa só serve para display grande", () => {
     // 3,09:1 passa em AA-grande (>= 3:1) e reprova em AA normal. É o que
