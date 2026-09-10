@@ -189,7 +189,7 @@ test("mostra os horários agrupados corretamente", async ({ page }) => {
 });
 
 test("expõe os cinco bairros da rota de entrega", async ({ page }) => {
-  for (const b of ["Centro", "Praia do Anil", "Japuíba", "Praia Grande", "Mambucaba"]) {
+  for (const b of ["Centro", "Praia do Anil", "Praia Grande", "Pontal", "Verolme"]) {
     await expect(page.getByText(b, { exact: true })).toBeVisible();
   }
 });
@@ -216,7 +216,10 @@ test.describe("com movimento reduzido", () => {
   });
 
   test("nenhum conteúdo depende de animação", async ({ page }) => {
-    await expect(page.getByText("Mambucaba")).toBeVisible();
+    // `exact` não é enfeite: a fita da Delivery repete "ENTREGAMOS DO PONTAL
+    // ATÉ A VEROLME." oito vezes, e uma busca por substring casaria com todas
+    // elas além da etiqueta da parada, quebrando por strict mode.
+    await expect(page.getByText("Verolme", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 

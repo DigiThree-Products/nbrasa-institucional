@@ -485,6 +485,18 @@ saem de `python scripts/gerar-fachada.py`, que lê o original de 33 MB em
 `apresentação site/` (fora do repositório). Rode só quando a foto de origem
 mudar. O `Hero` embute um borrão base64 de 16 px como placeholder.
 
+As cinco fotos dos cards da rota do delivery seguem o mesmo molde:
+`python scripts/gerar-paradas.py` lê `centro.png`, `praia do anil.png`,
+`praia grande.png`, `pontal.png` e `verolme.png` da mesma pasta e grava
+`public/parada-<id>-{320,640}.{avif,webp}` mais um `.jpg` de fallback em 640.
+O `<id>` é o da constante `PARADAS`, em `Delivery.tsx`: **id novo ali obriga
+a rodar o script**, senão o card fica com buraco. O script corta na proporção
+do card (4/3.4), sempre tirando largura, e `FOCO_HORIZONTAL` por foto é o
+botão desse corte. A do Centro é a única fora de 0,5: o letreiro
+"EU ♥ ANGRA DOS REIS" é mais largo que a janela e 0,70 é o foco que deixa
+uma frase inteira em pé. `tests/unit/RotaMascote.test.tsx` falha se o
+`<picture>` citar arquivo que não existe em `public/`.
+
 A foto do herói é um `<img>` com `<picture>`, **não `next/image`, e isso é
 deliberado**: o componente do Next é de cliente e subiu a primeira carga de
 122 kB para 127 kB contra um orçamento de 130 kB, e o otimizador da Vercel
@@ -683,6 +695,7 @@ Nenhum é texto:
 | `apresentação - folder - nbrasa.pdf` | 5 pág., folder impresso (horários desatualizados) |
 | `N'brasa adesivos.pdf` | cartela de adesivos |
 | `IMG_3643.png` | foto da fachada, 4892×7732 (32 MB) |
+| `centro.png`, `praia do anil.png`, `praia grande.png`, `pontal.png`, `verolme.png` | as cinco paradas da rota, 14 MB no total, entrada de `scripts/gerar-paradas.py` |
 | `mascote.cdr` | vetor editável do mascote |
 
 `pdftoppm`/poppler não está instalado; o Python 3.13 local tem **PyMuPDF
