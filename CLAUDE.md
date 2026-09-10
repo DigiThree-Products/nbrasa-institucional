@@ -75,7 +75,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 23 arquivos e 229 testes e roda em torno de 12 s.
+`w1920`. A suíte unitária tem 25 arquivos e 256 testes e roda em torno de 12 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -469,8 +469,10 @@ quebra que tem.
 Só o contorno da chama de cada card continua no `Reveal`, com `saida`, e o
 `Reveal` embrulha **apenas o SVG**, não o card inteiro: embrulhando tudo, a
 opacidade dele multiplicaria a das letras e o acender sairia lavado.
-`Depoimentos` segue no comportamento antigo, de revelar e ficar, e é por isso
-que `saida` é opcional em vez de virar o padrão.
+O `Reveal` sem `saida`, que revela uma vez e fica, **ficou sem consumidor na
+interface** em 2026-09-10, quando as avaliações passaram a queimar: era
+`Depoimentos` quem dependia dele. Segue exportado e testado, como o
+`agruparHorarios`.
 
 **São 163 letras animando, e o desfoque da saída é o item caro.** No desktop
 as quatro chamas estão na tela juntas e o pico é as 163; no telefone, com uma
@@ -490,6 +492,59 @@ cria uma **tween nova a cada travessia** em vez de reverter, o que também dá
 à saída uma duração e uma curva próprias. Só a primeira entrada usa `fromTo`:
 nas voltas o conteúdo já está escondido, e refazer o estado inicial daria um
 salto.
+
+### As avaliações são reveladas por uma linha de fogo que sobe
+
+Desde 2026-09-10 a seção "Quem veio, volta" não usa mais o `Reveal`. O cliente
+pediu que ela ficasse fiel à mesma referência de tipografia em fogo que deu
+origem ao `TextoQueAcende`, e apontou as duas coisas que faltavam: a fumaça e
+a revelação de baixo para cima. A conta mora em `lib/queima.ts`, com teste.
+
+**O que sobe é uma máscara dentro do glifo, e não o glifo.** A letra fica
+parada e um gradiente de máscara atravessa a caixa dela de baixo a cima:
+abaixo da linha de fogo o glifo é tinta, acima dela ainda é fumaça. É a
+diferença para o `TextoQueAcende`, onde a letra inteira sobe e esfria. A banda
+de transição, `MACIEZ`, é o que faz a fronteira ler como chama; recorte de
+borda dura no lugar dela leria como papel rasgado.
+
+Três números erram calados. `LINHA_INICIAL` precisa estar uma `MACIEZ` inteira
+**abaixo** de zero, senão a base da letra nasce já acesa, porque a transição
+começa na linha e termina acima dela. `LINHA_FINAL` abaixo de 100 deixa o topo
+do glifo sem tinta para sempre. E `calc` mal fechado não lança: o navegador
+descarta a declaração inteira, a máscara some, e a letra aparece pronta, sem
+queima nenhuma.
+
+**A máscara é escrita por JavaScript, e nunca na marcação.** Ela é o que
+esconde o texto, então só pode existir onde há quem a mova: escrita na JSX,
+deixaria a seção invisível para sempre em quem carregasse a página sem o GSAP.
+Pelo mesmo motivo ela é **retirada** quando o fogo acaba, e o texto parado
+volta a ser texto puro, sem camada de composição.
+
+**O estado inicial é aplicado na montagem, e não no instante do gatilho**, o
+que é a diferença para todo o resto do site. `escondeNaMontagem` decide, e a
+pergunta é sobre posição: o que ainda está abaixo da janela nasce escondido, o
+que já está à vista não é tocado. Sem isso o texto sobe a tela em opacidade
+cheia, é visto por volta de cem pixels de rolagem, e só então salta para
+escondido, que era a piscada que a seção tinha com o `Reveal`. Esconder o que
+já está à vista seria pior, porque apagaria na frente de quem está lendo.
+
+**São dois componentes, e a divisão é de orçamento.** O título usa
+`TextoQueAcende` com a prop `queima`: são 14 letras, cada uma com duas camadas
+sobrepostas, e a de cima, borrada, é a fumaça. O subtítulo e os três cards
+usam o `Queima`, irmão dele, que põe **uma máscara só** no bloco inteiro e
+troca a cópia borrada por um desfoque que limpa junto com a subida. Letra a
+letra nos cards seriam mais de trezentos elementos mascarados, contra as 163
+letras que a seção de horários já custa, e duplicaria o texto do card no DOM.
+
+**Os três cards precisam do `delay` escalonado.** Eles são irmãos da mesma
+linha da grade e têm o mesmo topo, então os três gatilhos pegam no mesmo
+instante: sem atraso a fileira inteira acende de uma vez, que é o que
+acontecia antes. No telefone eles empilham e a própria rolagem já os separa.
+
+O fogo desta seção **não pode ser o `brasa` na tinta**, e é a mesma armadilha
+que trocou a cor das estrelas: sobre o véu de carvão o vermelho dá 1,1:1 e
+some. Aqui ele vive no brilho, um `text-shadow` que apaga enquanto a letra
+esfria, e a tinta continua sendo a cor de repouso lida do DOM.
 
 ### Cache e revalidação
 
@@ -544,9 +599,9 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Nove arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `TextoQueAcende`, `RotaMascote`, `RolagemDoCabecalho`,
-`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só oito chegam à
+Dez arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `TextoQueAcende`, `Queima`, `RotaMascote`, `RolagemDoCabecalho`,
+`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só nove chegam à
 página**:
 `VideoFachada` está órfão, ver logo abaixo. Todo o resto é Server Component
 `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por

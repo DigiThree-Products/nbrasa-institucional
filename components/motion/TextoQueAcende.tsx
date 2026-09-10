@@ -1,6 +1,13 @@
 "use client";
 
 import { Fragment, useEffect, useRef } from "react";
+import {
+  LINHA_INICIAL,
+  LINHA_FINAL,
+  VARIAVEL_DA_LINHA,
+  mascaraDaQueima,
+  escondeNaMontagem,
+} from "@/lib/queima";
 
 /**
  * Texto que acende letra a letra na entrada e esfumaça na saída.
@@ -11,6 +18,11 @@ import { Fragment, useEffect, useRef } from "react";
  * amarelo, e aqui a página é clara e as cores continuam sendo carvão, brasa e
  * branco. O fogo sai da cor de nascimento e do brilho, que esfriam até a cor
  * de repouso da própria letra.
+ *
+ * São dois modos de entrada, e a saída é a mesma nos dois. O padrão sobe a
+ * letra inteira e a esfria, e é o que a seção de horários usa. O `queima`
+ * deixa a letra parada e faz uma linha de fogo subir por dentro do glifo, e é
+ * o que a seção de avaliações usa; ver a prop.
  *
  * Acessibilidade: a frase inteira vai num `sr-only`, e a versão quebrada em
  * letras leva `aria-hidden`. Sem isso o leitor de tela soletraria o título.
@@ -26,14 +38,39 @@ function vermelhoDeMarca(): string {
   return doToken || "#cf2434";
 }
 
+/** Quanto tempo o fogo leva para atravessar um glifo de baixo a cima. */
+const DURACAO_DA_QUEIMA = 0.9;
+/** Distância entre uma letra e a vizinha, que é o que faz a onda correr. */
+const PASSO_DA_QUEIMA = 0.045;
+/**
+ * A fumaça não chega a opaca.
+ *
+ * Ela é a mesma letra borrada por cima da linha de fogo, e em opacidade cheia
+ * lê como segunda letra fora de foco, não como fumaça. Zerada no repouso, para
+ * o texto parado não pagar camada nenhuma.
+ */
+const OPACIDADE_DA_FUMACA = 0.72;
+
 type Props = {
   children: string;
   className?: string;
   /** Atrasa o acender, para escalonar linhas vizinhas. */
   delay?: number;
+  /**
+   * Troca a entrada pela queima: a letra fica parada e uma linha de fogo sobe
+   * por dentro dela, deixando tinta abaixo e fumaça acima. Pedido do cliente
+   * em 2026-09-10 para a seção de avaliações ficar mais fiel à referência.
+   *
+   * É opcional, e não o padrão, pelo mesmo motivo do `saida` do `Reveal`: a
+   * seção de horários já tinha sido aprovada com a entrada de sempre, e a
+   * queima custa duas camadas e uma máscara por letra. Ela paga isso em texto
+   * de display, que é grande o bastante para o gesto ser visto, e não em
+   * parágrafo. Bloco inteiro usa o `Queima`, que é irmão deste.
+   */
+  queima?: boolean;
 };
 
-export function TextoQueAcende({ children, className, delay = 0 }: Props) {
+export function TextoQueAcende({ children, className, delay = 0, queima = false }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   const palavras = children.split(" ");
 
@@ -80,6 +117,53 @@ export function TextoQueAcende({ children, className, delay = 0 }: Props) {
         );
       };
 
+      const tintas = Array.from(el.querySelectorAll<HTMLElement>("[data-tinta]"));
+      const fumacas = Array.from(el.querySelectorAll<HTMLElement>("[data-fumaca]"));
+
+      /*
+       * As máscaras são escritas por aqui, e nunca na marcação. Máscara é o
+       * que esconde o glifo, então ela só pode existir onde há quem a mova:
+       * escrita na JSX, ela deixaria o texto invisível para sempre em quem
+       * carregasse a página sem o GSAP.
+       */
+      const vestirMascaras = () => {
+        const tinta = mascaraDaQueima("tinta");
+        const fumaca = mascaraDaQueima("fumaca");
+        gsap.set(tintas, { maskImage: tinta, webkitMaskImage: tinta });
+        gsap.set(fumacas, {
+          maskImage: fumaca, webkitMaskImage: fumaca, opacity: OPACIDADE_DA_FUMACA,
+        });
+      };
+
+      // Passado o fogo, não sobra nada para mascarar: a letra parada volta a
+      // ser texto puro, e a fumaça sai da frente.
+      const despirMascaras = () => {
+        gsap.set([...tintas, ...fumacas], { clearProps: "maskImage,webkitMaskImage" });
+        gsap.set(fumacas, { opacity: 0 });
+      };
+
+      const queimar = () => {
+        vestirMascaras();
+        gsap.fromTo(
+          letras,
+          {
+            [VARIAVEL_DA_LINHA]: LINHA_INICIAL,
+            // Desfaz o estado de fumaça em que a saída deixou a letra. Sem
+            // isto ela voltaria borrada, deslocada e transparente.
+            opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
+            textShadow: `0 0 20px ${brasa}`,
+          },
+          {
+            [VARIAVEL_DA_LINHA]: LINHA_FINAL,
+            opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
+            textShadow: "0 0 0px rgba(0,0,0,0)",
+            duration: DURACAO_DA_QUEIMA, ease: "power1.inOut",
+            stagger: PASSO_DA_QUEIMA, delay,
+            overwrite: true, onComplete: despirMascaras,
+          },
+        );
+      };
+
       // Subir mais desfocar é o que lê como fumaça. Descer leria como queda.
       const esfumacar = () => {
         gsap.to(letras, {
@@ -88,14 +172,29 @@ export function TextoQueAcende({ children, className, delay = 0 }: Props) {
         });
       };
 
+      const entrar = queima ? queimar : acender;
+
+      /*
+       * Nasce escondido quando ainda está abaixo da janela.
+       *
+       * Sem isto o texto sobe a tela em opacidade cheia, aparece de verdade
+       * por volta de cem pixels de rolagem, e só então salta para escondido
+       * quando o gatilho pega. Quem já está à vista não é tocado: apagar na
+       * frente de quem está lendo é pior que a piscada.
+       */
+      if (queima && escondeNaMontagem(el.getBoundingClientRect().top, window.innerHeight)) {
+        vestirMascaras();
+        gsap.set(letras, { [VARIAVEL_DA_LINHA]: LINHA_INICIAL });
+      }
+
       const gatilho = ScrollTrigger.create({
         trigger: el,
-        start: "top 92%",
+        start: queima ? "top 86%" : "top 92%",
         // Sem `end` o gatilho valeria até o fim da página e a fumaça nunca
         // aconteceria. Mesmo motivo do `saida` do Reveal.
         end: "bottom top",
-        onEnter: acender,
-        onEnterBack: acender,
+        onEnter: entrar,
+        onEnterBack: entrar,
         onLeave: esfumacar,
         onLeaveBack: esfumacar,
       });
@@ -103,7 +202,7 @@ export function TextoQueAcende({ children, className, delay = 0 }: Props) {
     })();
 
     return () => { vivo = false; matar?.(); };
-  }, [delay]);
+  }, [delay, queima]);
 
   return (
     <span ref={ref} className={className}>
@@ -117,8 +216,27 @@ export function TextoQueAcende({ children, className, delay = 0 }: Props) {
                 senão some a única oportunidade de quebra da linha. */}
             <span className="inline-block whitespace-nowrap">
               {[...palavra].map((letra, l) => (
-                <span key={l} data-letra="" className="inline-block">
-                  {letra}
+                <span
+                  key={l}
+                  data-letra=""
+                  className={queima ? "relative inline-block" : "inline-block"}
+                >
+                  {queima ? (
+                    <>
+                      <span data-tinta="" className="inline-block">{letra}</span>
+                      {/* A mesma letra por cima, borrada, é a fumaça. Fica
+                          absoluta para não medir nada no layout, e o borrão
+                          vai em `em` para acompanhar o corpo do texto. */}
+                      <span
+                        data-fumaca=""
+                        className="absolute inset-0 opacity-0 blur-[0.07em]"
+                      >
+                        {letra}
+                      </span>
+                    </>
+                  ) : (
+                    letra
+                  )}
                 </span>
               ))}
             </span>

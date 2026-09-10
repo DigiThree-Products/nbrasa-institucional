@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
+import { LINHA_INICIAL, LINHA_FINAL, VARIAVEL_DA_LINHA } from "@/lib/queima";
 
-const { fromToMock, toMock, killTweensOfMock, registerPluginMock, createMock } = vi.hoisted(() => ({
+const { fromToMock, toMock, setMock, killTweensOfMock, registerPluginMock, createMock } = vi.hoisted(() => ({
   fromToMock: vi.fn(),
   toMock: vi.fn(),
+  setMock: vi.fn(),
   killTweensOfMock: vi.fn(),
   registerPluginMock: vi.fn(),
   createMock: vi.fn(() => ({ kill: vi.fn() })),
@@ -12,7 +14,7 @@ const { fromToMock, toMock, killTweensOfMock, registerPluginMock, createMock } =
 
 vi.mock("gsap", () => ({
   gsap: {
-    fromTo: fromToMock, to: toMock, killTweensOf: killTweensOfMock,
+    fromTo: fromToMock, to: toMock, set: setMock, killTweensOf: killTweensOfMock,
     registerPlugin: registerPluginMock,
   },
 }));
@@ -43,6 +45,7 @@ describe("TextoQueAcende", () => {
   beforeEach(() => {
     fromToMock.mockClear();
     toMock.mockClear();
+    setMock.mockClear();
     killTweensOfMock.mockClear();
     registerPluginMock.mockClear();
     createMock.mockClear();
@@ -122,5 +125,93 @@ describe("TextoQueAcende", () => {
     semMovimento(true);
     render(<TextoQueAcende>Tarde na Orla</TextoQueAcende>);
     expect(screen.getByText("Tarde na Orla")).toBeVisible();
+  });
+});
+
+describe("TextoQueAcende no modo queima", () => {
+  beforeEach(() => {
+    fromToMock.mockClear();
+    toMock.mockClear();
+    setMock.mockClear();
+    createMock.mockClear();
+    semMovimento(false);
+  });
+
+  it("dá a cada letra uma cópia de fumaça", () => {
+    // A cópia é o que fica acima da linha de fogo enquanto ela sobe. Sem ela
+    // a letra apareceria do nada, em vez de virar tinta a partir da fumaça.
+    const { container } = render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+    expect(container.querySelectorAll("[data-fumaca]")).toHaveLength(4);
+  });
+
+  it("entrega a frase inteira ao leitor de tela, e não a cópia dobrada", () => {
+    render(<TextoQueAcende queima>Quem veio, volta</TextoQueAcende>);
+    expect(screen.getByText("Quem veio, volta")).toBeInTheDocument();
+  });
+
+  it("não escreve máscara nenhuma antes de o GSAP entrar", () => {
+    // A máscara esconde o glifo, então ela só pode existir onde há quem a
+    // mova. Escrita na marcação, ela deixaria o texto invisível para sempre
+    // em quem carregasse a página sem o GSAP.
+    const { container } = render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+    expect(container.innerHTML).not.toContain("linear-gradient");
+  });
+
+  it("ao entrar, sobe a linha de fogo da base ao topo do glifo", async () => {
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+
+    const vars = await varsDoGatilho();
+    vars.onEnter();
+
+    const de = (fromToMock.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    const para = (fromToMock.mock.calls[0] as unknown[])[2] as Record<string, unknown>;
+    expect(de[VARIAVEL_DA_LINHA]).toBe(LINHA_INICIAL);
+    expect(para[VARIAVEL_DA_LINHA]).toBe(LINHA_FINAL);
+  });
+
+  it("nasce escondido quando ainda está abaixo da janela", async () => {
+    // É o que evita a piscada que a seção tinha: o texto subia a tela em
+    // opacidade cheia e só saltava para escondido quando o gatilho pegava.
+    const original = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = () =>
+      ({ top: window.innerHeight + 400 }) as DOMRect;
+
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+    await waitFor(() => expect(setMock).toHaveBeenCalled());
+
+    const vars = setMock.mock.calls.map((c) => (c as unknown[])[1] as Record<string, unknown>);
+    expect(vars.some((v) => v[VARIAVEL_DA_LINHA] === LINHA_INICIAL)).toBe(true);
+    Element.prototype.getBoundingClientRect = original;
+  });
+
+  it("não esconde o que o visitante já tem à vista", async () => {
+    // Apagar na frente de quem está lendo é pior que a piscada que o esconder
+    // na montagem existe para evitar.
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+    await varsDoGatilho();
+
+    const vars = setMock.mock.calls.map((c) => (c as unknown[])[1] as Record<string, unknown>);
+    expect(vars.some((v) => v[VARIAVEL_DA_LINHA] === LINHA_INICIAL)).toBe(false);
+  });
+
+  it("ao sair, sobe e desfoca, como no modo de sempre", async () => {
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+
+    const vars = await varsDoGatilho();
+    vars.onLeave();
+
+    const alvo = (toMock.mock.calls.at(-1) as unknown[])[1] as Record<string, unknown>;
+    expect(alvo.opacity).toBe(0);
+    expect(alvo.y).toBeLessThan(0);
+  });
+
+  it("não mascara nada quando o usuário prefere movimento reduzido", async () => {
+    semMovimento(true);
+    const { container } = render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(setMock).not.toHaveBeenCalled();
+    expect(container.innerHTML).not.toContain("linear-gradient");
   });
 });
