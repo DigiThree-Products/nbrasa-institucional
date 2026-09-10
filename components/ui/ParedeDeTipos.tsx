@@ -45,8 +45,8 @@ const DENTRO_DA_OWNERS = /^[A-Za-z0-9 ’.,!?-]*$/;
  * resto na fonte de fallback, no meio da palavra, com outro peso e outra
  * largura. Quando isso acontece o texto inteiro sai para a fonte de corpo,
  * que é variável. É o mesmo caminho dos links do MenuMobile e das etiquetas
- * de bairro da rota, onde "Cardápio", "Programação" e "Japuíba" também não
- * se reescrevem.
+ * de bairro da rota, onde "Cardápio" e "Programação" também não se
+ * reescrevem.
  *
  * A aspa curva fica de fora da conta porque a Owners a desenha, e a grafia
  * da marca depende disso: "N’BRASA" precisa continuar display.

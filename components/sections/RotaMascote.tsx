@@ -5,6 +5,13 @@ import { Mascote } from "@/components/ui/Chama";
 
 export type Parada = { id: string; bairro: string };
 
+/**
+ * Larguras do card, para o navegador escolher o derivado certo. Precisa bater
+ * com as classes `w-[158px] md:w-[190px] lg:w-[250px]` mais abaixo: errado
+ * aqui, ele baixa o arquivo grande no celular e ninguém percebe.
+ */
+const LARGURAS_DO_CARD = "(min-width: 1024px) 250px, (min-width: 768px) 190px, 158px";
+
 /** Posição de cada parada ao longo da seção. */
 const POSICOES = [
   "top-[3%] left-[2%]", "top-[23%] right-[3%]", "top-[43%] left-[6%]",
@@ -116,16 +123,46 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
       />
 
       {paradas.map((p, i) => (
-        <div key={p.id}
+        <div key={p.id} data-parada={p.id}
              className={`absolute z-[3] w-[158px] md:w-[190px] lg:w-[250px] ${POSICOES[i] ?? ""}`}>
-          {/* Fonte de corpo, e não display: "Japuíba" é nome de bairro e não
-              se reescreve, e a Owners TRIAL não tem letra acentuada. */}
+          {/* Fonte de corpo, e não display: nome de bairro não se reescreve, e
+              a Owners TRIAL não tem letra acentuada. A lista de hoje calha de
+              não ter acento nenhum, mas ela muda a pedido do cliente e já
+              teve "Japuíba"; trocar para display aqui só adia o problema. */}
           <span className="relative z-[2] -mb-3 inline-block -rotate-3 rounded-lg border-[3px] border-branco bg-carvao px-4 py-1.5 text-base font-extrabold uppercase tracking-wide">
             {p.bairro}
           </span>
           <span className="block overflow-hidden rounded-[20px] border-[3px] border-branco bg-brasa-funda shadow-[0_22px_50px_rgba(0,0,0,.6)]">
-            {/* foto da parada entra quando o cliente enviar (§10.2 do spec) */}
-            <span className="block aspect-[4/3.4]" />
+            {/* <picture> e <img> crus, e não next/image, pelo mesmo motivo do
+                herói: o componente do Next é de cliente e custa bundle, e
+                estes cinco arquivos já saem prontos de
+                scripts/gerar-paradas.py. Há teste que falha se um derivado
+                citado aqui não existir em public/. */}
+            <picture>
+              <source
+                type="image/avif"
+                srcSet={`/parada-${p.id}-320.avif 320w, /parada-${p.id}-640.avif 640w`}
+                sizes={LARGURAS_DO_CARD}
+              />
+              <source
+                type="image/webp"
+                srcSet={`/parada-${p.id}-320.webp 320w, /parada-${p.id}-640.webp 640w`}
+                sizes={LARGURAS_DO_CARD}
+              />
+              {/* alt vazio de propósito: a etiqueta logo acima já anuncia o
+                  bairro, e repetir o nome aqui faria o leitor de tela dizer
+                  a mesma coisa duas vezes. width e height são os do derivado,
+                  para o card não pular quando a foto chega. */}
+              <img
+                src={`/parada-${p.id}-640.jpg`}
+                alt=""
+                width={640}
+                height={544}
+                loading="lazy"
+                decoding="async"
+                className="block aspect-[4/3.4] w-full object-cover"
+              />
+            </picture>
           </span>
         </div>
       ))}
