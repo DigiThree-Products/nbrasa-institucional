@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Kaushan_Script } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { DadosEstruturados } from "@/components/seo/DadosEstruturados";
@@ -9,15 +9,25 @@ import "./globals.css";
 const corpo = Hanken_Grotesk({
   subsets: ["latin"], display: "swap", variable: "--fonte-corpo",
 });
-// Fonte desenhada, usada em UMA palavra: o "acende" do herói. Traço
-// manuscrito, peso único, e a inclinação faz parte do desenho da letra: não há
-// oblíqua sintética por cima, que numa fonte já inclinada e irregular só
-// borraria o gesto. A família não vem do moodboard, que só traz Owners e
-// Hanken Grotesk; entrou por decisão de desenho, para a palavra dominante
-// destoar das duas linhas condensadas em volta dela.
-const desenhada = Kaushan_Script({
-  subsets: ["latin"], weight: "400",
-  display: "swap", variable: "--fonte-desenhada",
+// Combust, usada em UMA palavra: o foco do título do herói. Ela traz as
+// labaredas DENTRO do glifo, e é por isso que existe: substituiu um sistema
+// que desenhava as chamas em SVG por cima da Owners. O arquivo é subsetado
+// para caixa alta acentuada, dígitos e pontuação, e sai de
+// scripts/gerar-combust.py; a fonte cheia tem 305 code points e 84 kB, peso
+// que uma palavra não paga.
+//
+// É a versão FREE TRIAL, como a Owners: a compra da licença de webfont é
+// pendência do cliente, registrada no README.
+//
+// `display: "block"` e não "swap", ao contrário das outras duas. O foco é a
+// maior palavra da página e a única cuja forma É o conteúdo visual: trocada
+// por uma fonte de sistema durante o carregamento, ela aparece sem chama
+// nenhuma e depois pula. Meio segundo de invisível é melhor que isso.
+const foco = localFont({
+  src: "./fontes/combust.woff2",
+  weight: "400",
+  display: "block",
+  variable: "--fonte-foco",
 });
 // Owners XNarrow Black, a fonte de display da marca. É a versão TRIAL, com
 // 73 glifos e nenhuma letra acentuada: tests/unit/owners.test.ts garante que
@@ -63,7 +73,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${corpo.variable} ${display.variable} ${desenhada.variable}`}>
+    <html lang="pt-BR" className={`${corpo.variable} ${display.variable} ${foco.variable}`}>
       <body>
         <DadosEstruturados />
         <a href="#conteudo"

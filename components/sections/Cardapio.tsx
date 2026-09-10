@@ -22,8 +22,8 @@ import { Chama } from "@/components/ui/Chama";
  * `self-end`, então descem junto e continuam encostados nos de baixo.
  *
  * A `ParedeDeTipos` saiu daqui em 2026-09-09, a pedido do cliente. A cópia da
- * Delivery continua, e lá ela é outra coisa: `opacity-90` sobre o vermelho,
- * elemento gráfico da faixa e não textura de fundo.
+ * Delivery continua, e lá ela é outra coisa: elemento gráfico da faixa, hoje a
+ * fita contínua de anúncio, e não textura de fundo.
  */
 export function CabecalhoDoCardapio() {
   return (

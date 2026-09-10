@@ -17,11 +17,12 @@
 
   --font-display: var(--fonte-display), "Arial Narrow", Impact, sans-serif;
   --font-corpo: var(--fonte-corpo), system-ui, -apple-system, sans-serif;
-  /* Fonte desenhada, so para a palavra dominante do heroi. Nao existe
-     equivalente de sistema para traco manuscrito, entao o fallback e um
-     grotesco pesado: melhor uma massa parecida durante o swap do que um
-     cursivo fino, que mudaria a mancha inteira do bloco. */
-  --font-desenhada: var(--fonte-desenhada), "Arial Black", Impact, sans-serif;
+  /* Combust, so para a palavra dominante do heroi: e ela que traz as labaredas
+     dentro do glifo. Nao existe equivalente de sistema para letra com chama,
+     entao o fallback e um grotesco pesado, que ao menos mantem a mancha do
+     bloco. Na pratica ele quase nunca aparece: a fonte carrega com
+     `display: block`, ver app/layout.tsx. */
+  --font-foco: var(--fonte-foco), "Arial Black", Impact, sans-serif;
 }
 
 /* CSS oficial do Lenis, obrigatório para o scroll suave funcionar */
@@ -89,12 +90,21 @@ body {
 @media (min-width: 1024px) {
   /*
    * No desktop o header deixa de ser uma faixa de ponta a ponta. A metade
-   * esquerda é retangular; a direita usa a máscara do vídeo com composição
-   * `exclude`, portanto pinta somente a área que a foto não ocupa. O fundo
-   * termina no mesmo pixel da costura do herói. Ele fica
-   * absoluto junto ao herói (em vez de sticky) para os dois recortes
-   * continuarem casados durante o scroll; no mobile o comportamento sticky
-   * original permanece.
+   * esquerda é retangular; a direita usa a mesma máscara da foto com
+   * composição `exclude`, portanto pinta somente a área que a foto não ocupa.
+   *
+   * Ele é FIXO, e por isso a máscara precisa andar. Enquanto ele era absoluto,
+   * header e foto desciam juntos e os dois recortes nunca se separavam;
+   * parado, ele vê a foto subir. `--costura-rolagem` é a distância já rolada,
+   * escrita a cada quadro por `RolagemDoCabecalho`, e subtraí-la da posição da
+   * máscara devolve o casamento. O `0px` de reserva não é enfeite: sem ele, a
+   * variável ausente na primeira pintura invalida o `calc` inteiro e a
+   * `mask-position` cai no canto, levando o recorte junto.
+   *
+   * Quando o herói sai de trás da faixa, `data-fora-do-heroi` estende a
+   * metade esquerda até a borda e apaga a metade mascarada: a barra abre da
+   * esquerda para a direita e engole o recorte. No mobile nada disso vale, lá
+   * o header sempre foi barra cheia e `sticky`.
    */
   .cabecalho-hero {
     overflow: clip;
@@ -136,20 +146,60 @@ body {
     mask-repeat: no-repeat, no-repeat;
     -webkit-mask-size: 100% 100%, auto calc(var(--costura-escala) * 100%);
     mask-size: 100% 100%, auto calc(var(--costura-escala) * 100%);
-    -webkit-mask-position: left top, left var(--costura-altura);
-    mask-position: left top, left var(--costura-altura);
+    -webkit-mask-position:
+      left top,
+      left calc(var(--costura-altura) - var(--costura-rolagem, 0px));
+    mask-position:
+      left top,
+      left calc(var(--costura-altura) - var(--costura-rolagem, 0px));
     -webkit-mask-composite: xor;
     mask-composite: exclude;
   }
 
+  /* A abertura da barra. Só depois de `data-pronto`, que o componente liga um
+     quadro depois da primeira pintura: sem essa trava, quem recarrega a página
+     no meio do site veria a barra nascer recortada e se abrir sozinha, porque
+     o estado inicial do CSS é sempre o do topo. */
+  .cabecalho-hero[data-pronto]::before,
+  .cabecalho-hero[data-pronto]::after,
+  .cabecalho-hero[data-pronto] .cabecalho-conteudo {
+    transition: width 0.35s ease, opacity 0.35s ease;
+  }
+
+  .cabecalho-hero[data-fora-do-heroi]::before { width: 100%; }
+
+  /* Apagada, e não com a máscara removida: `mask-image` não faz transição, e
+     a metade esquerda já chegou por baixo para cobrir o que ela pintava. */
+  .cabecalho-hero[data-fora-do-heroi]::after { opacity: 0; }
+
   /* Mantém logo e navegação dentro da parte clara, sem deslocar a margem
-     esquerda que eles compartilham com o conteúdo do herói. */
+     esquerda que eles compartilham com o conteúdo do herói.
+
+     O `6dvh` é medido, e é o pior caso, não o caso do topo. Com o header fixo
+     a máscara desliza, e por volta de meia tela de rolagem a barriga da chama
+     cruza a faixa e empurra a borda da parte clara para a esquerda: numa
+     janela de 1440 ela sai de 1122 no topo para 774 no mínimo. Esse mínimo é
+     `50vw + 6dvh`, porque o ponto mais gordo da silhueta está a 6 unidades das
+     100 do viewBox e a chama tem quase exatamente a altura do herói.
+
+     Era `34dvh`, que só valia para o header antigo: ele descia junto com a
+     foto, então a borda que ele via nunca mudava. Fixo, `34dvh` deixa a
+     navegação em cima da foto escura no meio do herói, ilegível, e sem nada
+     acusar, porque contraste sobre foto nenhum teste mede. */
   .cabecalho-conteudo {
     width: calc(
-      50vw + 34dvh - max(0px, calc((100vw - 1280px) / 2))
+      50vw + 6dvh - max(0px, calc((100vw - 1280px) / 2))
     );
     margin-right: 0;
     margin-left: max(0px, calc((100vw - 1280px) / 2));
+  }
+
+  /* Com a barra estendida a navegação volta para a margem de sempre. Só a
+     largura muda: esta margem esquerda já vale exatamente o que `mx-auto`
+     calcularia para 1280px, então os dois estados compartilham o mesmo recuo e
+     a logo não anda no meio da transição. */
+  .cabecalho-hero[data-fora-do-heroi] .cabecalho-conteudo {
+    width: min(1280px, 100vw);
   }
 
   /* desktop: chama deitada na borda esquerda da foto */
@@ -161,6 +211,28 @@ body {
     -webkit-mask-position: left var(--costura-altura);
     mask-position: left var(--costura-altura);
   }
+}
+
+/* A faixa em que a área segura do header não comporta a navegação inteira.
+
+   Medido, com a logo em 115px e os quatro links em 453px, o conteúdo precisa
+   de 637px. A área segura dá 558px em 1024x768 e 624px em 1152x800, e só
+   passa a caber em 1280x800, com 688px. Entre um e outro a escolha é entre
+   navegação ilegível sobre a foto e navegação recolhida: recolhida.
+
+   Vale nos dois estados do header, inclusive com a barra já estendida, onde
+   ela caberia. Aparecer e sumir conforme a rolagem seria pior que ficar
+   recolhida o tempo todo nesta faixa de largura. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .cabecalho-nav { display: none; }
+
+  /* Sem a navegação ao lado, o hambúrguer precisa do `ml-auto` de volta para
+     ir à direita da caixa, e precisa reaparecer. As duas regras vencem as
+     utilidades do próprio elemento (`md:ml-0` e `md:hidden`) sem
+     `!important`: as utilidades do Tailwind vivem numa camada, e regra fora
+     de camada ganha delas. */
+  .cabecalho-menu { margin-left: auto; }
+  .cabecalho-menu button { display: flex; }
 }
 
 /* Parede de tipos: a mesma faixa duplicada, deslizando metade da largura e

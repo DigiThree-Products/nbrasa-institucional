@@ -31,7 +31,37 @@ export function RotaMascote({ paradas }: { paradas: Parada[] }) {
       if (!vivo) return;
       gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
-      const trilho = { trigger: wrap, start: "top 72%", end: "bottom bottom", scrub: 1 } as const;
+      // Este objeto serve ao voo E ao desenho da linha de propósito: com scrub
+      // diferente o mascote descolaria da ponta do tracejado.
+      //
+      // `start` e `end` não regulam só quando o voo acontece, regulam a que
+      // ALTURA DA TELA o mascote fica enquanto acontece, e é esse o motivo dos
+      // números serem estes. A rota desce o container inteiro enquanto o
+      // container sobe pela janela, e as duas descidas quase se anulam: o
+      // mascote não passeia pela tela, ele fica pendurado numa faixa estreita e
+      // gingando de um lado para o outro. Onde essa faixa cai é o que a janela
+      // do trilho escolhe. Com `top 90%` -> `bottom bottom` ela caía a 93/97%
+      // da altura da janela, ou seja, raspando a borda de baixo.
+      //
+      // Estes dois põem a faixa em 46/59% da altura da janela, que é onde o
+      // cliente a quis: abaixo do meio, sem chegar perto da borda de baixo.
+      // A conta dos extremos:
+      //   y_tela(0) = 0,51·vh + H·40/1900     y_tela(1) = 0,61·vh - H·40/1900
+      // Os 40 são o quanto o path recua da borda do viewBox de 1900, e é por
+      // causa desse termo que os números aqui não são os 46/59 da faixa: eles
+      // correm por fora, e o recuo do path aperta a faixa por dentro. Some-se
+      // que a rota ondula, então a faixa real se mede no navegador, rolando o
+      // trilho em dez posições, e não só pelos dois extremos acima.
+      //
+      // Somar a mesma quantia aos dois desce a faixa inteira sem deformá-la, e
+      // é assim que se atende um pedido de "um pouco mais para baixo". Quem
+      // governa a ABERTURA da faixa é a diferença entre eles, hoje 10 pontos.
+      //
+      // A distância de rolagem é H - 0,10·vh, ou seja, depende só dessa
+      // diferença: mexer nos dois juntos não altera a velocidade. Quem manda
+      // nela é o `scrub`, o tempo que o voo leva para alcançar o scroll, e
+      // maior faz ele deslizar atrás do dedo em vez de colar nele.
+      const trilho = { trigger: wrap, start: "top 51%", end: "bottom 61%", scrub: 2.5 } as const;
 
       // autoRotate faz o mascote inclinar acompanhando a tangente da curva
       const voo = gsap.to(alvo, {

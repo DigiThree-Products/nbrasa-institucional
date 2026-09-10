@@ -107,17 +107,21 @@ const LITERAIS_DE_DISPLAY = [
   "Estamos a um passo",                       // OndeEstamos.tsx
   "da vista mar",                             // OndeEstamos.tsx
   "n’Brasa",                                  // Header.tsx e Footer.tsx
-  "feel",                                     // Delivery.tsx, empilhado
-  "the",                                      // Delivery.tsx, empilhado
-  "fire",                                     // Delivery.tsx, empilhado
-  "FIRE",                                     // ParedeDeTipos.tsx
-  "N’BRASA",                                  // ParedeDeTipos.tsx
-  "VAI N’BRASANDO",                           // ParedeDeTipos.tsx
+  // A ParedeDeTipos NÃO entra mais aqui, e a ausência é deliberada: a frase
+  // dela virou uma unidade só, com acento, e `classeDaFamilia` manda o
+  // conjunto inteiro para a fonte de corpo. Listar qualquer pedaço aqui
+  // seria cobrar da Owners um glifo que ela nunca desenha. Quem guarda essa
+  // regra hoje é tests/unit/ParedeDeTipos.test.tsx.
 ];
 
+/**
+ * `heroTitulo` NÃO entra aqui, e a ausência é deliberada: desde a troca do
+ * foco para a Combust, nenhuma das três linhas do título do herói é Owners.
+ * A abertura e o fecho são Hanken, o foco é Combust. Quem cobre o foco é
+ * `combust.test.ts`.
+ */
 function textosDoSeed(): string[] {
   return [
-    conteudoSeed.heroTitulo,
     conteudoSeed.depoimentosTitulo,
     conteudoSeed.horariosTitulo,
     ...categoriasSeed.map((c) => c.nome),
