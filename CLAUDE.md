@@ -22,6 +22,8 @@ traz a chama no glifo. `docs/handoff-espiral-do-cardapio.md` é **transitório**
 foi escrito para retomar a branch `espiral-no-cardapio` em outra máquina, cita
 commits e contagens que envelhecem sozinhos, e some quando a branch entrar em
 `main`. Não tire fato de lá sem conferir no código.
+`docs/handoff-queima-das-avaliacoes.md` é da mesma espécie, para a branch
+`fundo-quem-veio-volta`, e vale a mesma ressalva.
 
 **Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
 variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
