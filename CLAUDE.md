@@ -68,8 +68,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 22 arquivos e 227 testes; são 9 s de teste e
-perto de 15 s de parede, que o custo de subir o jsdom explica.
+`w1920`. A suíte unitária tem 22 arquivos e 227 testes e roda em torno de 12 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
