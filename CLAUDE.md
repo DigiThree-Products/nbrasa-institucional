@@ -52,6 +52,13 @@ server já em pé; a suíte já validou build velha por causa disso. O outro lad
 da mesma moeda: com um `npm run dev` ocupando a 3000 o Playwright nem começa,
 ele para dizendo que a porta está em uso. Derrube o preview antes de rodar.
 
+**E rodar o e2e derruba o preview mesmo em outra porta.** Trocar a porta do
+`webServer` resolve o conflito de socket e não resolve o de disco: o
+`npm run build` reescreve o `.next`, e o dev server que estava servindo a partir
+dele passa a responder 500 em toda requisição. Não é defeito no código, é o
+processo antigo apontando para artefatos que deixaram de existir. Depois de
+qualquer build, suba o preview de novo.
+
 `npm run test:integracao` exige `.env.local` preenchido e as migrations
 aplicadas: ele lê o banco de verdade e afirma contagens do seed (6 categorias
 ativas, 7 horários). `tests/integracao/segredos.test.ts` varre `.next/static`,
@@ -68,7 +75,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 22 arquivos e 227 testes e roda em torno de 12 s.
+`w1920`. A suíte unitária tem 23 arquivos e 229 testes e roda em torno de 12 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -152,13 +159,13 @@ WhatsApp se encaixa, ao lado do fecho. O alinhamento do fecho à direita sai do
 
 ### A máscara da chama é geometria calculada, não `path` colado
 
-`mascaraChama("borda" | "topo" | "reserva")` monta o SVG da máscara a partir
-das cúbicas de `D_SILHUETA`: `cruzaEmY` acha onde o ombro cruza uma altura,
-`tangenteDaCubica` dá a inclinação ali, e o filete emenda a curva no retângulo
-sem deixar canto. É por isso que os três consumidores (`Hero`, `Header` e a
-reserva do `Cardapio`) recebem a mesma forma sem copiar `path` um do outro. A
-variante `reserva` é a única que sai só com a chama, sem preenchimento, e a
-única espelhada; o porquê das duas coisas está na seção da espiral.
+`mascaraChama("borda" | "topo")` monta o SVG da máscara a partir das cúbicas de
+`D_SILHUETA`: `cruzaEmY` acha onde o ombro cruza uma altura, `tangenteDaCubica`
+dá a inclinação ali, e o filete emenda a curva no retângulo sem deixar canto. É
+por isso que os dois consumidores, `Hero` e `Header`, recebem a mesma forma sem
+copiar `path` um do outro. Houve uma terceira variante, `reserva`, que
+desenhava o papel branco do Cardápio; ela saiu em 2026-09-10, quando o papel
+passou a ser colado nas letras, ver a seção da espiral.
 
 `AJUSTES.altura` **depende de `AJUSTES.escala`** e não é chute:
 `altura = (113 * escala / 116 - 1) / (escala - 1)`. Mudou a escala, recalcule
@@ -241,31 +248,44 @@ juntas.** Na FITA sai de graça: a espiral é um canvas de WebGL numa camada
 inteira debaixo da coluna de tipografia, e a reserva de papel do título come o
 que passa. Aqui card e texto são irmãos no mesmo contexto 3D, e quem decide
 quem cobre quem é a profundidade. Então: `RECUO_DO_PLANO`, em `lib/espiral.ts`,
-empurra a hélice inteira para trás do plano de pouso, e a **reserva** do
-`CabecalhoDoCardapio` é o retângulo branco opaco que engole o que passa por
-baixo dela. Uma sem a outra não resolve. Sem o recuo a hélice tangencia o plano,
+empurra a hélice inteira para trás do plano de pouso, e o **papel** do
+`CabecalhoDoCardapio`, hoje uma auréola branca colada em cada letra, engole o
+que passaria por cima da tinta. Uma sem a outra não resolve. Sem o recuo a hélice tangencia o plano,
 o card fica com metade à frente e metade atrás, o navegador o parte no
 cruzamento e pinta a metade da frente por cima do título, que foi o defeito
-relatado pelo cliente em 2026-09-09. Sem a reserva não há o que cobrir. O valor
+relatado pelo cliente em 2026-09-09. Sem o papel não há o que cobrir. O valor
 do recuo é `hypot(RAIO, 1/2) − RAIO`, a folga mínima: é o quanto a quina de um
 card de perfil avança além do centro. E `transformacaoDoCard` corta o `z` em
 zero, senão a ultrapassagem do pouso, que inverte o sinal do `restante`,
 traria o card à frente do texto justo no estalo.
 
-**A beirada direita da reserva é a silhueta da chama**, a pedido do cliente em
-2026-09-09, e sai da mesma `mascaraChama` do herói, na variante `reserva`. Três
-coisas ali quebram calado. A chama vem **espelhada**: `D_SILHUETA` é
-assimétrica, a lambida existe só no lado esquerdo dela, e sem virar a peça o
-recorte vira um calombo liso; espelhar não é publicar a marca ao contrário,
-porque a marca é `D_CHAMA_OFICIAL` e esta é a silhueta de recorte. O corpo do
-papel é uma **segunda camada de máscara**, no CSS, e não um retângulo dentro do
-mesmo SVG: junto, o quadro passaria a ter a altura da chama e o resto da caixa
-ficaria sem máscara, ou seja transparente, e o papel sumiria embaixo do
-parágrafo. E a borda dessa camada cai no eixo da chama por
-`AJUSTES_DA_RESERVA.meiaLargura`, que é a proporção da silhueta dividida por
-dois: errar o número abre um degrau ou tapa a lambida. A altura da chama é um
-`clamp` porque o que a limita é a faixa livre entre o fim da tinta do título e
-a coluna dos cards, e essa faixa encolhe com a janela.
+Repare no que a auréola muda no gesto: o card **continua aparecendo** entre as
+palavras e nas entrelinhas, e some só na volta do glifo. O bloco que ela
+substituiu apagava o card num retângulo inteiro.
+
+**O papel do texto é colado em cada LETRA, e não é mais um bloco**, a pedido do
+cliente em 2026-09-10. Ele foi um retângulo mascarado com a beirada direita em
+silhueta de chama até essa data. A troca apagou o `div` da reserva, a variante
+`reserva` de `mascaraChama` e todos os números dela: eram do desenho daquele
+bloco. `Costura` voltou a ser só `borda` e `topo`.
+
+A conta mora em `lib/papelDoTexto.ts`, com teste. São **dezesseis cópias
+brancas do texto em círculo**, via `text-shadow`, todas à mesma distância da
+tinta: 9px no título, 5px no parágrafo. Três coisas ali quebram calado. Passo a
+mais entre duas cópias **abre dente na borda** da auréola, e dente branco sobre
+card colorido só aparece no meio da cena presa, em movimento; o vão entre
+vizinhas precisa ficar bem abaixo do raio, e em dezesseis passos ele é 0,39 do
+raio. A cor sai do **token** `--color-branco`, não de um `#fff` cru, porque é a
+mesma superfície que `contraste.test.ts` assume como fundo dos pares de texto
+da seção. E a auréola **não usa `-webkit-text-stroke`**: o traço pinta metade
+para dentro do glifo e depende de `paint-order: stroke fill` para a letra ser
+redesenhada por cima, então onde `paint-order` não vale para texto de HTML o
+branco cobre a letra e o título fica ilegível. Sombra não tem esse modo de
+falhar, e foi por isso que se pagou a pintura mais cara.
+
+Ela vale em **qualquer largura**, sem consulta de mídia: sobre o branco da
+página a auréola é invisível, então não precisa ser desligada abaixo de 1024,
+onde não há cena presa.
 
 **`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
 custou uma versão inteira: o módulo calculava para cima, o componente escrevia
