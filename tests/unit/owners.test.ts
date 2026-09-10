@@ -102,8 +102,6 @@ const LITERAIS_DE_DISPLAY = [
   "servido no capricho",                      // Cardapio.tsx
   "Vai",                                      // Delivery.tsx
   "N’brasando",                               // Delivery.tsx
-  "Tem motivo",                               // HorariosProgramacao.tsx
-  "pra vir todo dia",                         // HorariosProgramacao.tsx
   "Estamos a um passo",                       // OndeEstamos.tsx
   "da vista mar",                             // OndeEstamos.tsx
   "n’Brasa",                                  // Header.tsx e Footer.tsx

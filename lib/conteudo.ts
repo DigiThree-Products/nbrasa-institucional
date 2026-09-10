@@ -44,12 +44,12 @@ export const getProgramacao = unstable_cache(
   async (): Promise<ItemProgramacao[]> => {
     const { data, error } = await criarClienteServidor()
       .from("programacao")
-      .select("id, dias_label, titulo, descricao, ordem, ativo")
+      .select("id, dias_label, dias, titulo, descricao, ordem, ativo")
       .eq("ativo", true)
       .order("ordem");
     exigirSemErro(error, "programacao");
     return (data ?? []).map((r) => ({
-      id: r.id, diasLabel: r.dias_label, titulo: r.titulo,
+      id: r.id, diasLabel: r.dias_label, dias: r.dias ?? [], titulo: r.titulo,
       descricao: r.descricao, ordem: r.ordem, ativo: r.ativo,
     }));
   },

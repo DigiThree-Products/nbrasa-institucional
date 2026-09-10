@@ -16,11 +16,13 @@ insert into public.categorias (slug, nome, kicker, descricao, foto_path, ordem, 
   ('sobremesas', 'Sobremesas', 'O final perfeito', 'Petit gâteau com recheio quente escorrendo e sorvete cremoso. O final feliz que a sua noite merece.', null, 6, true, false),
   ('chopp', 'Chopp', 'Descontinuada nesta versão', 'Categoria do mockup inicial, substituída por Carnes Nobres e Sobremesas na versão final do spec.', null, 7, false, false);
 
-insert into public.programacao (id, dias_label, titulo, descricao, ordem, ativo) values
-  ('espetinho', 'Terça e quinta', 'Noite do Espetinho', 'Espetinhos saindo sem parar e chopp gelado para acompanhar até o fim da noite.', 1, true),
-  ('burger', 'Quarta', 'Noite do Burger', 'Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.', 2, true),
-  ('dj', 'Sexta e sábado', 'DJ na Casa', 'DJ comandando a pista, drinks autorais e cozinha aberta até tarde.', 3, true),
-  ('orla', 'Domingo', 'Tarde na Orla', 'Porções para dividir em família, pôr do sol na Av. Júlio Maria e chopp sempre gelado.', 4, true);
+-- `dias` segue Date.getDay() e tem que bater com dias_label, que e so a copy:
+-- "Terça e quinta" sao os dias 2 e 4, e nao a faixa de 2 a 4.
+insert into public.programacao (id, dias_label, dias, titulo, descricao, ordem, ativo) values
+  ('espetinho', 'Terça e quinta', '{2,4}', 'Noite do Espetinho', 'Espetinhos saindo sem parar e chopp gelado para acompanhar até o fim da noite.', 1, true),
+  ('burger', 'Quarta', '{3}', 'Noite do Burger', 'Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.', 2, true),
+  ('dj', 'Sexta e sábado', '{5,6}', 'DJ na Casa', 'DJ comandando a pista, drinks autorais e cozinha aberta até tarde.', 3, true),
+  ('orla', 'Domingo', '{0}', 'Tarde na Orla', 'Porções para dividir em família, pôr do sol na Av. Júlio Maria e chopp sempre gelado.', 4, true);
 
 -- dia_semana segue Date.getDay(): 0 = domingo … 6 = sabado.
 -- ordem exibe a semana comecando na segunda, por isso domingo leva ordem 7.
@@ -41,4 +43,4 @@ insert into public.depoimentos (id, texto, autor, nota, ordem, ativo) values
 
 -- Linha unica: id fixo em 1, garantido pelo check da tabela.
 insert into public.conteudo (id, hero_titulo, hero_subtitulo, telefone, endereco, cidade_uf, cep, whatsapp_url, instagram, campanha_ativa, campanha_titulo, depoimentos_titulo, horarios_titulo) values
-  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235, Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', 'Nota 4,2 de quase 300 clientes', 'A casa abre de tarde');
+  (1, 'Sua fome acende aqui.', 'Porção farta pra dividir, chopp sempre gelado e música ao vivo pra ninguém querer ir embora. Av. Júlio Maria, no Centro, onde a noite de Angra começa.', '(24) 3364-5253', 'Av. Júlio Maria, 235, Centro', 'Angra dos Reis, RJ', '23900-504', 'https://wa.me/552433645253', '@nbrasaangra', false, '', 'Nota 4,2 de quase 300 clientes', 'A semana inteira pede brasa');

@@ -15,9 +15,14 @@ create table public.categorias (
 );
 create index categorias_ordem_idx on public.categorias (ordem);
 
+-- dias_label e a copy do evento ("Terca e quinta"); `dias` e o dado, seguindo
+-- Date.getDay() como horarios.dia_semana. Os dois existem separados porque o
+-- card busca o horario de funcionamento pelos dias, e interpretar a copy
+-- quebraria calado assim que o painel deixar escrever "Toda quarta".
 create table public.programacao (
   id          text primary key,
   dias_label  text not null,
+  dias        smallint[] not null default '{}',
   titulo      text not null,
   descricao   text not null,
   ordem       integer not null,

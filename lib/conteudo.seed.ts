@@ -30,17 +30,20 @@ export const categoriasSeed: Categoria[] = [
     fotoPath: null, ordem: 7, ativo: false, destaque: false },
 ];
 
+// `dias` segue Date.getDay() (0=domingo … 6=sábado) e é o que casa o card com
+// a tabela de horários. Ele tem que continuar batendo com `diasLabel`, que é
+// só a copy: "Terça e quinta" são os dias 2 e 4, e não a faixa 2 a 4.
 export const programacaoSeed: ItemProgramacao[] = [
-  { id: "espetinho", diasLabel: "Terça e quinta", titulo: "Noite do Espetinho",
+  { id: "espetinho", diasLabel: "Terça e quinta", dias: [2, 4], titulo: "Noite do Espetinho",
     descricao: "Espetinhos saindo sem parar e chopp gelado para acompanhar até o fim da noite.",
     ordem: 1, ativo: true },
-  { id: "burger", diasLabel: "Quarta", titulo: "Noite do Burger",
+  { id: "burger", diasLabel: "Quarta", dias: [3], titulo: "Noite do Burger",
     descricao: "Todos os burgers da casa por um preço único. Traga a turma e escolha o seu sem pensar duas vezes.",
     ordem: 2, ativo: true },
-  { id: "dj", diasLabel: "Sexta e sábado", titulo: "DJ na Casa",
+  { id: "dj", diasLabel: "Sexta e sábado", dias: [5, 6], titulo: "DJ na Casa",
     descricao: "DJ comandando a pista, drinks autorais e cozinha aberta até tarde.",
     ordem: 3, ativo: true },
-  { id: "orla", diasLabel: "Domingo", titulo: "Tarde na Orla",
+  { id: "orla", diasLabel: "Domingo", dias: [0], titulo: "Tarde na Orla",
     descricao: "Porções para dividir em família, pôr do sol na Av. Júlio Maria e chopp sempre gelado.",
     ordem: 4, ativo: true },
 ];
@@ -88,5 +91,5 @@ export const conteudoSeed: Conteudo = {
   depoimentosTitulo: "Nota 4,2 de quase 300 clientes",
   // Não cita um horário específico: os horários mudam por edição no painel e
   // este título não pode ficar contradizendo a lista logo abaixo dele.
-  horariosTitulo: "A casa abre de tarde",
+  horariosTitulo: "A semana inteira pede brasa",
 };
