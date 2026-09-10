@@ -4,21 +4,14 @@ import { D_SILHUETA, EIXO_SILHUETA } from "./marca";
  * Onde a chama encosta no que ela recorta.
  *
  * `borda` e `topo` são o herói: a foto fica à direita (ou abaixo) e a chama
- * morde a beirada dela.
+ * morde a beirada dela. São os dois únicos consumidores.
  *
- * `reserva` é o espelho disso, e serve o Cardápio: o papel branco que engole a
- * bobina fica à ESQUERDA e a chama morde a beirada direita dele, que é o lado
- * por onde os cards atravessam.
- *
- * E ali a chama vem ESPELHADA, de propósito. `D_SILHUETA` é assimétrica: o
- * lado direito é um ombro limpo, e a lambida, o entalhe entre y=40 e y=57 que
- * faz a forma ler como chama e não como gota, existe só no lado esquerdo. Sem
- * espelhar, a beirada do papel fica sendo o ombro liso e o recorte vira um
- * calombo arredondado. Espelhar aqui não é publicar a marca ao contrário: a
- * marca é `D_CHAMA_OFICIAL`, e esta é a silhueta de recorte, que o próprio
- * herói já usa deitada e de pé.
+ * Houve uma terceira, `reserva`, que desenhava o papel branco atrás do texto
+ * do Cardápio. Ela saiu em 2026-09-10: a pedido do cliente o papel passou a
+ * ser colado em cada letra, uma auréola de sombras, e não há mais bloco a
+ * recortar. Ver `lib/papelDoTexto.ts`.
  */
-export type Costura = "borda" | "topo" | "reserva";
+export type Costura = "borda" | "topo";
 
 /**
  * Os únicos números que governam a forma da costura no herói.
@@ -108,74 +101,6 @@ export const AJUSTES = {
 
 const ALTURA_SILHUETA = 116;
 const LARGURA_SILHUETA = 100;
-/** Largura da silhueta em múltiplos da altura dela. */
-const PROPORCAO_SILHUETA = LARGURA_SILHUETA / ALTURA_SILHUETA;
-
-/**
- * Os números da chama da RESERVA do Cardápio, o papel branco que engole a
- * bobina quando ela cruza o texto.
- *
- * Vivem aqui, e não na JSX nem na folha de estilo, pelo mesmo motivo de
- * `AJUSTES`: ajustar a forma é editar este bloco.
- *
- * Eles não são livres um do outro nem do texto. A chama é recortada da beirada
- * DIREITA do papel, e do eixo dela para a esquerda o papel é maciço. Então o
- * eixo precisa cair à direita do fim da tinta do título, senão a última
- * palavra fica sem papel atrás e um card volta a passar por cima dela. Como o
- * eixo fica a meia largura de chama da borda direita do papel, e a largura sai
- * da altura pela proporção da silhueta, a folga disponível é
- *
- *     meia largura = escala * altura do papel * 100 / 116 / 2
- *
- * e ela tem que caber entre o fim do título e a borda direita do papel. Medido
- * em 1512, o título acaba em x 645 e o papel vai até 780: 135px de folga.
- */
-export const AJUSTES_DA_RESERVA = {
-  /**
-   * Altura da chama, em unidade de CSS.
-   *
-   * É medida absoluta, e não porcentagem do papel, porque o que limita a chama
-   * não é a altura do papel: é a faixa horizontal livre entre o fim da tinta do
-   * título e a coluna onde os cards pousam. Medida nos dois extremos, essa
-   * faixa vale 146px em 1512 e 87px em 1024, e a chama pode ocupar o dobro
-   * dela, porque só a metade direita passa do eixo.
-   *
-   * Daí o `clamp` acompanhar a largura da janela, como os `clamp` do título:
-   * os dois encolhem juntos. O teto existe porque acima de 1280 o contêiner
-   * para de crescer e o título também, então a chama não pode continuar.
-   *
-   * O outro limite é a altura do papel, e é ele que manda hoje: a chama precisa
-   * caber INTEIRA nela, com o bico e o bojo dentro. Encostando nos dois
-   * extremos, o que sobra na beirada é só o trecho reto do meio do contorno, e
-   * o recorte deixa de ler como chama. Medido em 1512, o papel tem 255px de
-   * altura e a chama fica em 189.
-   */
-  altura: "clamp(7rem, 12.5vw, 12rem)",
-
-  /**
-   * Posição vertical da chama dentro do papel (`mask-position`).
-   *
-   * O ponto mais largo da silhueta fica a 74/116 da altura dela, e é ele que
-   * decide em que altura a lambida acontece. `50%` centra a chama no papel, com
-   * o bico junto à borda de cima e o bojo junto à de baixo, que é o que deixa o
-   * contorno inteiro visível; `0%` sobe a lambida para o topo do papel, onde
-   * quase nada passa, e `100%` a desce para junto dos dois cards que pousam
-   * logo abaixo.
-   */
-  posicao: "50%",
-
-  /**
-   * Meia largura da chama, em múltiplos da altura dela. Derivado, não escolhido.
-   *
-   * O corpo do papel é uma segunda camada de máscara, um retângulo, e a borda
-   * direita dele tem que cair EXATAMENTE no eixo da chama: mais à esquerda
-   * abre um degrau entre o retângulo e a lambida, mais à direita tapa a
-   * lambida. Como a chama é posicionada pela direita do papel, o eixo dela fica
-   * a esta fração da altura, contada da borda. Sai da proporção da silhueta,
-   * então mexer no desenho dela move o retângulo junto.
-   */
-  meiaLargura: PROPORCAO_SILHUETA / 2,
-} as const;
 
 /** Sobra além da chama, no eixo em que a foto continua. Só precisa ser grande
  *  o bastante para a máscara cobrir a foto inteira depois de escalada. */
@@ -358,14 +283,9 @@ export function mascaraChama(onde: Costura): string {
   // senão a lambida engole o fim do título, então as duas coisas não cabem no
   // mesmo quadro e o corpo do papel vira camada própria.
   const [w, h] =
-    onde === "topo"
-      ? [SOBRA, SOBRA]
-      : onde === "reserva"
-        ? [LARGURA_SILHUETA, ALTURA_SILHUETA]
-        : [SOBRA, ALTURA_SILHUETA];
+    onde === "topo" ? [SOBRA, SOBRA] : [SOBRA, ALTURA_SILHUETA];
 
-  // No topo a chama fica no meio do quadro; na borda e na reserva, encostada
-  // na esquerda dele.
+  // No topo a chama fica no meio do quadro; na borda, encostada na esquerda.
   const desloca = onde === "topo" ? (SOBRA - LARGURA_SILHUETA) / 2 : 0;
 
   // Opaco = foto aparece. A união da chama com o retângulo é a região visível:
@@ -374,18 +294,11 @@ export function mascaraChama(onde: Costura): string {
   const preenche =
     onde === "topo"
       ? preenchimentoDoTopo(desloca)
-      : onde === "reserva"
-        ? ""
-        : `<rect x='${EIXO_SILHUETA}' y='0' width='${SOBRA - EIXO_SILHUETA}' height='${ALTURA_SILHUETA}' fill='black'/>`;
-
-  // Na reserva a chama vem virada no eixo vertical, para a lambida do lado
-  // esquerdo da silhueta ficar sendo a beirada direita do papel. Ver `Costura`.
-  const vira =
-    onde === "reserva" ? ` translate(${LARGURA_SILHUETA},0) scale(-1,1)` : "";
+      : `<rect x='${EIXO_SILHUETA}' y='0' width='${SOBRA - EIXO_SILHUETA}' height='${ALTURA_SILHUETA}' fill='black'/>`;
 
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>` +
-    `<g transform='translate(${desloca},0)${vira}'><path d='${D_SILHUETA}' fill='black'/></g>` +
+    `<g transform='translate(${desloca},0)'><path d='${D_SILHUETA}' fill='black'/></g>` +
     preenche +
     `</svg>`;
 

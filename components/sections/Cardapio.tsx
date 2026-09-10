@@ -1,7 +1,6 @@
-import type { CSSProperties } from "react";
 import { getCategorias } from "@/lib/conteudo";
 import type { Categoria } from "@/lib/conteudo.tipos";
-import { AJUSTES_DA_RESERVA, mascaraChama } from "@/lib/costura";
+import { anelDePapel, RAIO_DO_PAPEL } from "@/lib/papelDoTexto";
 import { FileiraEmEspiral } from "@/components/sections/FileiraEmEspiral";
 import { Chama } from "@/components/ui/Chama";
 
@@ -28,58 +27,37 @@ import { Chama } from "@/components/ui/Chama";
 export function CabecalhoDoCardapio() {
   return (
     <div className="relative flex flex-col gap-6 [grid-column:1/-1] lg:pb-8 lg:[grid-column:1/3] lg:[grid-row:1]">
-      {/* A RESERVA: o pedaço de papel opaco que a tipografia leva colado às
-          costas, e é ele que faz a bobina SUMIR ao cruzar o texto em vez de
-          passar por cima dele.
+      {/* O PAPEL, hoje colado em cada LETRA e não mais num bloco atrás delas.
+          É ele que faz a bobina SUMIR onde encostaria na tinta, em vez de
+          passar por cima dela.
 
-          É a mesma peça da FITA (`reservaDoCartaz`), com uma diferença de
-          gramática. Lá a reserva é âmbar sobre foto de palco, e as duas arestas
-          que encontram a fita são denteadas, porque um corte reto ali leria
-          como caixa de texto colada sobre a cena. Aqui o campo é branco e a
-          reserva é branca, então a aresta não existe para o olho: o card
-          simplesmente deixa de ser desenhado, que é o efeito pedido.
+          Foi um retângulo mascarado com a chama recortada na beirada direita
+          até 2026-09-10, quando o cliente pediu papel só nas letras. A troca
+          apagou daqui o `div` da reserva, e de `lib/costura.ts` a variante
+          `reserva` de `mascaraChama` com todos os números dela: eram todos do
+          desenho daquele bloco.
 
-          Ela só resolve metade do problema. A outra metade é geométrica e mora
-          em `RECUO_DO_PLANO`, em `lib/espiral.ts`: sem o recuo os cards
-          tangenciam o plano do texto, o navegador parte cada um no cruzamento e
-          pinta a metade da frente por cima da reserva. Papel sem recuo é papel
-          furado.
+          O que a auréola muda no gesto: o card continua aparecendo entre as
+          palavras e nas entrelinhas, e some apenas na volta do glifo. O bloco
+          apagava o card num retângulo inteiro.
 
-          A BEIRADA DIREITA é a silhueta da chama, e não uma reta: é por ali que
-          os cards entram, então é a única aresta que o olho tem chance de ler.
-          Sai da mesma `mascaraChama` do herói, na variante `reserva`, com a
-          chama encostada à direita e o papel maciço dela para a esquerda. A
-          forma não vem espelhada, ela só troca de lado: no herói quem desenha
-          o contorno é o ombro esquerdo da chama, aqui é o direito.
+          A conta do anel mora em `lib/papelDoTexto.ts`, com teste: são
+          dezesseis cópias em círculo, e um passo a mais entre duas abre dente
+          na borda, que só se vê com card colorido atrás e em movimento.
 
-          Sangra 24px à esquerda e para cima, onde só há margem, e 72px à
-          direita, que é quase todo o vão entre as duas metades da grade: é o
-          espaço que a lambida precisa, e os 8px que sobram são a folga até a
-          coluna dos cards. E PARA no pé da caixa: logo abaixo dela
-          pousam os dois últimos cards, e mais um fio de reserva comeria a borda
-          de cima deles. O respiro até eles é o `lg:pb-8` que já estava aqui.
-
-          `hidden lg:block` porque abaixo de 1024 não existe cena presa, e
-          portanto não há nada a esconder. `aria-hidden` e sem conteúdo: é
-          superfície. Vem antes dos irmãos no DOM, e por isso eles precisam de
-          `relative` para pintar por cima dela: a reserva é posicionada e sem
-          isso venceria o texto em fluxo normal, que pinta antes. */}
-      <div
-        aria-hidden
-        className="reserva-chama pointer-events-none absolute -left-6 -right-[4.5rem] -top-6 bottom-0 hidden bg-branco lg:block"
-        style={
-          {
-            "--reserva-mascara": mascaraChama("reserva"),
-            "--reserva-chama": AJUSTES_DA_RESERVA.altura,
-            "--reserva-posicao": AJUSTES_DA_RESERVA.posicao,
-            "--reserva-meia-largura": String(AJUSTES_DA_RESERVA.meiaLargura),
-          } as CSSProperties
-        }
-      />
-      <h2 className="relative text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]">
+          Vale em qualquer largura, e não só no desktop: sobre o branco da
+          página a auréola é invisível, então não precisa de consulta de mídia
+          para desligar abaixo de 1024, onde não há cena presa. */}
+      <h2
+        className="relative text-balance font-display text-[clamp(2.82rem,6.2vw,4.6rem)] uppercase leading-[.86]"
+        style={{ textShadow: anelDePapel(RAIO_DO_PAPEL.titulo) }}
+      >
         Feito na hora,<br />servido no capricho
       </h2>
-      <p className="relative max-w-[40ch] text-creme-texto">
+      <p
+        className="relative max-w-[40ch] text-creme-texto"
+        style={{ textShadow: anelDePapel(RAIO_DO_PAPEL.corpo) }}
+      >
         Ingredientes frescos, ponto certo e porções generosas. Cada item nasceu para ser repetido.
       </p>
     </div>
