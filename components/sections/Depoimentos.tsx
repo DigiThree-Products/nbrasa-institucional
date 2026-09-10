@@ -46,16 +46,19 @@ export async function Depoimentos() {
       </picture>
 
       {/*
-       * O véu. 70% não é chute: no pior caso possível, foto branca pura atrás,
-       * o composto fica em #666262, que dá 6,0:1 com o branco e 4,9:1 com o
-       * creme, os dois passando AA. A 62% o branco cairia para 4,6:1, no fio.
-       * `tests/unit/contraste.test.ts` guarda essas contas.
+       * O véu. 78% não é chute: no pior caso possível, foto branca pura atrás,
+       * o composto fica em #545050, que dá 8,0:1 com o branco e 6,5:1 com o
+       * creme. `tests/unit/contraste.test.ts` guarda essas contas.
+       *
+       * Começou em 70%, que já passava AA (6,0:1 e 4,9:1), e o cliente pediu
+       * mais escuro em 2026-09-10, junto com a troca da foto. O piso é 62%:
+       * daí para baixo o branco cai de 4,6:1 e reprova.
        *
        * Mexer nesta opacidade é mexer no contraste de todo texto da seção, e
        * nada lança quando ela baixa: o texto só fica ilegível sobre a parte
        * clara da foto, que é o céu, no topo.
        */}
-      <div className="absolute inset-0 -z-10 bg-carvao/70" aria-hidden="true" />
+      <div className="absolute inset-0 -z-10 bg-carvao/78" aria-hidden="true" />
 
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
       {/*

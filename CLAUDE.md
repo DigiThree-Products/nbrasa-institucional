@@ -663,21 +663,23 @@ build` imprime, e conferir é trabalho de quem mexe em dependência de cliente.
 cobrar automaticamente.
 
 **O fundo da seção de avaliações é foto com véu, e o véu é conta, não gosto.**
-`python scripts/gerar-quem-veio-volta.py` lê `quem veio volta .png` de
-`fotos-site/` (o espaço antes do ponto está no nome do arquivo de verdade) e
-grava AVIF e WebP em 640 e 1080, mais um JPEG de reserva. Ele é o único dos
+`python scripts/gerar-quem-veio-volta.py` lê `quem veio volta.png` de
+`fotos-site/` e grava AVIF e WebP em 640 e 1080, mais um JPEG de reserva. A
+foto foi trocada pelo cliente em 2026-09-10, e a nova chegou com nome
+diferente da primeira, que tinha um espaço antes do ponto. Ele é o único dos
 scripts de imagem que **não corta**: a seção cobre a janela inteira, cuja
 proporção muda com o visitante, então quem corta é o `object-cover`. E 1080 é
-o teto porque é a largura da origem: numa tela de 1440 o navegador já amplia
-1,33 vez, o que passa despercebido atrás do véu e não passaria numa foto nua.
+o teto: a origem tem 1122, e numa tela de 1440 o navegador já amplia 1,33 vez,
+o que passa despercebido atrás do véu e não passaria numa foto nua.
 
-O véu é `bg-carvao/70` e a opacidade governa a legibilidade de todo texto da
+O véu é `bg-carvao/78` e a opacidade governa a legibilidade de todo texto da
 seção. Foto não tem cor única, então o que se mede é o pior caso: quanto mais
 clara a foto, mais claro o composto, e o extremo é branco puro atrás. Carvão a
-70% sobre branco fecha em `#666262`, que dá 6,0:1 com o branco e 4,9:1 com o
-creme. A 62% o branco cairia para 4,6:1, no fio. **Baixar a opacidade não
-lança nada**, só deixa o texto ilegível sobre a parte clara da foto, que é o
-céu no topo dela.
+78% sobre branco fecha em `#545050`, que dá 8,0:1 com o branco e 6,5:1 com o
+creme. Ele nasceu em 70% (`#666262`, 6,0:1 e 4,9:1) e o cliente pediu mais
+escuro no mesmo dia, junto com a troca da foto. O piso é 62%: daí para baixo o
+branco cai de 4,6:1 e reprova. **Baixar a opacidade não lança nada**, só deixa
+o texto ilegível sobre a parte clara da foto, que é o céu no topo dela.
 
 Foi essa troca que tirou o fundo e a borda dos cards de avaliação, a pedido do
 cliente, e **as três cores do card mudaram junto, por obrigação**: as estrelas
