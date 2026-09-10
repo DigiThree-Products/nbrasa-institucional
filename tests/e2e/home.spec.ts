@@ -404,3 +404,180 @@ test("a navegação do header nunca cai em cima da foto", async ({ page }) => {
   expect(medida.navVisivel).toBe(largura >= 1280);
   expect(medida.fim).toBeLessThanOrEqual(medida.seguro);
 });
+
+/**
+ * Rola em passos, via wheel real, até o topo do cardápio encostar no topo da
+ * janela, que é onde a cena presa começa. Mesmo motivo de
+ * `rolarAteOMeioDaRota`: o Lenis escuta wheel, e um `scrollTo` seco passaria
+ * por cima dele.
+ */
+async function rolarAteOCardapio(page: Page) {
+  const distancia = await page.evaluate(
+    () => document.querySelector("#cardapio")!.getBoundingClientRect().top + window.scrollY,
+  );
+  const passos = 12;
+  for (let i = 0; i < passos; i++) {
+    await page.mouse.wheel(0, distancia / passos);
+  }
+  await page.waitForTimeout(400);
+}
+
+/** Rola `telas` alturas de janela, em passos, e espera o scrub assentar. */
+async function rolarTelas(page: Page, telas: number) {
+  const altura = page.viewportSize()!.height;
+  const passos = Math.max(8, Math.round(telas * 8));
+  for (let i = 0; i < passos; i++) {
+    await page.mouse.wheel(0, (telas * altura) / passos);
+  }
+  await page.waitForTimeout(600);
+}
+
+const transformacoesDoCardapio = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll("#cardapio article")].map(
+      (e) => (e as HTMLElement).style.transform,
+    ),
+  );
+
+test("o cardápio mostra as seis categorias em qualquer viewport", async ({ page }) => {
+  await expect(page.locator("#cardapio article")).toHaveCount(6);
+  await expect(page.locator("#cardapio article").first()).toBeVisible();
+});
+
+test("abaixo de 1024 o cardápio não prende a rolagem", async ({ page }) => {
+  test.skip(page.viewportSize()!.width >= 1024, "de 1024 pra cima a cena existe");
+
+  // O `pin` do ScrollTrigger envolve o palco num `div.pin-spacer`. A ausência
+  // dele é a prova de que a consulta de mídia barrou a cena: sem isto, o
+  // celular ganharia duas telas e meia de rolagem presa para seis cards.
+  await expect(page.locator("#cardapio .pin-spacer")).toHaveCount(0);
+
+  // E sem cena não há trilho: os dois filetes existem no DOM sempre, mas
+  // nascem com o `d` vazio e só o efeito escreve neles.
+  const trilhos = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+    es.map((e) => e.getAttribute("d")),
+  );
+  expect(trilhos).toHaveLength(2);
+  expect(trilhos.every((d) => d === "")).toBe(true);
+});
+
+test("no desktop o palco fica preso enquanto a cena corre", async ({ page }) => {
+  test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 não há cena");
+
+  await expect(page.locator("#cardapio .pin-spacer")).toHaveCount(1);
+  await rolarAteOCardapio(page);
+
+  // As duas medidas são tiradas DENTRO da cena, e não uma na borda e outra no
+  // meio. Rolar por wheel não para no pixel exato em que o pin engata, e a
+  // sobra de uma dezena de pixels do último passo apareceria como se o palco
+  // tivesse escorregado. Meia tela adiante já está firmemente preso.
+  await rolarTelas(page, 0.5);
+  const palco = page.locator("#cardapio .pin-spacer > div");
+  const topoNoComeco = (await palco.boundingBox())!.y;
+
+  await rolarTelas(page, 1.5);
+  const topoNoMeio = (await palco.boundingBox())!.y;
+
+  // Preso quer dizer parado na tela enquanto a página anda por baixo. Sem o
+  // pin, uma tela e meia de rolagem levaria o palco para bem longe do topo.
+  expect(Math.abs(topoNoMeio - topoNoComeco)).toBeLessThan(4);
+});
+
+test("no desktop os seis cards terminam a cena sem transformação", async ({ page }) => {
+  test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 não há cena");
+
+  await rolarAteOCardapio(page);
+  await rolarTelas(page, 2.8);
+
+  const transformacoes = await transformacoesDoCardapio(page);
+  expect(transformacoes).toHaveLength(6);
+
+  // O navegador normaliza o valor: o componente escreve "0.00px" e a leitura
+  // devolve "0px". Casar com casas decimais aqui falharia sem haver defeito.
+  // A escala volta a 1 junto com o resto: o card cresce 40% na bobina e o
+  // encolhimento faz parte do pouso, não é um passo separado.
+  for (const t of transformacoes) {
+    expect(t).toContain("translate3d(0px, 0px, 0px)");
+    expect(t).toContain("rotateY(0deg)");
+    expect(t).toContain("scale(1)");
+  }
+
+  // Pousados quer dizer nas células da grade. O arranjo é o da referência: os
+  // quatro primeiros formam o 2x2 da metade direita, os dois últimos pousam
+  // embaixo do texto, na metade esquerda, dividindo a segunda linha com os de
+  // baixo do 2x2. É o que prova que o alvo do pouso é a posição do layout, e
+  // não uma coordenada calculada que por acaso deu perto.
+  const caixas = await page.locator("#cardapio article").evaluateAll((es) =>
+    es.map((e) => {
+      const r = e.getBoundingClientRect();
+      return { topo: Math.round(r.top), esquerda: Math.round(r.left) };
+    }),
+  );
+  const [c0, c1, c2, c3, c4, c5] = caixas;
+
+  // primeira linha: o par de cima do 2x2
+  expect(c1!.topo).toBe(c0!.topo);
+  expect(c1!.esquerda).toBeGreaterThan(c0!.esquerda);
+
+  // segunda linha: os quatro restantes, na mesma altura
+  for (const c of [c3, c4, c5]) expect(c!.topo).toBe(c2!.topo);
+  expect(c2!.topo).toBeGreaterThan(c0!.topo);
+
+  // as duas metades: os dois últimos ficam à esquerda do 2x2, embaixo do texto
+  expect(c5!.esquerda).toBeLessThan(c2!.esquerda);
+  expect(c4!.esquerda).toBeLessThan(c5!.esquerda);
+  expect(c3!.esquerda).toBeGreaterThan(c2!.esquerda);
+
+  // as colunas do 2x2 são as mesmas nas duas linhas
+  expect(c2!.esquerda).toBe(c0!.esquerda);
+  expect(c3!.esquerda).toBe(c1!.esquerda);
+
+  // e o vão entre as metades é maior que o vão entre cards vizinhos, senão a
+  // segunda linha lê como uma fileira corrida de quatro
+  const vaoInterno = c5!.esquerda - c4!.esquerda;
+  const vaoEntreMetades = c2!.esquerda - c5!.esquerda;
+  expect(vaoEntreMetades).toBeGreaterThan(vaoInterno);
+});
+
+test("no desktop o trilho é desenhado durante a cena e some no fim", async ({ page }) => {
+  test.skip(page.viewportSize()!.width < 1024, "abaixo de 1024 não há cena");
+
+  await rolarAteOCardapio(page);
+  await rolarTelas(page, 0.9);
+
+  // Os dois filetes acompanham a bobina. Um `d` vazio no meio da cena quer
+  // dizer que a projeção deixou de bater com a medida do card, e o gesto perde
+  // metade do que faz a bobina ler como trilho.
+  const noMeio = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+    es.map((e) => e.getAttribute("d") ?? ""),
+  );
+  expect(noMeio).toHaveLength(2);
+  for (const d of noMeio) {
+    expect(d.startsWith("M")).toBe(true);
+    expect(d.length).toBeGreaterThan(200);
+  }
+});
+
+test.describe("cardápio com movimento reduzido", () => {
+  // Mesmo motivo documentado no describe da rota: `test.use({ reducedMotion })`
+  // não faz o matchMedia reportar `true` neste ambiente, e `emulateMedia` faz.
+  // A navegação se repete porque a consulta do `gsap.matchMedia` é avaliada na
+  // montagem, e o `beforeEach` do topo do arquivo navegou antes da preferência.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+  });
+
+  test("as seis categorias aparecem e a cena não existe", async ({ page }) => {
+    await expect(page.locator("#cardapio article")).toHaveCount(6);
+    await expect(page.locator("#cardapio .pin-spacer")).toHaveCount(0);
+
+    const transformacoes = await transformacoesDoCardapio(page);
+    expect(transformacoes.every((t) => t === "")).toBe(true);
+
+    const trilhos = await page.locator("#cardapio [data-trilho] path").evaluateAll((es) =>
+      es.map((e) => e.getAttribute("d")),
+    );
+    expect(trilhos.every((d) => d === "")).toBe(true);
+  });
+});

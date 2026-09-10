@@ -56,6 +56,37 @@ body {
   mask-position: var(--costura-lado-mobile) var(--costura-altura-mobile);
 }
 
+/* A reserva do Cardápio: o papel branco atrás do título, cuja beirada DIREITA
+   é a silhueta da chama. É o espelho da costura do herói, e não uma peça nova,
+   por isso ela sai da mesma `mascaraChama`. A regra só existe abaixo de
+   `mask-image`; sem suporte, o papel volta a ser o retângulo que já era, e a
+   bobina continua sumindo atrás dele. A degradação é a forma, nunca a função.
+   Os números vêm de AJUSTES_DA_RESERVA, em lib/costura.ts: mexa lá. */
+.reserva-chama {
+  /* Duas camadas, somadas: o CORPO do papel, um retângulo que vai da esquerda
+     até o eixo da chama, e a CHAMA, encostada na direita. A soma é a união das
+     duas, então a beirada direita é reta onde a chama não alcança e vira o
+     ombro dela onde alcança.
+
+     A borda do retângulo cai exatamente no eixo: `--reserva-meia-largura` é a
+     meia largura da silhueta em múltiplos da altura dela, calculada em
+     lib/costura.ts. Errar esse número abre um degrau ou tapa a lambida. */
+  -webkit-mask-image: linear-gradient(#000 0 0), var(--reserva-mascara);
+  mask-image: linear-gradient(#000 0 0), var(--reserva-mascara);
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-size:
+    calc(100% - var(--reserva-chama) * var(--reserva-meia-largura)) 100%,
+    auto var(--reserva-chama);
+  mask-size:
+    calc(100% - var(--reserva-chama) * var(--reserva-meia-largura)) 100%,
+    auto var(--reserva-chama);
+  -webkit-mask-position: left top, right var(--reserva-posicao);
+  mask-position: left top, right var(--reserva-posicao);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+
 @media (min-width: 1024px) {
   /*
    * No desktop o header deixa de ser uma faixa de ponta a ponta. A metade

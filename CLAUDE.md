@@ -65,9 +65,9 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 19 arquivos e 147 testes e roda em torno de 11 s.
-O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 19 testes que os cinco
-viewports multiplicam por cinco: um `-g` errado custa 95 execuções e um build.
+`w1920`. A suíte unitária tem 21 arquivos e 198 testes e roda em torno de 9 s.
+O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
+viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
 ## Arquitetura
 
@@ -140,11 +140,13 @@ WhatsApp se encaixa, ao lado do fecho. O alinhamento do fecho à direita sai do
 
 ### A máscara da chama é geometria calculada, não `path` colado
 
-`mascaraChama("borda" | "topo")` monta o SVG da máscara a partir das cúbicas
-de `D_SILHUETA`: `cruzaEmY` acha onde o ombro cruza uma altura,
+`mascaraChama("borda" | "topo" | "reserva")` monta o SVG da máscara a partir
+das cúbicas de `D_SILHUETA`: `cruzaEmY` acha onde o ombro cruza uma altura,
 `tangenteDaCubica` dá a inclinação ali, e o filete emenda a curva no retângulo
-sem deixar canto. É por isso que os dois consumidores (`Hero` e `Header`)
-recebem a mesma forma sem copiar `path` um do outro.
+sem deixar canto. É por isso que os três consumidores (`Hero`, `Header` e a
+reserva do `Cardapio`) recebem a mesma forma sem copiar `path` um do outro. A
+variante `reserva` é a única que sai só com a chama, sem preenchimento, e a
+única espelhada; o porquê das duas coisas está na seção da espiral.
 
 `AJUSTES.altura` **depende de `AJUSTES.escala`** e não é chute:
 `altura = (113 * escala / 116 - 1) / (escala - 1)`. Mudou a escala, recalcule
@@ -190,6 +192,159 @@ das três linhas do título é Owners hoje.
 A Combust servida é a versão **FREE TRIAL**, igual à Owners. São duas
 pendências de licença de webfont agora, não uma, ambas registradas no
 `README.md`.
+
+### A espiral do cardápio é hélice calculada, com pouso na identidade
+
+`lib/espiral.ts` diz onde cada card do Cardápio está em cada instante da cena
+presa, e `components/sections/FileiraEmEspiral.tsx` prende o palco e escreve a
+`transform`. O gesto é portado da seção "Programação completa" da FITA
+(`fita.art.br`), que o resolve em WebGL; aqui é CSS 3D, porque three.js sozinho
+estoura o orçamento de primeira carga. Spec completo em
+`docs/superpowers/specs/2026-09-09-espiral-do-cardapio-design.md`.
+
+O que o porte ganha, e que explica o tamanho do módulo: **quem gira é o próprio
+`<article>` do card**, e não um plano de WebGL separado. Por isso o alvo do
+pouso é a **transformação identidade**, e não há destino para calcular nem para
+medir. Card parado é card sem `transform`. A FITA precisa de um aparato inteiro
+de entrega justamente porque os planos dela não são os cards.
+
+**`CURSO_DA_HELICE` depende de `PASSO_ANGULAR` e de `PASSO_DO_POUSO`**, e a
+razão é fixa: `curso = passo angular / passo do pouso`. Só nela todo card cruza
+a altura de descolamento no seu próprio instante de pouso. Mexeu num, recalcule
+o outro, senão o card descola na altura errada e nada lança. É a mesma
+amarração que `AJUSTES.altura` tem com `AJUSTES.escala` em `lib/costura.ts`.
+
+Outros números que erram calados. `PASSO_ANGULAR` divide pela hipotenusa de
+`RAIO` e `SUBIDA * PROPORCAO`, e a proporção é conversão de unidade, não
+enfeite: o raio está em larguras de card e a subida em alturas. E **toda
+distância do módulo está em larguras do card DA BOBINA**, que é o card medido
+no DOM ampliado por `ESCALA_NA_BOBINA`: o card é 1,4 vez maior enquanto voa do
+que depois de pousado, que é o `GRID_SCALE` da FITA lido ao contrário. Usar a
+medida crua encolhe a bobina em 28% e desgruda as bordas dos cards, porque o
+vão continua valendo a largura ampliada.
+`tests/unit/espiral.test.ts` cobre o que dá para afirmar sem pintar.
+
+**A bobina passa POR TRÁS do texto, e isso são duas peças que só funcionam
+juntas.** Na FITA sai de graça: a espiral é um canvas de WebGL numa camada
+inteira debaixo da coluna de tipografia, e a reserva de papel do título come o
+que passa. Aqui card e texto são irmãos no mesmo contexto 3D, e quem decide
+quem cobre quem é a profundidade. Então: `RECUO_DO_PLANO`, em `lib/espiral.ts`,
+empurra a hélice inteira para trás do plano de pouso, e a **reserva** do
+`CabecalhoDoCardapio` é o retângulo branco opaco que engole o que passa por
+baixo dela. Uma sem a outra não resolve. Sem o recuo a hélice tangencia o plano,
+o card fica com metade à frente e metade atrás, o navegador o parte no
+cruzamento e pinta a metade da frente por cima do título, que foi o defeito
+relatado pelo cliente em 2026-09-09. Sem a reserva não há o que cobrir. O valor
+do recuo é `hypot(RAIO, 1/2) − RAIO`, a folga mínima: é o quanto a quina de um
+card de perfil avança além do centro. E `transformacaoDoCard` corta o `z` em
+zero, senão a ultrapassagem do pouso, que inverte o sinal do `restante`,
+traria o card à frente do texto justo no estalo.
+
+**A beirada direita da reserva é a silhueta da chama**, a pedido do cliente em
+2026-09-09, e sai da mesma `mascaraChama` do herói, na variante `reserva`. Três
+coisas ali quebram calado. A chama vem **espelhada**: `D_SILHUETA` é
+assimétrica, a lambida existe só no lado esquerdo dela, e sem virar a peça o
+recorte vira um calombo liso; espelhar não é publicar a marca ao contrário,
+porque a marca é `D_CHAMA_OFICIAL` e esta é a silhueta de recorte. O corpo do
+papel é uma **segunda camada de máscara**, no CSS, e não um retângulo dentro do
+mesmo SVG: junto, o quadro passaria a ter a altura da chama e o resto da caixa
+ficaria sem máscara, ou seja transparente, e o papel sumiria embaixo do
+parágrafo. E a borda dessa camada cai no eixo da chama por
+`AJUSTES_DA_RESERVA.meiaLargura`, que é a proporção da silhueta dividida por
+dois: errar o número abre um degrau ou tapa a lambida. A altura da chama é um
+`clamp` porque o que a limita é a faixa livre entre o fim da tinta do título e
+a coluna dos cards, e essa faixa encolhe com a janela.
+
+**`Pose.y` cresce para baixo, como no CSS.** A convenção já esteve trocada e
+custou uma versão inteira: o módulo calculava para cima, o componente escrevia
+direto num `translate3d`, e a bobina descia em vez de subir. Passou despercebido
+porque espiral invertida continua parecendo espiral, e porque o teste que
+deveria pegar afirmava `y < 0` para "abaixo da fileira", verdadeiro na
+convenção errada.
+
+**Os números são os da FITA convertidos, e não escolhidos no olho.** Cada
+constante geométrica traz a conta da conversão no comentário, contra o
+`lib/spiral-reel.ts` de lá: `RAIO` é 4,4/3,0, `SUBIDA` é 1,0/2,0, `VAO` é
+0,2/3,0, `ALTURA_DE_POUSO` é 4,6/2,0. Uma passada anterior deste mesmo dia
+tinha vão largo e subida alta, a pedido do cliente, e o cliente reverteu no
+mesmo dia pedindo o gesto da referência. **O vão quase nulo é o que faz a fila
+ler como corpo contínuo**, a cobra da referência; separar os cards desmancha o
+gesto, e há teste que falha se ele voltar a crescer.
+
+**O trilho é metade do gesto.** Dois filetes de SVG correm rente às bordas de
+cima e de baixo dos cards, e saem da mesma equação da hélice, então não têm
+como divergir dela. `projetarNoPalco` refaz em JavaScript exatamente a projeção
+que o navegador aplica nos cards, e é por isso que a perspectiva é escrita pelo
+componente, na medida, em vez de morar numa classe: o número em dois lugares
+faria a linha escorregar dos cards no dia em que um dos dois mudasse.
+
+**O card tem duas faces.** A hélice o gira quase volta e meia entre nascer e
+pousar, e com `backface-visibility` no `<article>` inteiro ele sumiria em
+metade do percurso, desmanchando a banda. Então o article é só a caixa 3D com
+`preserve-3d`, e frente (creme, com o conteúdo) e verso (brasa chapada) são
+filhas absolutas. O canto arredondado e o `overflow-hidden` moram nas faces:
+`overflow` diferente de `visible` achata o conteúdo 3D e o `preserve-3d` se
+perde.
+
+A pose **congela no descolamento** e o voo interpola dela até a identidade,
+como na FITA. Sem congelar, a hélice segue girando durante o voo e o card
+ultrapassa o ponto de descolamento, invadindo o título.
+
+**Quem cria as telas de rolagem é o espaçador do ScrollTrigger**, por causa do
+`end: "+=240%"`, e não uma altura no CSS. Sem JavaScript, ou com menos
+movimento pedido, o gatilho nunca é criado e não existe palco preso nem 240vh
+de vazio. Uma altura declarada deixaria duas telas e meia em branco justamente
+para quem pediu menos movimento. Pelo mesmo motivo os dois `path` do trilho
+nascem com o `d` vazio.
+
+O elemento preso é o invólucro largo, e não a coluna de conteúdo: o `pin`
+substitui o elemento por um `div.pin-spacer` e assume o posicionamento dele, e
+prender a coluna centrada entregaria a centralização ao espaçador. Vale saber
+disso ao escrever teste: dentro de `#cardapio`, o `firstElementChild` passa a
+ser o espaçador.
+
+**O bento do Cardápio saiu em 2026-09-09, e não por gosto.** Prender o palco
+exige que ele caiba numa janela, e a seção media 1137px de altura, o que não
+cabia nem em 1920x1080; quem estourava era o tile grande, de 440px.
+
+No lugar entrou, na mesma data, o arranjo da referência: de 1024px para cima a
+seção é **uma grade só, de cinco colunas**, sendo a do meio um vão de 3rem que
+separa as duas metades. O texto ocupa a metade esquerda da primeira linha,
+quatro cards pousam na metade direita em 2x2, e **os dois últimos pousam
+embaixo do texto**, dividindo a segunda linha com os de baixo do 2x2. Os cards
+são paisagem 3:2, 216x144 em 1024 e 280x187 daí para cima.
+
+Os dois últimos foram para debaixo do texto a pedido do cliente, e o motivo é
+de composição: numa grade de duas colunas por três linhas eles sobravam numa
+terceira fileira com meia tela vazia à esquerda, e liam como resto. De quebra a
+seção encurtou 180px, o que dá folga para o palco preso caber em janela baixa.
+
+**É uma grade só, e não duas colunas com uma grade em cada**, e a diferença não
+é estilo: os seis cards precisam ser irmãos no mesmo contexto 3D para o
+navegador ordená-los por profundidade. Em dois contêineres cada metade vira uma
+camada chapada e a ordem de pintura passa a ser a do DOM, com o card do fundo
+da bobina por cima do da frente durante metade da cena. Quem decide a célula de
+cada card é `CELULAS`, em `Cardapio.tsx`, indexado pela posição dele no array:
+o mesmo número decide onde ele pousa e quando. Os dois primeiros usam
+`self-end` porque a primeira linha é tão alta quanto o texto, e sem isso
+abriria um vão no meio do 2x2.
+
+O `Reveal` saiu da grade junto, porque dois donos escrevendo `transform` no
+mesmo elemento brigam.
+
+A `ParedeDeTipos` do Cardápio saiu no mesmo dia, a pedido do cliente, e essa
+não teve motivo técnico. **A da Delivery continua**, e as duas nunca foram a
+mesma coisa: aqui era `opacity-10` sobre o branco, textura de fundo; lá ela é
+elemento gráfico da faixa, e desde a fita contínua de anúncio entra com
+`faixaBranca` e `corTexto="text-carvao"`. O componente e o teste dele seguem em
+uso, e os literais `FIRE`, `N’BRASA` e `VAI N’BRASANDO` continuam em
+`LITERAIS_DE_DISPLAY` por causa da Delivery.
+
+`Categoria.destaque` **continua sem consumidor na interface, e já estava assim
+antes disso**: o comentário do campo em `lib/conteudo.tipos.ts` afirma que ele
+substitui a escolha por posição no array, mas quem escolhia o tile grande era a
+posição no array. Quando o card ganhar foto pelo painel, ele é o candidato
+natural a decidir qual card é o maior da fileira.
 
 ### Cache e revalidação
 
@@ -238,14 +393,20 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Sete arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote`, `RolagemDoCabecalho`, `VideoFachada` e
-`app/error.tsx`, **mas só seis chegam à página**: `VideoFachada` está órfão,
-ver logo abaixo. Todo o resto é
-Server Component `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis
-entram por `await import()` dentro de `useEffect`, nunca no bundle inicial, e
-cada um verifica `prefers-reduced-motion` antes de animar, e há testes unitários
-e e2e que provam que nada de conteúdo depende de animação.
+Oito arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `RotaMascote`, `RolagemDoCabecalho`, `FileiraEmEspiral`,
+`VideoFachada` e `app/error.tsx`, **mas só sete chegam à página**:
+`VideoFachada` está órfão, ver logo abaixo. Todo o resto é Server Component
+`async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por
+`await import()` dentro de `useEffect`, nunca no bundle inicial, e cada um
+verifica `prefers-reduced-motion` antes de animar, e há testes unitários e e2e
+que provam que nada de conteúdo depende de animação.
+
+`FileiraEmEspiral` é o único que checa a preferência por `gsap.matchMedia` em
+vez de uma leitura única na montagem, e a diferença é de propósito: os outros
+não mudam de comportamento com o tamanho da janela, e ele muda. Quem começa
+numa janela larga e reduz para menos de 1024 precisa perder a cena presa na
+travessia, senão fica com 240vh de rolagem num layout de coluna única.
 
 **`VideoFachada` não está montado em lugar nenhum.** O componente, os testes
 unitários dele e `public/video-fachada.mp4` seguem no repositório, mas o

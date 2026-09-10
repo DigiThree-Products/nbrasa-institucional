@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mascaraChama } from "@/lib/costura";
+import { AJUSTES_DA_RESERVA, mascaraChama } from "@/lib/costura";
 
 /** Devolve o SVG de dentro do `url("data:...")` para poder inspecionar. */
 function decodificar(url: string): string {
@@ -59,6 +59,40 @@ describe("mascaraChama", () => {
     const svg = decodificar(mascaraChama("topo"));
 
     expect(svg).toContain("translate(250,0)");
+  });
+});
+
+describe("a reserva do Cardápio", () => {
+  it("traz a chama e mais nada, no tamanho dela", () => {
+    // O corpo do papel é uma SEGUNDA camada de máscara, escrita no CSS. Com um
+    // retângulo aqui dentro, o quadro inteiro passa a ter a altura da chama, e
+    // `mask-size: auto <altura da chama>` deixa o resto da caixa sem máscara
+    // nenhuma: o papel some embaixo do parágrafo e um card volta a passar por
+    // cima do texto.
+    const svg = decodificar(mascaraChama("reserva"));
+
+    expect(svg).toContain("width='100'");
+    expect(svg).toContain("height='116'");
+    expect(svg).not.toContain("<rect");
+  });
+
+  it("espelha a chama, para a lambida ficar na beirada que a bobina cruza", () => {
+    // `D_SILHUETA` é assimétrica: o entalhe que faz a forma ler como chama vive
+    // só no lado esquerdo dela, e o direito é um ombro liso. Sem espelhar, o
+    // recorte do papel vira um calombo arredondado.
+    const svg = decodificar(mascaraChama("reserva"));
+
+    expect(svg).toContain("translate(0,0) translate(100,0) scale(-1,1)");
+    // O herói não espelha: lá quem desenha o contorno já é o lado do entalhe.
+    expect(decodificar(mascaraChama("borda"))).not.toContain("scale(-1,1)");
+    expect(decodificar(mascaraChama("topo"))).not.toContain("scale(-1,1)");
+  });
+
+  it("dá ao CSS a meia largura certa, senão abre degrau ou tapa a lambida", () => {
+    // A borda do retângulo do corpo cai no eixo da chama, e o CSS só sabe onde
+    // ele fica por este número, em múltiplos da altura da chama. Ele é a
+    // proporção da silhueta dividida por dois, não um valor escolhido.
+    expect(AJUSTES_DA_RESERVA.meiaLargura).toBeCloseTo(100 / 116 / 2, 10);
   });
 });
 
