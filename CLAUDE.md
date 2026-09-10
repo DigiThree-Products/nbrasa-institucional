@@ -21,7 +21,9 @@ Owners, aposentado em 2026-09-09 quando o foco passou para a Combust, que já
 traz a chama no glifo. `docs/handoff-espiral-do-cardapio.md` é **transitório**:
 foi escrito para retomar a branch `espiral-no-cardapio` em outra máquina, cita
 commits e contagens que envelhecem sozinhos, e some quando a branch entrar em
-`main`. Não tire fato de lá sem conferir no código.
+`main`. `docs/handoff-borda-do-heroi.md` é transitório pelo mesmo motivo, para
+a branch `fotos-nos-cards-do-cardapio`. Não tire fato de nenhum dos dois sem
+conferir no código.
 
 **Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
 variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
