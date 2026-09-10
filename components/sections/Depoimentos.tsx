@@ -4,7 +4,59 @@ import { Reveal } from "@/components/motion/Reveal";
 export async function Depoimentos() {
   const [c, itens] = await Promise.all([getConteudo(), getDepoimentos()]);
   return (
-    <section className="flex min-h-dvh items-center">
+    /*
+     * `isolate` cria contexto de empilhamento próprio, e é o que deixa a foto
+     * e o véu usarem `z` negativo sem escapar para trás do fundo do body, que
+     * é branco e os engoliria. `overflow-hidden` segura a foto quando o
+     * `object-cover` a faz transbordar a caixa, que é o normal dela.
+     */
+    <section className="relative isolate flex min-h-dvh items-center overflow-hidden">
+      {/*
+       * A foto de fundo, a pedido do cliente em 2026-09-10. Sai de
+       * `scripts/gerar-quem-veio-volta.py`, no molde das paradas do delivery:
+       * AVIF e WebP em duas larguras, mais um JPEG de reserva.
+       *
+       * `alt` vazio de propósito: ela é decoração, o conteúdo da seção são as
+       * avaliações. Texto alternativo aqui faria o leitor de tela anunciar uma
+       * foto que não acrescenta informação nenhuma ao que ele vai ler em
+       * seguida.
+       *
+       * `loading="lazy"` porque a seção fecha a página: quem nunca rola até
+       * ela não paga o download. O candidato a LCP continua sendo a foto do
+       * herói, e esta não disputa com ela.
+       */}
+      <picture>
+        <source
+          type="image/avif"
+          sizes="100vw"
+          srcSet="/quem-veio-volta-640.avif 640w, /quem-veio-volta-1080.avif 1080w"
+        />
+        <source
+          type="image/webp"
+          sizes="100vw"
+          srcSet="/quem-veio-volta-640.webp 640w, /quem-veio-volta-1080.webp 1080w"
+        />
+        <img
+          src="/quem-veio-volta-1080.jpg"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
+        />
+      </picture>
+
+      {/*
+       * O véu. 70% não é chute: no pior caso possível, foto branca pura atrás,
+       * o composto fica em #666262, que dá 6,0:1 com o branco e 4,9:1 com o
+       * creme, os dois passando AA. A 62% o branco cairia para 4,6:1, no fio.
+       * `tests/unit/contraste.test.ts` guarda essas contas.
+       *
+       * Mexer nesta opacidade é mexer no contraste de todo texto da seção, e
+       * nada lança quando ela baixa: o texto só fica ilegível sobre a parte
+       * clara da foto, que é o céu, no topo.
+       */}
+      <div className="absolute inset-0 -z-10 bg-carvao/70" aria-hidden="true" />
+
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
       {/*
        * "Quem veio, volta" era a linha de apoio acima do título e virou o
@@ -15,7 +67,7 @@ export async function Depoimentos() {
        * `LITERAIS_DE_DISPLAY`, em `tests/unit/owners.test.ts`: a Owners trial
        * não desenha acento, e é aquele teste que cobra o glifo.
        */}
-      <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
+      <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86] text-branco">
         Quem veio, volta
       </h2>
 
@@ -33,18 +85,29 @@ export async function Depoimentos() {
        * `max-w-[52ch]` porque linha de leitura larga demais perde o começo da
        * seguinte, e aqui a coluna vai a 1280px.
        */}
-      <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
+      <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)] text-creme">
         {c.depoimentosTitulo}
       </p>
       <div className="grid gap-[18px] md:grid-cols-3">
         {itens.map((d) => (
           <Reveal key={d.id} className="h-full">
-            <figure className="h-full rounded-[22px] border border-creme-borda bg-creme p-6">
-              <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-brasa-escura">
+            {/*
+             * Sem fundo e sem borda desde 2026-09-10, a pedido do cliente: o
+             * card agora é só texto sobre a foto, e quem separa uma avaliação
+             * da outra é o vão da grade. O `p-6` ficou porque ele é o que
+             * mantém o respiro que a moldura dava.
+             *
+             * Todas as três cores mudaram junto, e não por gosto. As estrelas
+             * eram `brasa`, que sobre o véu dá **1,1:1** e some; o texto era
+             * `creme-texto` e a assinatura era carvão, os dois pensados para
+             * fundo claro. Sobre foto só valem branco e creme.
+             */}
+            <figure className="h-full p-6">
+              <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-branco">
                 {"★".repeat(d.nota)}
               </div>
-              <blockquote className="mt-3 text-creme-texto">“{d.texto}”</blockquote>
-              <figcaption className="mt-4 text-[.78rem] uppercase tracking-[.11em]">
+              <blockquote className="mt-3 text-creme">“{d.texto}”</blockquote>
+              <figcaption className="mt-4 text-[.78rem] uppercase tracking-[.11em] text-branco">
                 {d.autor}
               </figcaption>
             </figure>
