@@ -227,7 +227,19 @@ export function FileiraEmEspiral({
             pin: true,
             scrub: true,
             invalidateOnRefresh: true,
-            onRefresh: () => medir(),
+            // Medir e REPINTAR, nesta ordem, e nunca só medir. `medir` começa
+            // limpando o `transform` dos seis cards, porque deslocamento
+            // natural medido com o card transformado sai contaminado. Se o
+            // quadro terminar aí, os cards ficam no estado limpo, que é
+            // exatamente a pose de pouso: a cena prende mostrando o fim dela e
+            // o primeiro pixel de rolagem joga os seis de volta para dentro da
+            // bobina, num salto. O `onUpdate` não cobre esse buraco, ele só
+            // dispara quando o progresso muda, e um refresh no topo não muda
+            // progresso nenhum.
+            onRefresh: (self) => {
+              medir();
+              pinta(self.progress);
+            },
             onUpdate: (self) => pinta(self.progress),
           });
 
