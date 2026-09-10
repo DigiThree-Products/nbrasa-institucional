@@ -71,10 +71,35 @@ export const AJUSTES = {
   /**
    * Onde a coluna da foto começa, na prática, onde fica a barriga da chama,
    * porque a máscara alinha a chama pela esquerda do contêiner.
-   * Menor = mordida mais funda no texto. Abaixo de ~40% a curva encosta no
-   * fim das linhas do parágrafo e atrapalha a leitura.
+   * Menor = mais foto à vista e mordida mais funda no texto. Abaixo de ~40% a
+   * curva encosta no fim das linhas do parágrafo e atrapalha a leitura.
+   *
+   * **Quem manda no piso é o header, e bem antes desses 40%.** Quatro lugares
+   * leem este valor por `--costura-inicio`, e três deles são do header: a
+   * largura de `.cabecalho-conteudo`, a largura do retângulo branco (`::before`)
+   * e a divisa onde começa a metade mascarada (`::after`), todos em
+   * app/globals.css. A divisa é obrigatória, não conveniência: a metade
+   * mascarada alinha a chama pela própria borda esquerda, então essa borda tem
+   * que cair exatamente onde a foto começa.
+   *
+   * A conta do piso: o conteúdo do header precisa de 657px (logo 115, os
+   * quatro links 453, mais o vão de 20 e os recuos de 24), e a área clara
+   * disponível é `inicio * largura + 6dvh` MENOS `(100vw - 1280px) / 2`, o
+   * recuo esquerdo que a logo divide com o herói. O pior caso é a janela larga
+   * e baixa, porque a largura entra dividida por dois no recuo e a altura
+   * entra inteira nos 6dvh: em 1920x900 sobram 665px com `49%` e 684px com os
+   * `50%` de antes. Ou seja, **o número já nascia a 27px do limite**, e é por
+   * isso que aqui a mudança é de um ponto percentual: 19px de foto a mais em
+   * 1920, e não mais que isso.
+   *
+   * Andar de verdade para a esquerda exige decidir o header antes, e são dois
+   * caminhos, os dois visíveis: soltar o recuo esquerdo da logo no estado do
+   * herói, que hoje existe para ela não pular quando a barra se estende e para
+   * alinhar com a primeira linha do título, ou subir de 1280px a faixa em que
+   * a navegação vira hambúrguer, o que tira os quatro links de telas onde eles
+   * cabem hoje.
    */
-  inicioDaFoto: "50%",
+  inicioDaFoto: "49%",
 
   /**
    * Recorte da foto dentro do quadro (`object-position`). Sobe/desce e

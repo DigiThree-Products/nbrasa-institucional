@@ -391,10 +391,19 @@ test("a navegação do header nunca cai em cima da foto", async ({ page }) => {
     return {
       navVisivel: visivel(nav),
       fim: (visivel(nav) ? nav : botao).getBoundingClientRect().right,
-      // 6dvh é a meia largura da silhueta no ponto mais gordo, ver
-      // `.cabecalho-conteudo` em app/globals.css.
+      // Onde a coluna da foto começa mais 6dvh, a meia largura da silhueta no
+      // ponto mais gordo, ver `.cabecalho-conteudo` em app/globals.css. O
+      // início sai da mesma custom property que o CSS consome, e não de um
+      // `0.5` escrito aqui: com o número repetido, mover a borda da foto
+      // deixaria este teste medindo a régua antiga e passando à toa.
+      // `clientWidth`, e não `innerWidth`: a porcentagem do CSS resolve contra
+      // a largura de layout, que é a janela MENOS a barra de rolagem, e é
+      // contra ela que a coluna da foto se posiciona. Com `innerWidth` a
+      // régua ficava uma barra de rolagem à direita da borda real, folga que
+      // o teste dava de graça.
       seguro:
-        0.5 * window.innerWidth
+        (parseFloat(getComputedStyle(cab).getPropertyValue("--costura-inicio")) / 100)
+          * document.documentElement.clientWidth
         + 0.06 * document.getElementById("heroi")!.offsetHeight,
     };
   });

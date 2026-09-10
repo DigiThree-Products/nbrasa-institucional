@@ -31,6 +31,11 @@ const VARIAVEIS = {
   "--costura-mascara": mascaraChama("borda"),
   "--costura-escala": String(AJUSTES.escala),
   "--costura-altura": AJUSTES.altura,
+  // A barra é `inset-x-0`, então esta porcentagem resolve contra a janela
+  // inteira, igual ao `left` da coluna da foto no herói. É o que deixa a área
+  // clara do header nascer exatamente na coluna da foto, sem repetir o número
+  // numa folha de estilo que não tem como ler `AJUSTES`.
+  "--costura-inicio": AJUSTES.inicioDaFoto,
 } as CSSProperties;
 
 export async function Header() {
@@ -55,10 +60,18 @@ export async function Header() {
           <span className="font-display text-[1.42rem] uppercase leading-none">n’Brasa</span>
         </a>
 
-        <nav className="cabecalho-nav ml-auto hidden items-center gap-7 md:flex">
+        {/* `shrink-0` e `whitespace-nowrap` não são enfeite de layout: sem eles
+            a navegação ENCOLHE quando a área clara aperta, e o sintoma é
+            "Onde estamos" quebrando em duas linhas dentro de uma barra de
+            74px, calado. Foi o que aconteceu ao mover `inicioDaFoto` para a
+            esquerda. Sem encolher, faltar espaço vira invasão da foto, que é
+            justamente o que o e2e "a navegação do header nunca cai em cima da
+            foto" mede. Erro que aparece no teste vale mais que erro que só
+            aparece para o visitante. */}
+        <nav className="cabecalho-nav ml-auto hidden shrink-0 items-center gap-7 whitespace-nowrap md:flex">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
-               className="text-[.79rem] font-semibold uppercase tracking-[.13em] text-creme-texto transition-colors hover:text-carvao">
+               className="whitespace-nowrap text-[.79rem] font-semibold uppercase tracking-[.13em] text-creme-texto transition-colors hover:text-carvao">
               {l.rotulo}
             </a>
           ))}

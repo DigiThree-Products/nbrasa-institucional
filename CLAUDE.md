@@ -649,20 +649,48 @@ barra nascer recortada e se abrir sozinha.
 **A largura de `.cabecalho-conteudo` é o pior caso, não o caso do topo**, e
 esse é o detalhe que mais surpreende quem chega. Com a máscara deslizando, por
 volta de meia tela de rolagem a barriga da chama cruza a faixa e empurra a
-borda da parte clara bem para a esquerda: numa janela de 1440 ela sai de 1122
-no topo para 774 no mínimo. Esse mínimo é `50vw + 6dvh`, porque o ponto mais
-gordo da silhueta está a 6 unidades das 100 do viewBox e a chama tem quase
-exatamente a altura do herói. O valor era `34dvh` e só servia ao header antigo.
+borda da parte clara bem para a esquerda: numa janela de 1440 ela sai de 1108
+no topo para 760 no mínimo. Esse mínimo é `--costura-inicio + 6dvh`, porque o
+ponto mais gordo da silhueta está a 6 unidades das 100 do viewBox e a chama tem
+quase exatamente a altura do herói. O valor era `34dvh` e só servia ao header
+antigo.
 
-Medido, o conteúdo precisa de 637px (logo 115, os quatro links 453, mais gaps
-e recuos) e a área segura dá 558px em 1024x768, 624px em 1152x800 e 688px em
-1280x800. Por isso **entre 1024px e 1279px a navegação de desktop dá lugar ao
-hambúrguer**, numa regra própria em `globals.css`, inclusive com a barra já
-estendida, onde caberia: aparecer e sumir conforme a rolagem seria pior que
-ficar recolhida nessa faixa. O e2e "a navegação do header nunca cai em cima da
-foto" mede isso no pior scroll e falha no dia em que a navegação crescer, por
-exemplo com o botão de campanha ligado no banco, que sozinho come a folga de
-51px que sobra em 1280.
+**`--costura-inicio` é `AJUSTES.inicioDaFoto` chegando ao CSS pelo `Header`**,
+e desde 2026-09-10 são quatro lugares lendo o mesmo número: o `left` da coluna
+da foto no herói, a largura de `.cabecalho-conteudo`, a largura do retângulo
+branco (`::before`) e a divisa onde começa a metade mascarada (`::after`). Os
+três do header eram `50%` escritos à mão, e a divisa não é conveniência: a
+metade mascarada alinha a chama pela própria borda esquerda, então essa borda
+tem que cair exatamente onde a foto começa. Movido só um deles, o recorte do
+header descola do da foto e o retângulo branco passa a pintar por cima da foto
+dentro da faixa.
+
+Medido, o conteúdo precisa de 657px (logo 115, os quatro links 453, mais o vão
+de 20 e os recuos de 24) e a área clara disponível é
+`inicio * largura + 6dvh` menos `(100vw - 1280px) / 2`, o recuo esquerdo que a
+logo divide com o herói. O pior caso é a **janela larga e baixa**, porque a
+largura entra dividida por dois no recuo e a altura entra inteira nos 6dvh: em
+1920x900 sobram 665px. Por isso **entre 1024px e 1279px a navegação de desktop
+dá lugar ao hambúrguer**, numa regra própria em `globals.css`, inclusive com a
+barra já estendida, onde caberia: aparecer e sumir conforme a rolagem seria
+pior que ficar recolhida nessa faixa. O e2e "a navegação do header nunca cai em
+cima da foto" mede isso no pior scroll, e lê a régua da mesma custom property,
+não de um `0.5` escrito no teste.
+
+**`inicioDaFoto` nasceu a menos de 30px do limite, e o sintoma de passar dele
+não é vazamento, é quebra de linha.** A navegação é flex e, sem trava,
+ENCOLHE quando a área clara aperta: "Onde estamos" vira duas linhas dentro de
+uma barra de 74px, e nenhuma medida de borda acusa isso, porque nada vazou.
+Foi o que apareceu ao tentar `48%` em 2026-09-10. Por isso o `<nav>` leva
+`shrink-0` e `whitespace-nowrap`: sem encolher, faltar espaço vira invasão da
+foto, que é justamente o que o e2e mede. O valor foi de `50%` para `49%`, a
+pedido do cliente, que queria mais foto à vista, e **19px em 1920 é tudo o que
+cabe** sem decidir o header antes. Os dois caminhos para andar de verdade, os
+dois visíveis: soltar o recuo esquerdo da logo no estado do herói, que existe
+para ela não pular quando a barra se estende e para alinhar com a primeira
+linha do título, ou subir de 1280px a faixa do hambúrguer, o que tira os quatro
+links de telas onde eles cabem hoje. O botão de campanha ligado no banco come
+a folga que sobra, como sempre coube.
 
 ### Tokens de marca
 

@@ -91,17 +91,23 @@ body {
     content: "";
   }
 
+  /* A divisa entre os dois é `--costura-inicio`, o mesmo `AJUSTES.inicioDaFoto`
+     que posiciona a coluna da foto no herói, e não um `50%` escrito à mão. A
+     metade mascarada alinha a chama pela PRÓPRIA borda esquerda, então essa
+     borda tem que cair exatamente onde a foto começa: um valor diferente
+     desloca o recorte do header em relação ao da foto e, de quebra, deixa o
+     retângulo branco da esquerda pintando por cima da foto dentro da faixa. */
   .cabecalho-hero::before {
     left: 0;
-    width: 50%;
+    width: var(--costura-inicio);
     height: 74px;
     background: rgb(255 255 255 / 85%);
     backdrop-filter: blur(12px);
   }
 
   .cabecalho-hero::after {
-    left: 50%;
-    width: 50%;
+    left: var(--costura-inicio);
+    width: calc(100% - var(--costura-inicio));
     height: 100dvh;
     background: linear-gradient(
       to bottom,
@@ -148,9 +154,17 @@ body {
      O `6dvh` é medido, e é o pior caso, não o caso do topo. Com o header fixo
      a máscara desliza, e por volta de meia tela de rolagem a barriga da chama
      cruza a faixa e empurra a borda da parte clara para a esquerda: numa
-     janela de 1440 ela sai de 1122 no topo para 774 no mínimo. Esse mínimo é
-     `50vw + 6dvh`, porque o ponto mais gordo da silhueta está a 6 unidades das
-     100 do viewBox e a chama tem quase exatamente a altura do herói.
+     janela de 1440 ela sai de 1122 no topo para 745 no mínimo. Esse mínimo é
+     `--costura-inicio + 6dvh`, porque o ponto mais gordo da silhueta está a 6
+     unidades das 100 do viewBox e a chama tem quase exatamente a altura do
+     herói.
+
+     `--costura-inicio` é `AJUSTES.inicioDaFoto`, o mesmo valor que posiciona a
+     coluna da foto no herói, e chega aqui pelo `Header`. Escrito à mão, o
+     número passaria a mentir no dia em que a borda da foto andasse, e o
+     sintoma seria navegação em cima da foto escura, que contraste nenhum
+     teste mede. A barra é `inset-x-0`, então a porcentagem resolve contra a
+     janela, igual a um `vw`.
 
      Era `34dvh`, que só valia para o header antigo: ele descia junto com a
      foto, então a borda que ele via nunca mudava. Fixo, `34dvh` deixa a
@@ -158,7 +172,7 @@ body {
      acusar, porque contraste sobre foto nenhum teste mede. */
   .cabecalho-conteudo {
     width: calc(
-      50vw + 6dvh - max(0px, calc((100vw - 1280px) / 2))
+      var(--costura-inicio) + 6dvh - max(0px, calc((100vw - 1280px) / 2))
     );
     margin-right: 0;
     margin-left: max(0px, calc((100vw - 1280px) / 2));
