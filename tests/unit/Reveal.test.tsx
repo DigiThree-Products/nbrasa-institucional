@@ -2,23 +2,38 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { Reveal } from "@/components/motion/Reveal";
 
-const { fromToMock, registerPluginMock } = vi.hoisted(() => ({
+const { fromToMock, toMock, killTweensOfMock, registerPluginMock, createMock } = vi.hoisted(() => ({
   fromToMock: vi.fn(() => ({ scrollTrigger: { kill: vi.fn() }, kill: vi.fn() })),
+  toMock: vi.fn(),
+  killTweensOfMock: vi.fn(),
   registerPluginMock: vi.fn(),
+  createMock: vi.fn(() => ({ kill: vi.fn() })),
 }));
 
 vi.mock("gsap", () => ({
-  gsap: { fromTo: fromToMock, registerPlugin: registerPluginMock },
+  gsap: {
+    fromTo: fromToMock, to: toMock, killTweensOf: killTweensOfMock,
+    registerPlugin: registerPluginMock,
+  },
 }));
 
 vi.mock("gsap/ScrollTrigger", () => ({
-  ScrollTrigger: {},
+  ScrollTrigger: { create: createMock },
 }));
+
+/** Espera o import dinâmico resolver e devolve as vars do gatilho de saída. */
+async function varsDoGatilho() {
+  await waitFor(() => expect(createMock).toHaveBeenCalled());
+  return (createMock.mock.calls[0] as unknown[])[0] as Record<string, () => void>;
+}
 
 describe("Reveal", () => {
   beforeEach(() => {
     fromToMock.mockClear();
+    toMock.mockClear();
+    killTweensOfMock.mockClear();
     registerPluginMock.mockClear();
+    createMock.mockClear();
     window.matchMedia = ((query: string) => ({
       matches: false,
       media: query,
@@ -49,6 +64,70 @@ describe("Reveal", () => {
 
     const vars = (fromToMock.mock.calls[0] as unknown[])[2] as Record<string, unknown>;
     expect(vars.immediateRender).toBe(false);
+  });
+
+  it("por padrão dispara uma vez só e nunca desfaz", async () => {
+    // O comportamento histórico, de que Depoimentos depende: revelou, ficou.
+    render(<Reveal><p>Cardápio</p></Reveal>);
+
+    await waitFor(() => expect(fromToMock).toHaveBeenCalled());
+
+    const vars = (fromToMock.mock.calls[0] as unknown[])[2] as Record<string, unknown>;
+    const gatilho = vars.scrollTrigger as Record<string, unknown>;
+    expect(gatilho.once).toBe(true);
+    expect(gatilho.toggleActions).toBeUndefined();
+  });
+
+  it("com `saida`, o gatilho tem fim e não é de uma vez só", async () => {
+    render(<Reveal saida><p>Cardápio</p></Reveal>);
+
+    const vars = await varsDoGatilho() as unknown as Record<string, unknown>;
+    expect(vars.end).toBe("bottom top");
+    expect(vars.once).toBeUndefined();
+  });
+
+  it("com `saida`, anima o conteúdo para fora quando ele deixa a tela", async () => {
+    // Cada travessia ganha uma tween nova, em vez de reverter a de entrada.
+    // Reverter não pinta o quadro final quando `lagSmoothing(0)` está ligado,
+    // que é o caso no site, e o conteúdo ficava visível para sempre.
+    render(<Reveal saida><p>Cardápio</p></Reveal>);
+
+    const vars = await varsDoGatilho();
+    vars.onLeave();
+
+    const alvo = toMock.mock.calls.at(-1)![1] as Record<string, unknown>;
+    expect(alvo.opacity).toBe(0);
+  });
+
+  it("com `saida`, traz o conteúdo de volta quando ele reentra na tela", async () => {
+    render(<Reveal saida><p>Cardápio</p></Reveal>);
+
+    const vars = await varsDoGatilho();
+    // a ordem real: entra, sai, volta. Sem a primeira entrada, a volta ainda
+    // seria a revelação inicial, e não o retorno.
+    vars.onEnter();
+    vars.onLeave();
+    vars.onEnterBack();
+
+    const alvo = toMock.mock.calls.at(-1)![1] as Record<string, unknown>;
+    expect(alvo.opacity).toBe(1);
+  });
+
+  it("com `saida`, a primeira entrada revela a partir do estado escondido", async () => {
+    // Só a primeira: nas seguintes o conteúdo já está escondido pela saída, e
+    // um `fromTo` ali daria um salto em vez de continuar de onde parou.
+    render(<Reveal saida><p>Cardápio</p></Reveal>);
+
+    const vars = await varsDoGatilho();
+    vars.onEnter();
+
+    expect(fromToMock).toHaveBeenCalledTimes(1);
+    const de = (fromToMock.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    expect(de.opacity).toBe(0);
+
+    vars.onLeave();
+    vars.onEnter();
+    expect(fromToMock).toHaveBeenCalledTimes(1);
   });
 
   it("não monta a animação quando o usuário prefere movimento reduzido", async () => {

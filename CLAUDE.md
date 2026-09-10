@@ -18,7 +18,10 @@ Delivery em brasa, saída da Anton). Pendências abertas
 com o cliente: seção final do `README.md`. `docs/labaredas-do-heroi.md` é
 **histórico**: descreve o sistema que desenhava as chamas em SVG sobre a
 Owners, aposentado em 2026-09-09 quando o foco passou para a Combust, que já
-traz a chama no glifo.
+traz a chama no glifo. `docs/handoff-espiral-do-cardapio.md` é **transitório**:
+foi escrito para retomar a branch `espiral-no-cardapio` em outra máquina, cita
+commits e contagens que envelhecem sozinhos, e some quando a branch entrar em
+`main`. Não tire fato de lá sem conferir no código.
 
 **Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
 variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
@@ -65,7 +68,8 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 21 arquivos e 198 testes e roda em torno de 9 s.
+`w1920`. A suíte unitária tem 22 arquivos e 227 testes; são 9 s de teste e
+perto de 15 s de parede, que o custo de subir o jsdom explica.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -346,6 +350,94 @@ substitui a escolha por posição no array, mas quem escolhia o tile grande era 
 posição no array. Quando o card ganhar foto pelo painel, ele é o candidato
 natural a decidir qual card é o maior da fileira.
 
+### O horário de funcionamento mora dentro do card, e o card é uma chama
+
+Desde 2026-09-10 a seção `#programacao` não tem mais duas colunas. A lista de
+horários saiu, e cada card de programação carrega o horário dos seus próprios
+dias. A descrição do evento saiu da tela junto, a pedido do cliente: o campo
+continua no banco e no painel, só não é renderizado.
+
+**O card só sabe quais dias cobre por `ItemProgramacao.dias`**, um array no
+padrão de `Date.getDay()`, e não pelo `diasLabel`. Os dois existem separados
+porque o rótulo é copy: "Terça e quinta" são os dias 2 e 4, e não a faixa de 2
+a 4, e assim que o painel deixar o dono escrever "Toda quarta" qualquer
+interpretação do texto devolveria card sem horário, sem avisar ninguém.
+`horarioDosDias`, em `lib/horarios.ts`, faz a tradução e mostra os dois
+horários quando os dias de um card divergem, porque card que finge horário
+único manda o cliente na hora errada.
+
+**A segunda-feira vive no subtítulo**, que é a única parte da seção que fala
+dela: ela é o único dia fechado e não tem card nenhum. `diasAbertos` monta a
+frase ("Abrimos de terça a domingo") agrupando por adjacência e **ignorando o
+horário**, ao contrário de `agruparHorarios`, que agrupa por horário igual e
+partiria a faixa em três pedaços. A frase sai da tabela, e não da JSX, pelo
+mesmo motivo que `horariosTitulo` não pode citar horário: escrita à mão ela
+passa a mentir quando o dono mexe no painel.
+
+`agruparHorarios` **ficou sem consumidor na interface** nessa troca, com os
+dez testes de pé. Está exportado de propósito, porque é a forma de exibir a
+semana inteira e o painel e o rodapé são os candidatos a pedi-la de volta.
+
+A forma do card é `D_SILHUETA` contornada, sem preenchimento, alternando
+brasa e carvão pela posição no array. É a mesma silhueta do recorte do herói
+e da reserva do Cardápio, e **não** a marca: `D_CHAMA_OFICIAL` são três
+pinceladas separadas, que contornadas viram fitas soltas e não têm barriga
+onde caiba texto. Três números erram calados aqui. O viewBox leva 3 unidades
+de folga de cada lado porque um traço centrado na borda derrama metade da
+espessura para fora do path. A caixa de texto é um retângulo medido para
+caber na elipse da barriga, de centro (50, 74) e semieixos 44 e 39: mexer na
+silhueta obriga a remedir, e o texto não avisa quando encosta na curva. E o
+`article` declara `container-type: inline-size` para que os `cqw` do texto
+sejam porcentagem do card, não da janela; sem isso o card de 232px em 1024
+sai com a letra do card de 300px.
+
+**O título do evento vive dentro da barriga, e nenhum teste guarda o
+comprimento dele.** Nome longo escrito no painel transborda a chama. É o
+mesmo tipo de dívida do orçamento de 130 kB: medido uma vez, cobrado por
+quem mexer.
+
+**Todo o texto da seção acende letra a letra e esfumaça**, por
+`components/motion/TextoQueAcende.tsx`, desde 2026-09-10. O gesto veio de uma
+referência de alfabeto animado em fogo que o cliente mandou; o que foi tomado
+emprestado é o movimento, e **não** a paleta, porque lá o fundo é preto com
+laranja e aqui a página é clara. A letra nasce em brasa com brilho e esfria
+até a cor de repouso **dela**, que é lida do DOM antes de qualquer animação:
+carvão no título do evento, brasa-escura ou creme-texto nos rótulos. Na saída
+ela sobe, desfoca e some, porque subir mais desfocar é o que lê como fumaça;
+descer leria como queda.
+
+Duas coisas ali quebram calado. A frase inteira vai num `sr-only` e a versão
+quebrada leva `aria-hidden`, senão o leitor de tela **soletra** o título. E o
+espaço entre palavras fica **fora** do `whitespace-nowrap` de cada palavra: as
+letras são `inline-block` para poderem ser transformadas, e sem essa separação
+ou a linha quebra no meio de uma palavra ou perde a única oportunidade de
+quebra que tem.
+
+Só o contorno da chama de cada card continua no `Reveal`, com `saida`, e o
+`Reveal` embrulha **apenas o SVG**, não o card inteiro: embrulhando tudo, a
+opacidade dele multiplicaria a das letras e o acender sairia lavado.
+`Depoimentos` segue no comportamento antigo, de revelar e ficar, e é por isso
+que `saida` é opcional em vez de virar o padrão.
+
+**São 163 letras animando, e o desfoque da saída é o item caro.** No desktop
+as quatro chamas estão na tela juntas e o pico é as 163; no telefone, com uma
+chama por linha, fica perto de 50, porque cada linha de texto tem gatilho
+próprio. Não há teste que meça isso. Se engasgar em máquina fraca, o caminho
+é mover o desfoque para a palavra em vez da letra, que corta o número de
+camadas filtradas de 163 para cerca de 35.
+
+**`toggleActions: "play reverse play reverse"` não funciona neste site**, e
+essa é a armadilha que custa uma tarde. `SmoothScrollProvider` liga
+`gsap.ticker.lagSmoothing(0)`, então um quadro demorado chega ao GSAP com o
+delta inteiro e a reversão pula direto para o tempo zero; no tempo zero o
+`immediateRender: false` da tween de entrada suprime a pintura. A tween marca
+`reversed`, o gatilho marca `progress` 1, e o elemento fica visível para
+sempre. Nada lança, e nada no console avisa. Por isso o caminho de `saida`
+cria uma **tween nova a cada travessia** em vez de reverter, o que também dá
+à saída uma duração e uma curva próprias. Só a primeira entrada usa `fromTo`:
+nas voltas o conteúdo já está escondido, e refazer o estado inicial daria um
+salto.
+
 ### Cache e revalidação
 
 `TAGS` (em `lib/conteudo.ts`) é a lista fechada de tags válidas.
@@ -372,7 +464,13 @@ de `ativo = true`, escrita só para admin autenticado), `0003_seed.sql` (conteú
 real), mais duas de correção de copy, ambas numeradas `0004` de propósito por
 serem independentes entre si: `0004_copy_owners.sql` (tira os acentos dos
 campos que chegam a elementos de display, que a Owners trial não desenha) e
-`0004_copy_sem_travessao.sql` (nova copy do herói e fim do travessão).
+`0004_copy_sem_travessao.sql` (nova copy do herói e fim do travessão). A
+quinta é `0005_titulo_horarios_programacao.sql`, de 2026-09-10: a seção de
+horários abria com dois títulos lado a lado e passou a ter um só, o do banco.
+Ela é a demonstração do fluxo de duas pontas descrito no parágrafo abaixo. A
+sexta é `0006_dias_da_programacao.sql`, do mesmo dia, e é a única que mexe em
+**schema**: acrescenta `programacao.dias`. Por ser schema, ela é o caso em que
+o fluxo de duas pontas inclui o `0001`, e não só o `0003`.
 Aplicadas manualmente no projeto Supabase: SQL editor ou
 `npx supabase link --project-ref <ref> && npx supabase db push`. Migrations
 devem ser reentrantes: a de RLS já quebrou por ter sido aplicada pela metade.
@@ -393,9 +491,10 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Oito arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `RotaMascote`, `RolagemDoCabecalho`, `FileiraEmEspiral`,
-`VideoFachada` e `app/error.tsx`, **mas só sete chegam à página**:
+Nove arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `TextoQueAcende`, `RotaMascote`, `RolagemDoCabecalho`,
+`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só oito chegam à
+página**:
 `VideoFachada` está órfão, ver logo abaixo. Todo o resto é Server Component
 `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por
 `await import()` dentro de `useEffect`, nunca no bundle inicial, e cada um
@@ -534,6 +633,11 @@ pela mesma fachada.
 
 ## Ambiente
 
+O `origin` é `DigiThree-Products/nbrasa-institucional`, e a integração é por
+pull request em `main`, uma branch por assunto (`espiral-no-cardapio`,
+`labaredas-no-acende`, `copy-hero`). Nenhuma branch de trabalho foi apagada
+depois do merge, então `git branch -r` lista bem mais coisa do que está viva.
+
 `.env.example` → `.env.local` (nunca commitado; o `.gitignore` cobre padrões
 amplos de propósito porque o Bloco de Notas do Windows acrescenta `.txt` sem
 avisar, e o Next só lê `.env.local`). As mesmas variáveis precisam existir na
@@ -554,6 +658,12 @@ ferramentas que respeitam ignore (Grep, Glob, ripgrep) não o enxergam, mas um
 `grep -r` ou um `find` disparado da raiz devolve dois `Hero.tsx`, e o segundo é
 código de outra branch. Ao buscar pelo shell, aponte para `app components lib
 tests` em vez da raiz.
+
+**Confira em qual dos dois você está antes da primeira edição.** Os dois têm
+`CLAUDE.md`, `package.json` e suíte completa, e o da raiz nem sempre está em
+`main`: em 2026-09-10 ele estava na branch `labaredas-no-acende`. `git worktree
+list` diz de uma vez os dois caminhos e as duas branches. Editar o arquivo certo
+na cópia errada é o modo de errar aqui, e nada lança quando acontece.
 
 ## Identidade visual e conteúdo
 

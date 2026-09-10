@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { agruparHorarios, FECHADO } from "@/lib/horarios";
+import { agruparHorarios, diasAbertos, horarioDosDias, FECHADO } from "@/lib/horarios";
 import { horariosSeed } from "@/lib/conteudo.seed";
 import type { Horario } from "@/lib/conteudo.tipos";
 
@@ -66,5 +66,75 @@ describe("agruparHorarios", () => {
     // mas alcançável assim que um form de admin deixar o dono digitar livre.
     expect(agruparHorarios([h(2, 1, "9:00", "22:00")]))
       .toEqual([{ label: "Terça-feira", texto: "09h às 22h" }]);
+  });
+});
+
+// Desde 2026-09-10 o horário mora dentro do card de programação, e o card
+// sabe seus dias pelo campo `dias`. Estas duas funções são a ponte: uma
+// traduz um conjunto de dias no texto do card, a outra resume os dias
+// abertos para o subtítulo da seção.
+describe("horarioDosDias", () => {
+  it("devolve um texto só quando todos os dias do card abrem no mesmo horário", () => {
+    // "Terça e quinta" (Noite do Espetinho): dias 2 e 4, ambos 14h às 22h.
+    expect(horarioDosDias(horariosSeed, [2, 4])).toBe("14h às 22h");
+  });
+
+  it("mantém a ordem da semana, e não a ordem em que os dias foram pedidos", () => {
+    // pedidos fora de ordem: sábado (ordem 6) antes de terça (ordem 2)
+    expect(horarioDosDias(horariosSeed, [6, 2])).toBe("14h às 22h, 16h às 03h");
+  });
+
+  it("lista os dois horários quando os dias do card divergem", () => {
+    // quinta fecha 22h e sexta fecha 03h: o card não pode fingir um horário só
+    expect(horarioDosDias(horariosSeed, [4, 5])).toBe("14h às 22h, 16h às 03h");
+  });
+
+  it("escreve Fechado quando o dia do card está fechado", () => {
+    expect(horarioDosDias(horariosSeed, [1])).toBe(FECHADO);
+  });
+
+  it("ignora dia que não existe na tabela em vez de quebrar o texto", () => {
+    // um `dias` desalinhado com a tabela some do card, não vira "undefined"
+    expect(horarioDosDias(horariosSeed, [2, 9])).toBe("14h às 22h");
+  });
+
+  it("devolve null quando nenhum dia do card tem horário cadastrado", () => {
+    expect(horarioDosDias(horariosSeed, [9])).toBeNull();
+  });
+
+  it("devolve null para card sem dias", () => {
+    expect(horarioDosDias(horariosSeed, [])).toBeNull();
+  });
+});
+
+describe("diasAbertos", () => {
+  it("resume o seed na faixa que vai de terça a domingo", () => {
+    // é a frase do subtítulo: a segunda é o único dia fechado
+    expect(diasAbertos(horariosSeed)).toBe("terça a domingo");
+  });
+
+  it("volta em minúscula, porque entra no meio de uma frase", () => {
+    expect(diasAbertos(horariosSeed)).toBe(diasAbertos(horariosSeed).toLowerCase());
+  });
+
+  it("junta com 'e' quando os dias abertos não são uma faixa só", () => {
+    expect(diasAbertos([
+      h(2, 2, "14:00", "22:00"), h(3, 3, "14:00", "22:00"),
+      h(5, 5, null, null, true), h(6, 6, "16:00", "03:00"),
+    ])).toBe("terça e quarta e sábado");
+  });
+
+  it("nomeia o dia por extenso quando a casa abre um dia só", () => {
+    expect(diasAbertos([h(0, 7, "14:00", "22:00"), h(1, 1, null, null, true)]))
+      .toBe("domingo");
+  });
+
+  it("devolve string vazia quando a casa não abre nenhum dia", () => {
+    // o componente esconde o subtítulo em vez de escrever "Abrimos de".
+    expect(diasAbertos([h(1, 1, null, null, true)])).toBe("");
+  });
+
+  it("devolve string vazia para entrada vazia", () => {
+    expect(diasAbertos([])).toBe("");
   });
 });

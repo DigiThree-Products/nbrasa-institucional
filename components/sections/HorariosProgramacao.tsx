@@ -1,58 +1,181 @@
 import { getConteudo, getHorarios, getProgramacao } from "@/lib/conteudo";
-import { agruparHorarios, FECHADO } from "@/lib/horarios";
+import { diasAbertos, horarioDosDias } from "@/lib/horarios";
+import { D_SILHUETA } from "@/lib/marca";
 import { Reveal } from "@/components/motion/Reveal";
+import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
+
+/**
+ * viewBox da silhueta (100×116) com 3 unidades de folga de cada lado.
+ *
+ * A folga existe porque aqui a chama é **contornada**, não preenchida: um
+ * traço centrado na borda derrama metade da sua espessura para fora do path,
+ * e no viewBox cru essa metade sairia cortada no bico e nos flancos.
+ */
+const VIEWBOX_CHAMA = "-3 -3 106 122";
+
+/**
+ * Espessura do contorno, em unidades do viewBox. Escala junto com o card, que
+ * é o que se quer: chama menor, traço mais fino, na mesma proporção.
+ */
+const TRACO_DA_CHAMA = 2.4;
+
+/**
+ * Caixa de texto dentro da barriga da chama, em porcentagem do quadro.
+ *
+ * A barriga é uma elipse de centro (50, 74) e semieixos 44 e 39 no viewBox
+ * cru, e estes números são um retângulo que cabe dentro dela com folga. Mexer
+ * na silhueta ou na folga do viewBox obriga a remedir: o texto não avisa
+ * quando encosta na curva, ele só fica feio.
+ */
+const CAIXA_DO_TEXTO = "inset-x-[15%] top-[45%] bottom-[7%]";
 
 export async function HorariosProgramacao() {
   const [c, horarios, prog] = await Promise.all([
     getConteudo(), getHorarios(), getProgramacao(),
   ]);
-  const faixas = agruparHorarios(horarios);
+  const abertos = diasAbertos(horarios);
 
   return (
     <section id="programacao" className="flex min-h-dvh items-center">
-      <div className="mx-auto max-w-[1280px] px-6 py-20">
-        <div className="grid gap-14 md:grid-cols-2">
-          <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
-              Horário de funcionamento
-            </p>
-            <h2 className="mb-7 mt-3 text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
-              {c.horariosTitulo}
-            </h2>
-            <ul className="list-none p-0">
-              {faixas.map((f) => (
-                <li key={f.label}
-                    className="flex justify-between gap-5 border-b border-creme-borda py-4">
-                  <span className={f.texto === FECHADO ? "text-creme-texto" : ""}>{f.label}</span>
-                  <b className="font-extrabold tabular-nums">{f.texto}</b>
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/*
+       * `w-full` não é enfeite: a `section` é `flex`, então este div é item de
+       * flex e sem largura declarada ele encolhe até o conteúdo, em vez de
+       * chegar nos 1280. Com os cards limitados a 300px cada, a fileira de
+       * quatro parava em 820px e as chamas saíam 100px mais estreitas do que
+       * deviam. Estava latente desde antes: a grade de duas colunas era larga
+       * o bastante para o defeito não aparecer.
+       */}
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-20">
+        {/*
+         * Um título só para a seção, desde 2026-09-10, a pedido do cliente:
+         * ela abria com dois `h2` lado a lado e eles competiam. Quem sobrou é
+         * o do banco, `horariosTitulo`, porque assim o painel de admin
+         * continua podendo trocar a frase e o teste da Owners cobre o texto
+         * sozinho, por ele vir do seed.
+         *
+         * A quebra de linha é do navegador, não há `<br>` aqui. A frase vem
+         * do banco e pode mudar de comprimento sem que ninguém volte na JSX;
+         * `text-balance` reparte as linhas quando ela não couber numa só, o
+         * que acontece da faixa de telefone para baixo.
+         */}
+        {/*
+         * Todo o texto da seção acende letra a letra na entrada e esfumaça na
+         * saída, a pedido do cliente em 2026-09-10, a partir de uma referência
+         * de alfabeto animado em fogo. Quem faz isso é `TextoQueAcende`; o
+         * contorno da chama de cada card continua no `Reveal`, com `saida`,
+         * e entra antes das letras para não brigar com elas.
+         *
+         * Os `delay` escalonam a cascata de cima para baixo, e dentro de cada
+         * card do rótulo para o horário.
+         */}
+        <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
+          <TextoQueAcende>{c.horariosTitulo}</TextoQueAcende>
+        </h2>
 
-          <div>
-            <p className="text-[.72rem] uppercase tracking-[.2em] text-creme-texto">
-              Programação da semana
-            </p>
-            <h2 className="mb-7 mt-3 font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
-              Tem motivo<br />pra vir todo dia
-            </h2>
-            <div className="grid gap-3">
-              {prog.map((p) => (
-                <Reveal key={p.id}>
-                  <article className="flex items-baseline gap-4 rounded-2xl border-l-[5px] border-brasa bg-creme px-5 py-4">
-                    <span className="flex-none basis-[108px] text-[.68rem] font-extrabold uppercase tracking-[.14em] text-brasa-escura">
-                      {p.diasLabel}
-                    </span>
-                    <span>
-                      <span className="block font-display text-[1.38rem] uppercase leading-tight">{p.titulo}</span>
-                      <span className="mt-1 block text-sm text-creme-texto">{p.descricao}</span>
-                    </span>
-                  </article>
+        {/*
+         * O subtítulo diz quais dias a casa abre, e é o que dá lugar à
+         * segunda-feira desde que a lista de horários saiu daqui: ela é o
+         * único dia fechado e não tem card de programação nenhum.
+         *
+         * Os dias saem de `diasAbertos`, e não de texto escrito aqui, porque
+         * a frase afirma um fato que mora no banco: escrita à mão, ela
+         * passaria a mentir no dia em que o dono abrisse na segunda pelo
+         * painel. Sem nenhum dia aberto a função devolve vazio e o parágrafo
+         * inteiro some, em vez de sobrar um "Abrimos de" solto.
+         *
+         * Fonte de corpo, não display: "terça" e "sábado" têm acento e a
+         * Owners trial não desenha acento nenhum.
+         */}
+        {abertos !== "" && (
+          <p className="mt-4 text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
+            <TextoQueAcende delay={0.09}>{`Abrimos de ${abertos}.`}</TextoQueAcende>
+          </p>
+        )}
+
+        {/*
+         * Os cards são a chama contornada, a pedido do cliente em 2026-09-10,
+         * a partir de uma referência de "contorno de fogo" alternando
+         * vermelho e preto.
+         *
+         * A forma é `D_SILHUETA`, a mesma que recorta a foto do herói e que
+         * faz a beirada da reserva do Cardápio. **Não** é a marca:
+         * `D_CHAMA_OFICIAL` são três pinceladas separadas, que contornadas
+         * virariam fitas soltas e não teriam barriga onde pôr texto. O
+         * comentário de `lib/marca.ts` explica por que as duas não se
+         * misturam.
+         *
+         * O vermelho e o preto alternam pela posição no array, então quem
+         * reordenar a programação no painel troca as cores junto. É de
+         * propósito: o que importa é alternar, não qual evento é vermelho.
+         *
+         * Uma linha por vez no telefone, duas em tablet e as quatro numa
+         * fileira só a partir de 1024. A chama é bem mais alta que larga, e
+         * duas colunas de chama em tela estreita deixariam o título menor que
+         * o mínimo legível dentro da barriga.
+         */}
+        <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+          {prog.map((p, i) => {
+            const hora = horarioDosDias(horarios, p.dias);
+            const vermelho = i % 2 === 0;
+
+            // Cascata: o card entra, e as três linhas acendem atrás dele.
+            const base = 0.18 + i * 0.08;
+
+            return (
+              /*
+               * `container-type: inline-size` é o que faz o texto encolher
+               * junto com a chama: as medidas abaixo estão em `cqw`, que é
+               * porcentagem da largura DESTE card, e não da janela. Sem
+               * ele o `cqw` cai na janela e o texto de um card de 232px em
+               * 1024 sai do mesmo tamanho que o de um card de 300px.
+               *
+               * Escrito em `style` porque é medida, e não decisão de
+               * design: o mesmo motivo pelo qual a perspectiva da espiral
+               * do Cardápio mora no componente.
+               */
+              <article
+                key={p.id}
+                className="relative mx-auto w-full max-w-[300px]"
+                style={{ containerType: "inline-size" }}
+              >
+                {/* O `Reveal` embrulha só o SVG, e não o card inteiro: se
+                    embrulhasse tudo, a opacidade dele multiplicaria a das
+                    letras e o acender sairia lavado. */}
+                <Reveal saida delay={base}>
+                  <svg
+                    viewBox={VIEWBOX_CHAMA}
+                    aria-hidden="true"
+                    className={`block h-auto w-full ${vermelho ? "text-brasa" : "text-carvao"}`}
+                  >
+                    <path
+                      d={D_SILHUETA}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={TRACO_DA_CHAMA}
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </Reveal>
-              ))}
-            </div>
-          </div>
+
+                <div className={`absolute ${CAIXA_DO_TEXTO} flex flex-col items-center justify-center gap-[2.2cqw] text-center`}>
+                  {/* Rótulo e horário em brasa-escura no card vermelho:
+                      `brasa` puro reprova AA em texto pequeno, e é a mesma
+                      troca que todo rótulo pequeno do site já faz. */}
+                  <span className={`text-[clamp(.62rem,4cqw,.82rem)] font-extrabold uppercase leading-tight tracking-[.14em] ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
+                    <TextoQueAcende delay={base + 0.06}>{p.diasLabel}</TextoQueAcende>
+                  </span>
+                  <h3 className="font-display text-[clamp(1rem,8.6cqw,1.7rem)] uppercase leading-[1.02] text-carvao">
+                    <TextoQueAcende delay={base + 0.12}>{p.titulo}</TextoQueAcende>
+                  </h3>
+                  {hora !== null && (
+                    <span className={`text-[clamp(.85rem,6.2cqw,1.25rem)] font-extrabold tabular-nums ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
+                      <TextoQueAcende delay={base + 0.18}>{hora}</TextoQueAcende>
+                    </span>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
