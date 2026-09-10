@@ -183,9 +183,29 @@ test("lista as seis categorias", async ({ page }) => {
   }
 });
 
-test("mostra os horários agrupados corretamente", async ({ page }) => {
-  await expect(page.getByText("Terça a quinta").first()).toBeVisible();
-  await expect(page.getByText("16h às 03h").first()).toBeVisible();
+test("cada card da programação carrega o horário dos dias dele", async ({ page }) => {
+  // O horário não tem mais lista própria na página: quem o mostra é o card de
+  // programação, e ele sabe quais dias cobre pelo campo `dias`. Este teste
+  // substituiu o que cobrava "Terça a quinta", rótulo de `agruparHorarios`,
+  // que ficou sem consumidor na interface quando o desenho mudou.
+  //
+  // O par fixado aqui é o que prova a conta de `horarioDosDias` chegando à
+  // tela, e não só a presença de um texto qualquer de horário: "DJ na Casa"
+  // cobre sexta e sábado, os dois únicos dias em que a casa vai até as 03h, e
+  // "Tarde na Orla" cai no domingo, que fecha às 22h. Trocar os dias de um
+  // evento no painel tem de trocar o horário do card junto.
+  //
+  // `toContainText`, e não `toBeVisible` sobre o texto: `TextoQueAcende`
+  // quebra a frase em uma peça por LETRA para animar, e esconde do leitor de
+  // tela essa versão quebrada, deixando a frase inteira só na cópia `sr-only`.
+  // Ou seja, nenhum elemento visível carrega a frase completa, e um
+  // `getByText(...).toBeVisible()` falharia mesmo com o horário correto na
+  // tela.
+  const carta = (titulo: string) =>
+    page.locator("#programacao article", { hasText: titulo });
+
+  await expect(carta("DJ na Casa")).toContainText("16h às 03h");
+  await expect(carta("Tarde na Orla")).toContainText("14h às 22h");
 });
 
 test("expõe os cinco bairros da rota de entrega", async ({ page }) => {
