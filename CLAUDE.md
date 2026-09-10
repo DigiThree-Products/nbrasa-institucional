@@ -75,7 +75,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 25 arquivos e 255 testes e roda em torno de 12 s.
+`w1920`. A suíte unitária tem 25 arquivos e 256 testes e roda em torno de 12 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -562,11 +562,15 @@ horários abria com dois títulos lado a lado e passou a ter um só, o do banco.
 Ela é a demonstração do fluxo de duas pontas descrito no parágrafo abaixo. A
 sexta é `0006_dias_da_programacao.sql`, do mesmo dia, e é a única que mexe em
 **schema**: acrescenta `programacao.dias`. Por ser schema, ela é o caso em que
-o fluxo de duas pontas inclui o `0001`, e não só o `0003`. A sétima é
-`0007_fotos_das_categorias.sql`, do mesmo dia: preenche `foto_path` nas seis
-categorias ativas com o caminho base dos derivados dos pratos. **Sem ela
-aplicada o site continua com os cards creme**, porque a página lê o banco e não
-o seed, e nada acusa: o caminho sem foto é um estado legítimo do card.
+o fluxo de duas pontas inclui o `0001`, e não só o `0003`. Depois dela vêm
+**duas numeradas `0007`**, pelo mesmo motivo que as duas `0004`: nasceram no
+mesmo dia, em frentes diferentes, e não dependem uma da outra.
+`0007_subtitulo_depoimentos.sql` é a das avaliações, documentada mais acima.
+`0007_fotos_das_categorias.sql` preenche `foto_path` nas seis categorias
+ativas com o caminho base dos derivados dos pratos. **Sem esta aplicada o site
+continua com os cards creme**, porque a página lê o banco e não o seed, e nada
+acusa: o caminho sem foto é um estado legítimo do card. Ela já foi aplicada no
+projeto Supabase em 2026-09-10.
 Aplicadas manualmente no projeto Supabase: SQL editor ou
 `npx supabase link --project-ref <ref> && npx supabase db push`. Migrations
 devem ser reentrantes: a de RLS já quebrou por ter sido aplicada pela metade.
@@ -960,7 +964,7 @@ Nenhum é texto:
 
 `pdftoppm`/poppler não está instalado; o Python 3.13 local tem **PyMuPDF
 (`fitz`)**, `pypdf`, `pdfminer` e **Pillow**, use `fitz` para extrair texto e
-rasterizar páginas. Os seis scripts de `scripts/` se dividem entre esses dois
+rasterizar páginas. Os sete scripts de `scripts/` se dividem entre esses dois
 mundos: os de imagem e favicon pedem só Pillow, e os de fonte
 (`gerar-owners.py`, `gerar-combust.py`) pedem **fonttools e brotli**, sem os
 quais não sai WOFF2. O `.cdr` é binário proprietário: nenhuma ferramenta local
