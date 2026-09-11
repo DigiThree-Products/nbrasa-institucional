@@ -1,17 +1,6 @@
 import { getConteudo, getDepoimentos } from "@/lib/conteudo";
-import { Queima } from "@/components/motion/Queima";
-import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
-
-/**
- * Distância entre a queima de um card e a do vizinho.
- *
- * Ela existe porque os três cards são irmãos da mesma linha da grade e têm o
- * mesmo topo: sem atraso, os três gatilhos pegam no mesmo instante e a seção
- * inteira acende de uma vez só, que era o que acontecia com o `Reveal`. No
- * telefone eles empilham e o próprio scroll já os separa, então o atraso só
- * soma um respiro.
- */
-const PASSO_ENTRE_CARDS = 0.24;
+import { PASSO_ENTRE_CARDS } from "@/lib/brasa";
+import { AcendeEmBrasa } from "@/components/motion/AcendeEmBrasa";
 
 export async function Depoimentos() {
   const [c, itens] = await Promise.all([getConteudo(), getDepoimentos()]);
@@ -82,14 +71,35 @@ export async function Depoimentos() {
        * `LITERAIS_DE_DISPLAY`, em `tests/unit/owners.test.ts`: a Owners trial
        * não desenha acento, e é aquele teste que cobra o glifo.
        *
-       * A queima letra a letra é daqui, e só daqui na seção: são 14 letras,
-       * cada uma com a cópia de fumaça e a máscara, e é o único texto grande
-       * o bastante para a linha de fogo ser vista subir dentro do glifo. O
-       * subtítulo e os cards queimam em bloco, pelo `Queima`.
+       * **Toda a seção acende em brasa**, e não só o título: o subtítulo e os
+       * três cards vieram junto a pedido do cliente em 2026-09-11. É a
+       * diferença para a seção de horários, onde rótulos de dia e horas
+       * ficaram no `Reveal` porque em corpo de 11px o gesto lê como sujeira.
+       * Aqui o corpo é bem maior e o fogo se sustenta. Custa quatro blocos
+       * animados a mais, e bloco é barato: o que pesava era letra a letra.
+       *
+       * **Mas o corpo vai sem halo**, por `halo={false}`, e isso é medido: a
+       * sombra é paga por GLIFO, então os três cards com halo levavam a seção
+       * de 16,7 ms por quadro para 22,7 ms, com 43% dos quadros acima de 20
+       * ms. Sem ele volta ao controle. Só o título carrega halo, que é onde
+       * há poucas letras e grandes.
+       *
+       * A cor de repouso mora no ELEMENTO ANIMADO, e não no `h2`: o gesto
+       * anima `color`, e filho com classe de cor própria não herda. Com
+       * `text-branco` no `h2`, o título assentaria na cor errada, calado.
+       *
+       * O halo continua **brasa**, que é a escolha do cliente em 2026-09-11 ao
+       * ver o mockup. Vale registrar que ela reabre o que ele tinha decidido
+       * no mesmo dia para a queima, quando mandou tirar todo vermelho daqui
+       * porque o halo brigava com a foto atrás do véu. A diferença é que agora
+       * o vermelho é um estalo de meio segundo, e não um brilho que acompanha
+       * a revelação inteira. Trocar para carvão é passar `brilho`.
        */}
-      <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86] text-branco">
-        <TextoQueAcende queima>Quem veio, volta</TextoQueAcende>
-      </h2>
+      <AcendeEmBrasa className="text-branco">
+        <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
+          Quem veio, volta
+        </h2>
+      </AcendeEmBrasa>
 
       {/*
        * O subtítulo apresenta os cards, e o campo do banco que ficaria órfão
@@ -105,14 +115,25 @@ export async function Depoimentos() {
        * `max-w-[52ch]` porque linha de leitura larga demais perde o começo da
        * seguinte, e aqui a coluna vai a 1280px.
        */}
-      <Queima>
-        <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)] text-creme">
+      <AcendeEmBrasa halo={false} className="text-creme">
+        <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)]">
           {c.depoimentosTitulo}
         </p>
-      </Queima>
+      </AcendeEmBrasa>
       <div className="grid gap-[18px] md:grid-cols-3">
+        {/*
+         * O card inteiro acende em brasa, e a cor de repouso que vive no
+         * elemento animado é a `creme` da citação, que é o grosso do texto.
+         *
+         * A escolha é forçada pelo gesto: ele anima `color` num elemento só, e
+         * filho com classe de cor própria não herda. As estrelas e a
+         * assinatura continuam `text-branco` de propósito, então elas brilham
+         * e desfocam junto, mas não passam pelo vermelho. Unificar as três
+         * cores tiraria a ênfase que o cliente pediu em 2026-09-10, quando o
+         * card perdeu fundo e borda.
+         */}
         {itens.map((d, i) => (
-          <Queima key={d.id} className="h-full" delay={i * PASSO_ENTRE_CARDS}>
+          <AcendeEmBrasa halo={false} key={d.id} className="h-full text-creme" delay={i * PASSO_ENTRE_CARDS}>
             {/*
              * Sem fundo e sem borda desde 2026-09-10, a pedido do cliente: o
              * card agora é só texto sobre a foto, e quem separa uma avaliação
@@ -128,12 +149,12 @@ export async function Depoimentos() {
               <div role="img" aria-label={`${d.nota} de 5 estrelas`} className="text-branco">
                 {"★".repeat(d.nota)}
               </div>
-              <blockquote className="mt-3 text-creme">“{d.texto}”</blockquote>
+              <blockquote className="mt-3">“{d.texto}”</blockquote>
               <figcaption className="mt-4 text-[.78rem] uppercase tracking-[.11em] text-branco">
                 {d.autor}
               </figcaption>
             </figure>
-          </Queima>
+          </AcendeEmBrasa>
         ))}
       </div>
       </div>

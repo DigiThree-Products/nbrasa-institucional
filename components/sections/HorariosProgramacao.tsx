@@ -1,9 +1,9 @@
 import { getConteudo, getHorarios, getProgramacao } from "@/lib/conteudo";
 import { diasAbertos, horarioDosDias } from "@/lib/horarios";
 import { D_SILHUETA } from "@/lib/marca";
+import { atrasoNaChama } from "@/lib/brasa";
 import { Reveal } from "@/components/motion/Reveal";
-import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
-import { Queima } from "@/components/motion/Queima";
+import { AcendeEmBrasa } from "@/components/motion/AcendeEmBrasa";
 
 /**
  * viewBox da silhueta (100×116) com 3 unidades de folga de cada lado.
@@ -60,32 +60,29 @@ export async function HorariosProgramacao() {
          * que acontece da faixa de telefone para baixo.
          */}
         {/*
-         * O texto da seção queima na entrada e esfumaça na saída, a pedido do
-         * cliente em 2026-09-10, a partir de uma referência de alfabeto
-         * animado em fogo. O contorno da chama de cada card continua no
-         * `Reveal`, com `saida`, e entra antes do texto para não brigar com
-         * ele.
+         * O display da seção acende como brasa que vira letra, desde
+         * 2026-09-11: o texto nasce brasa fosca, entra em chamas e assenta na
+         * cor de repouso. O cliente escolheu o gesto vendo, num mockup.
          *
-         * **A queima letra a letra ficou só no display**, desde 2026-09-11: o
-         * título da seção e os quatro títulos de evento. O subtítulo, os
-         * rótulos de dia e as horas passaram para o `Queima`, que mascara o
-         * bloco inteiro de uma vez.
+         * **Ele substituiu a queima, e por custo medido.** A queima subia uma
+         * linha de fogo por dentro de cada glifo, letra a letra, e rolando por
+         * esta seção media 62,4 ms por quadro contra 16,7 ms do trecho de
+         * controle na Delivery, com 91% dos quadros acima de 20 ms. O custo é
+         * linear no número de elementos animados, então o gesto novo é de
+         * BLOCO: um elemento por texto. A tabela inteira está em
+         * `lib/brasa.ts`.
          *
-         * A troca tem duas razões, e as duas estão medidas. A de custo: com
-         * tudo letra a letra eram 163 letras animando e quase 500 elementos
-         * recalculando estilo a cada quadro, e o cliente relatou a rolagem
-         * engasgando. Desligar a pluma ou a máscara não resolvia, porque o que
-         * pesa é a quantidade de alvos, não o que cada um pinta. A de desenho:
-         * em corpo de 11px a cópia borrada lê como borrão sujo, e não como
-         * fumaça, porque o gesto foi calibrado no display.
-         *
-         * Os `delay` escalonam a cascata de cima para baixo, e dentro de cada
-         * card do rótulo para o horário. Eles valem para os dois componentes,
-         * que têm o mesmo gatilho e o mesmo início.
+         * A divisão de papéis é a de sempre: **fogo só no display**, que é o
+         * título da seção e os quatro títulos de evento. Subtítulo, rótulos de
+         * dia e horas vão no `Reveal`, porque em corpo de 11px o gesto de fogo
+         * lê como sujeira. O contorno da chama de cada card continua no
+         * `Reveal` com `saida`, e entra antes do texto que vai dentro dela.
          */}
-        <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
-          <TextoQueAcende queima>{c.horariosTitulo}</TextoQueAcende>
-        </h2>
+        <AcendeEmBrasa>
+          <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
+            {c.horariosTitulo}
+          </h2>
+        </AcendeEmBrasa>
 
         {/*
          * O subtítulo diz quais dias a casa abre, e é o que dá lugar à
@@ -102,15 +99,15 @@ export async function HorariosProgramacao() {
          * Owners trial não desenha acento nenhum.
          */}
         {abertos !== "" && (
-          /* O `Queima` é um `div`, então ele embrulha o parágrafo em vez de
+          /* O `Reveal` é um `div`, então ele embrulha o parágrafo em vez de
              morar dentro dele: `p` não pode conter `div`, e o navegador
              fecharia o parágrafo sozinho no meio da frase. É o mesmo arranjo
              que o subtítulo das avaliações já usa. */
-          <Queima delay={0.09}>
+          <Reveal saida delay={0.09}>
             <p className="mt-4 text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
               {`Abrimos de ${abertos}.`}
             </p>
-          </Queima>
+          </Reveal>
         )}
 
         {/*
@@ -139,8 +136,16 @@ export async function HorariosProgramacao() {
             const hora = horarioDosDias(horarios, p.dias);
             const vermelho = i % 2 === 0;
 
-            // Cascata: o card entra, e as três linhas acendem atrás dele.
-            const base = 0.18 + i * 0.08;
+            /*
+             * Cascata: o contorno da chama entra, e os três degraus de texto
+             * acendem atrás dele.
+             *
+             * A conta mora em `lib/brasa.ts` porque este atraso SOMA com a
+             * duração do gesto, e é o total que tem orçamento. Ele já começou
+             * em 0,18 s, tempo morto que ninguém pediu, e o pior caso da
+             * seção é a hora da quarta chama. `brasa.test.ts` cobra os dois.
+             */
+            const atraso = (degrau: number) => atrasoNaChama(i, degrau);
 
             return (
               /*
@@ -162,7 +167,7 @@ export async function HorariosProgramacao() {
                 {/* O `Reveal` embrulha só o SVG, e não o card inteiro: se
                     embrulhasse tudo, a opacidade dele multiplicaria a das
                     letras e o acender sairia lavado. */}
-                <Reveal saida delay={base}>
+                <Reveal saida delay={atraso(0)}>
                   <svg
                     viewBox={VIEWBOX_CHAMA}
                     aria-hidden="true"
@@ -182,22 +187,32 @@ export async function HorariosProgramacao() {
                   {/* Rótulo e horário em brasa-escura no card vermelho:
                       `brasa` puro reprova AA em texto pequeno, e é a mesma
                       troca que todo rótulo pequeno do site já faz. */}
-                  <Queima
+                  <Reveal
+                    saida
                     className={`text-[clamp(.62rem,4cqw,.82rem)] font-extrabold uppercase leading-tight tracking-[.14em] ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}
-                    delay={base + 0.06}
+                    delay={atraso(1)}
                   >
                     {p.diasLabel}
-                  </Queima>
-                  <h3 className="font-display text-[clamp(1rem,8.6cqw,1.7rem)] uppercase leading-[1.02] text-carvao">
-                    <TextoQueAcende queima delay={base + 0.12}>{p.titulo}</TextoQueAcende>
-                  </h3>
+                  </Reveal>
+                  {/*
+                   * A cor de repouso mora no ELEMENTO ANIMADO, e não no `h3`.
+                   * O gesto anima `color`, e filho com classe de cor própria
+                   * não herda: com `text-carvao` no `h3`, o título assentaria
+                   * na cor errada e nada lançaria.
+                   */}
+                  <AcendeEmBrasa className="text-carvao" delay={atraso(2)}>
+                    <h3 className="font-display text-[clamp(1rem,8.6cqw,1.7rem)] uppercase leading-[1.02]">
+                      {p.titulo}
+                    </h3>
+                  </AcendeEmBrasa>
                   {hora !== null && (
-                    <Queima
+                    <Reveal
+                      saida
                       className={`text-[clamp(.85rem,6.2cqw,1.25rem)] font-extrabold tabular-nums ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}
-                      delay={base + 0.18}
+                      delay={atraso(3)}
                     >
                       {hora}
-                    </Queima>
+                    </Reveal>
                   )}
                 </div>
               </article>
