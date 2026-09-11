@@ -77,13 +77,26 @@ export function Queima({ children, className, delay = 0 }: Props) {
        */
       const vestirMascara = () => {
         const tinta = mascaraDaQueima("tinta");
-        gsap.set(el, { maskImage: tinta, webkitMaskImage: tinta });
+        /*
+         * `no-repeat` porque o valor inicial de `mask-repeat` é repetir, e o
+         * gradiente é medido pela caixa do bloco: qualquer pintura que saia
+         * dela, como a sombra de um filho, atravessaria um ladrilho novo do
+         * gradiente e sairia recortada em faixa. Aqui não há pluma, então o
+         * risco é menor que no `TextoQueAcende`, mas os dois declaram o mesmo
+         * para a máscara não depender de onde ela é usada.
+         */
+        gsap.set(el, {
+          maskImage: tinta, webkitMaskImage: tinta,
+          maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat",
+        });
       };
 
       // Passado o fogo não sobra nada para mascarar, e bloco parado não
       // precisa carregar camada de composição.
       const despirMascara = () => {
-        gsap.set(el, { clearProps: "maskImage,webkitMaskImage" });
+        gsap.set(el, {
+          clearProps: "maskImage,webkitMaskImage,maskRepeat,webkitMaskRepeat",
+        });
       };
 
       const queimar = () => {

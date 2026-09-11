@@ -11,6 +11,8 @@ import {
   contasDaQueima,
   derivaDaLetra,
   PASSOS_DA_PLUMA,
+  SUBIDA_DA_PLUMA,
+  DESFOQUE_BASE,
 } from "@/lib/queima";
 
 /** Todos os números que um padrão captura na pluma, na ordem das cópias. */
@@ -21,9 +23,14 @@ function numeros(padrao: RegExp): number[] {
 /**
  * Os multiplicadores que jogam cada cópia para cima. São o segundo `calc` de
  * cada sombra, logo antes do desfoque; o primeiro é a deriva lateral.
+ *
+ * O `calc(` do fim é só a âncora que diz que acabou o deslocamento e começou
+ * o desfoque. Ele já citou o valor de `DESFOQUE_BASE`, e isso quebrou calado
+ * quando o número mudou em 2026-09-11: a busca não achava nada, a lista vinha
+ * vazia e dois testes passavam a afirmar coisa nenhuma.
  */
 function deslocamentos(): number[] {
-  return numeros(/calc\(var\(--altura-da-pluma\) \* (-[\d.]+)\) calc\(0\.04em/g);
+  return numeros(/calc\(var\(--altura-da-pluma\) \* (-[\d.]+)\) calc\(/g);
 }
 
 /** Conta parênteses abertos e fechados de uma declaração de CSS. */
@@ -116,6 +123,33 @@ describe("a queima que revela o texto de baixo para cima", () => {
       expect(alturas[i]).toBeLessThan(alturas[i - 1]);
       expect(desfoques[i]).toBeGreaterThan(desfoques[i - 1]);
       expect(forcas[i]).toBeLessThan(forcas[i - 1]);
+    }
+  });
+
+  it("afasta as cópias mais do que as borra, para a letra aparecer na fumaça", () => {
+    /*
+     * O cliente pediu em 2026-09-11 para enxergar a letra dentro da fumaça, e
+     * isso não é uma conta de desfoque, é uma de vão contra desfoque: cópia
+     * que carrega mais desfoque do que a distância até a vizinha se funde com
+     * ela, e a pilha inteira volta a ser a mancha que a pluma era antes.
+     *
+     * O pior caso é o NASCIMENTO da pluma, e não o fim dela: ali a altura é a
+     * menor, então as cópias estão mais juntas, e é também quando o alfa está
+     * no máximo, então é o instante em que a fusão mais apareceria.
+     *
+     * A margem existe porque vão igual ao desfoque ainda lê fundido: as duas
+     * metades da transição de uma cópia encostam na vizinha. Medido nestes
+     * números, o nascimento dá 1,44.
+     */
+    const SEPARACAO_MINIMA = 1.3;
+    const espalhas = numeros(/\+ var\(--altura-da-pluma\) \* ([\d.]+)\)/g);
+    const altura = SUBIDA_DA_PLUMA.comeco;
+    const vao = altura / PASSOS_DA_PLUMA;
+
+    expect(espalhas).toHaveLength(PASSOS_DA_PLUMA);
+    for (const espalha of espalhas) {
+      const desfoque = DESFOQUE_BASE + altura * espalha;
+      expect(vao / desfoque).toBeGreaterThanOrEqual(SEPARACAO_MINIMA);
     }
   });
 

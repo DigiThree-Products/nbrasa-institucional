@@ -153,9 +153,22 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
       const vestirMascaras = () => {
         const tinta = mascaraDaQueima("tinta");
         const fumaca = mascaraDaQueima("fumaca");
-        gsap.set(tintas, { maskImage: tinta, webkitMaskImage: tinta });
+        /*
+         * `no-repeat` não é enfeite. O valor inicial de `mask-repeat` é
+         * repetir, e o gradiente é medido pela caixa da letra: acima dela o
+         * ladrilho recomeça. A pluma é `text-shadow` e sobe até 0,72em acima
+         * dessa caixa, bem além dela, então sem isto o topo dela atravessaria
+         * uma cópia nova do gradiente e sairia recortado em faixa. As
+         * máscaras da costura do herói, em `globals.css`, declaram o mesmo
+         * pelo mesmo motivo.
+         */
+        gsap.set(tintas, {
+          maskImage: tinta, webkitMaskImage: tinta,
+          maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat",
+        });
         gsap.set(fumacas, {
           maskImage: fumaca, webkitMaskImage: fumaca, opacity: OPACIDADE_DA_FUMACA,
+          maskRepeat: "no-repeat", webkitMaskRepeat: "no-repeat",
         });
         // A pluma entra junto e não é animada: ela lê a mesma linha de fogo
         // que a máscara, e quem a recalcula a cada quadro é o navegador. A
@@ -174,10 +187,12 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
       // Passado o fogo, não sobra nada para mascarar: a letra parada volta a
       // ser texto puro, e a fumaça sai da frente.
       const despirMascaras = () => {
-        gsap.set([...tintas, ...fumacas], { clearProps: "maskImage,webkitMaskImage" });
+        gsap.set([...tintas, ...fumacas], {
+          clearProps: "maskImage,webkitMaskImage,maskRepeat,webkitMaskRepeat",
+        });
         gsap.set(fumacas, { opacity: 0 });
         // A pluma já chega apagada pelo avanço, mas sai de vez: letra parada
-        // não carrega quatro sombras para pintar nada.
+        // não carrega seis sombras para pintar nada.
         gsap.set(letras, { textShadow: "none" });
       };
 

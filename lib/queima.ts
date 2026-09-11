@@ -77,24 +77,49 @@ export function mascaraDaQueima(papel: Papel, maciez: number = MACIEZ): string {
 /**
  * Quantas cópias formam a pluma de fumaça.
  *
- * Quatro é o menor número em que a pilha lê como pluma e não como mancha: com
- * duas, o salto de uma cópia para a outra aparece; acima de quatro, cada cópia
- * nova custa uma pintura de sombra por letra e a diferença não se vê.
+ * Seis é a escolha do cliente em 2026-09-11, quando ele pediu para enxergar a
+ * letra dentro da fumaça: cada cópia passou a ser um fantasma legível do
+ * glifo, e seis escalonadas dão a leitura de rastro. Abaixo de quatro o salto
+ * de uma para a outra aparece; acima de seis cada cópia nova custa uma
+ * pintura de sombra por letra e a diferença não se vê.
+ *
+ * Este número é metade da conta de separação: o vão entre duas cópias é a
+ * altura da pluma dividida por ele. Subir aqui aperta as cópias sem que nada
+ * lance, e é `SUBIDA_DA_PLUMA` que explica a conta inteira.
  */
 export const PASSOS_DA_PLUMA = 6;
 
-/** Quanto o desfoque da cópia mais alta cresce em relação à subida dela. */
-const ESPALHAMENTO = 2.4;
+/**
+ * Quanto o desfoque da cópia mais alta cresce em relação à subida dela.
+ *
+ * Era 2,4 enquanto a pluma existia para dissolver a letra. Desde 2026-09-11
+ * ele é o freio do desfoque, e não o motor: é ele que decide se a cópia ainda
+ * tem contorno quando chega ao alto da pluma.
+ */
+const ESPALHAMENTO = 0.07;
 /**
  * Com que rapidez o desfoque cresce de uma cópia para a seguinte.
  *
- * Acima de 1 ele cresce mais depressa que a altura, e é isso que faz a cópia
- * de cima perder a forma da letra. Crescimento linear mantém seis letras
- * legíveis empilhadas, que lê como eco, não como fumaça.
+ * Acima de 1 ele cresce mais depressa que a altura, o que faz a cópia de cima
+ * perder a forma da letra. Era 1,5, e era assim de propósito, enquanto a
+ * pluma devia ler como mancha.
+ *
+ * O cliente pediu o contrário em 2026-09-11, ver a letra dentro da fumaça,
+ * então o crescimento é linear e as seis cópias continuam legíveis
+ * empilhadas. O risco conhecido dessa escolha é a pilha ler como sombra
+ * repetida em vez de fumaça, e ele foi aceito vendo, não no papel.
  */
-const CURVA_DO_DESFOQUE = 1.5;
-/** O desfoque mínimo, para a cópia mais baixa não sair com borda dura. */
-const DESFOQUE_BASE = 0.04;
+const CURVA_DO_DESFOQUE = 1;
+/**
+ * O desfoque mínimo, para a cópia mais baixa não sair com borda dura.
+ *
+ * É o número que erra mais calado dos quatro, porque não é de cópia nenhuma
+ * em particular: ele soma em todas. Era 0,04, e sozinho valia três vezes o
+ * vão entre duas cópias, o bastante para fundir a pilha inteira mesmo com o
+ * espalhamento zerado. Quem for baixar a altura da pluma confere este aqui
+ * antes.
+ */
+export const DESFOQUE_BASE = 0.01;
 /** Quanto a cópia mais alta perde de opacidade em relação à mais baixa. */
 const QUEDA_DO_ALFA = 0.78;
 /** O quanto a cópia mais alta pode escorar para o lado, em fração da altura. */
@@ -135,8 +160,29 @@ export function emRgba(cor: string, alfa: number | string): string {
   return `color-mix(in srgb, ${cor} ${porcento}, transparent)`;
 }
 
-/** Onde a pluma começa e onde ela acaba, em `em`. */
-const SUBIDA_DA_PLUMA = { comeco: 0.08, fim: 0.34 };
+/**
+ * Onde a pluma começa e onde ela acaba, em `em`.
+ *
+ * A altura é o que dá lugar às cópias, e por isso ela é a metade decisiva da
+ * conta de separação: o vão entre duas vizinhas é esta altura dividida por
+ * `PASSOS_DA_PLUMA`, e uma cópia só lê como letra enquanto esse vão for maior
+ * que o desfoque que ela carrega.
+ *
+ * Era 0,08 a 0,34 quando a pluma devia dissolver. Nessa faixa as seis cópias
+ * cabiam todas dentro de um oitavo de em, o vão dava um vigésimo do desfoque,
+ * e **nenhuma redução de desfoque sozinha as separaria**: foi o que a medição
+ * de 2026-09-11 mostrou quando o pedido chegou como "só baixar o desfoque".
+ *
+ * O pior caso é o NASCIMENTO, e não o fim: é quando a pluma está mais baixa e
+ * mais forte ao mesmo tempo, porque o alfa cai com o avanço enquanto a altura
+ * sobe. Medido nestes números, o vão dá 1,44 vez o desfoque ali, contra 1,87
+ * no meio da queima. `queima.test.ts` cobra o nascimento.
+ *
+ * O teto de 0,72em encosta na linha de cima num título de duas linhas, que
+ * tem entrelinha de 0,86em. As cópias que chegam tão alto já estão quase
+ * apagadas, então isso foi aceito.
+ */
+export const SUBIDA_DA_PLUMA = { comeco: 0.22, fim: 0.72 };
 /** A força da pluma no nascimento. Ela termina sempre apagada. */
 const OPACIDADE_DA_PLUMA = 0.9;
 
