@@ -77,7 +77,7 @@ exatamente o erro que ele existe para impedir. Peça os arquivos de marca antes
 de rodar a suíte pela primeira vez.
 
 Os cinco viewports do Playwright chamam-se `w320`, `w768`, `w1024`, `w1440` e
-`w1920`. A suíte unitária tem 25 arquivos e 256 testes e roda em torno de 12 s.
+`w1920`. A suíte unitária tem 27 arquivos e 291 testes e roda em torno de 13 s.
 O e2e é **um arquivo só**, `tests/e2e/home.spec.ts`, com 25 testes que os cinco
 viewports multiplicam por cinco: um `-g` errado custa 125 execuções e um build.
 
@@ -451,6 +451,16 @@ comprimento dele.** Nome longo escrito no painel transborda a chama. É o
 mesmo tipo de dívida do orçamento de 130 kB: medido uma vez, cobrado por
 quem mexer.
 
+> **Tudo o que vem abaixo sobre a QUEIMA é histórico, desde 2026-09-11.** A
+> linha de fogo que subia por dentro de cada glifo foi aposentada por custo
+> medido, e o que revela as duas seções hoje é a **brasa que vira letra**, em
+> `lib/brasa.ts` e `components/motion/AcendeEmBrasa.tsx`. Ver a seção "A
+> revelação é brasa que vira letra", logo adiante. `lib/queima.ts`,
+> `components/motion/Queima.tsx` e o modo `queima` do `TextoQueAcende` seguem
+> exportados e testados, sem consumidor na interface, como o `agruparHorarios`.
+> Os parágrafos daqui em diante descrevem como aquele gesto funcionava, e não
+> o código que roda hoje.
+
 **Todo o texto da seção revela na entrada e esfumaça na saída**, desde
 2026-09-10. O gesto veio de uma referência de alfabeto animado em fogo que o
 cliente mandou; o que foi tomado emprestado é o movimento, e **não** a paleta,
@@ -538,7 +548,87 @@ cria uma **tween nova a cada travessia** em vez de reverter, o que também dá
 nas voltas o conteúdo já está escondido, e refazer o estado inicial daria um
 salto.
 
-### As avaliações são reveladas por uma linha de fogo que sobe
+### A revelação é brasa que vira letra
+
+Desde 2026-09-11 as duas seções com texto animado, horários e avaliações,
+revelam pelo mesmo gesto: o texto nasce brasa fosca e desfocada, sem forma de
+letra ainda, entra em chamas, e o fogo apaga deixando a letra assentada na cor
+de repouso dela. São três fases numa linha do tempo só, em
+`components/motion/AcendeEmBrasa.tsx`, com as contas em `lib/brasa.ts`. O
+cliente escolheu o gesto **vendo**, num mockup com a fonte e a paleta reais, e
+não no papel, que é como a pluma e o véu também foram calibrados.
+
+**Ele é de BLOCO, e isso é a correção, não um detalhe.** Um elemento animado
+por texto, nunca um por letra. O gesto que ele substituiu, a queima, era letra
+a letra, e cada letra carregava duas camadas filhas, uma máscara repintada a
+cada quadro e uma pluma de seis sombras. Medido no navegador a 1440x900,
+rolando a 900 px/s, contra um trecho de controle de mesma distância dentro da
+Delivery, que não anima texto nenhum:
+
+| Trecho da seção de horários | Médio | Quadros > 20 ms | Pior |
+|---|---|---|---|
+| Delivery, controle sem gesto | 16,7 ms | 0% | 18,7 ms |
+| Queima, 71 letras | 62,4 ms | 91% | 267 ms |
+| Queima, só as 23 do título | 31,0 ms | 75% | 150 ms |
+| Brasa em bloco, hoje | 16,9 ms | 4,7% | 34,3 ms |
+
+A resposta é **linear no número de elementos animados**, e some quando ele
+chega a zero. Não adianta baratear o que cada um pinta: desligar a pluma ou a
+máscara, uma a uma, não resolvia. Quem for tentado a quebrar o gesto em letras
+de novo lê esta tabela antes, e `AcendeEmBrasa.test.tsx` tem um teste que
+falha se alguém voltar a gerar um `span` por letra.
+
+**A divisão de papéis mudou de eixo: o que separa não é mais fogo ou nada, é
+COM HALO ou SEM HALO.** Na seção de horários o fogo fica no display, título da
+seção e títulos de evento, e rótulos de dia e horas seguem no `Reveal`, porque
+em corpo de 11px o gesto lê como sujeira. Nas avaliações o corpo é bem maior, e
+a pedido do cliente em 2026-09-11 **a seção inteira acende**: subtítulo e os
+três cards vieram junto, mas com `halo={false}`.
+
+**O halo é pago por GLIFO, e não por bloco animado**, e essa é a segunda
+descoberta de custo do dia. Com halo no subtítulo e nos três cards, a seção das
+avaliações saiu de 16,7 ms por quadro para 22,7 ms, com 43% dos quadros acima
+de 20 ms: um card tem centenas de letrinhas e cada uma pinta duas cópias
+borradas sobre a foto de fundo. Desligar o DESFOQUE no lugar dele não mudou
+nada, 23,3 ms, o que descarta o filtro. Sem halo a seção volta aos 16,7 ms do
+controle. Display tem poucas letras grandes e paga tranquilo. Ligar `halo` num
+bloco de corpo devolve o engasgo, e nada lança.
+
+Sem o halo o gesto continua sendo brasa que vira letra: quem faz o fogo é a
+passagem pela COR, e a sombra só engrossa. Há teste que falha se a cor sair
+junto, porque aí o bloco viraria um fade e o gesto sumiria do corpo da seção.
+
+**A cor de repouso mora no elemento animado, e não no `h2`.** O gesto anima
+`color`, e filho com classe de cor própria não herda: com `text-branco` no
+`h2` das avaliações, o título assentaria na cor errada e nada lançaria. Por
+isso a classe de cor está no `AcendeEmBrasa` e o heading só leva tipografia.
+
+**O que erra calado aqui** são dois números e uma sobra. Sobra de `textShadow`
+ou de `blur` na última fase não se desfaz sozinha: o título fica borrado e com
+halo vermelho **parado** na tela, e ainda paga uma camada de composição para
+sempre, e é por isso que a tween termina num `clearProps`. E a emenda entre a
+segunda e a terceira fase precisa cair **antes** de a chama acabar, senão o
+texto trava em vermelho cheio no meio do gesto. Os três têm teste.
+
+O orçamento de tempo é 1,3 s, bem mais apertado que os 3,15 s que a queima
+chegou a custar, e essa é a correção de fundo do defeito original: o elemento
+fica cerca de 890 px dentro do gatilho, que a 1100 px/s dá 0,81 s, então
+revelação que passa disso não termina antes de a seção sair pela tela. A conta
+não depende do comprimento do texto, ao contrário da queima, onde a cascata era
+passo vezes número de letras e quem escrevia a copy no painel decidia a duração
+da cena.
+
+**O halo é brasa nas duas seções**, escolha do cliente em 2026-09-11 ao ver o
+mockup. Vale saber que ela reabre o que ele tinha decidido no mesmo dia para a
+queima, quando mandou tirar todo vermelho das avaliações porque o halo brigava
+com a foto atrás do véu. A diferença aceita é que agora o vermelho é um estalo
+de meio segundo, e não um brilho que acompanha a revelação inteira. O
+componente recebe `brilho`, então trocar por carvão ali é uma prop.
+
+### As avaliações eram reveladas por uma linha de fogo que sobe (histórico)
+
+> **Histórico desde 2026-09-11.** Descreve a queima, que saiu da interface.
+> Ver a seção acima para o que roda hoje.
 
 Desde 2026-09-10 a seção "Quem veio, volta" não usa mais o `Reveal`. O cliente
 pediu que ela ficasse fiel à mesma referência de tipografia em fogo que deu
@@ -709,11 +799,12 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Dez arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `TextoQueAcende`, `Queima`, `RotaMascote`, `RolagemDoCabecalho`,
-`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só nove chegam à
-página**:
-`VideoFachada` está órfão, ver logo abaixo. Todo o resto é Server Component
+Onze arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `AcendeEmBrasa`, `TextoQueAcende`, `Queima`, `RotaMascote`,
+`RolagemDoCabecalho`, `FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`,
+**mas só oito chegam à página**: `VideoFachada` está órfão, ver logo abaixo, e
+`TextoQueAcende` e `Queima` ficaram órfãos em 2026-09-11, quando a queima saiu
+da interface e a brasa entrou no lugar. Todo o resto é Server Component
 `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por
 `await import()` dentro de `useEffect`, nunca no bundle inicial, e cada um
 verifica `prefers-reduced-motion` antes de animar, e há testes unitários e e2e
