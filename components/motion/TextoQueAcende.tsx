@@ -7,6 +7,7 @@ import {
   VARIAVEL_DA_LINHA,
   mascaraDaQueima,
   escondeNaMontagem,
+  estiloDaPluma,
 } from "@/lib/queima";
 
 /**
@@ -149,6 +150,11 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
         gsap.set(fumacas, {
           maskImage: fumaca, webkitMaskImage: fumaca, opacity: OPACIDADE_DA_FUMACA,
         });
+        // A pluma entra junto e não é animada: ela lê a mesma linha de fogo
+        // que a máscara, e quem a recalcula a cada quadro é o navegador. A
+        // sombra herda para as duas camadas, então cada uma pinta a sua parte
+        // da pluma com a própria máscara aplicada.
+        gsap.set(letras, estiloDaPluma(carvao));
       };
 
       // Passado o fogo, não sobra nada para mascarar: a letra parada volta a
@@ -156,6 +162,9 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
       const despirMascaras = () => {
         gsap.set([...tintas, ...fumacas], { clearProps: "maskImage,webkitMaskImage" });
         gsap.set(fumacas, { opacity: 0 });
+        // A pluma já chega apagada pelo avanço, mas sai de vez: letra parada
+        // não carrega quatro sombras para pintar nada.
+        gsap.set(letras, { textShadow: "none" });
       };
 
       const queimar = () => {
@@ -167,12 +176,12 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
             // Desfaz o estado de fumaça em que a saída deixou a letra. Sem
             // isto ela voltaria borrada, deslocada e transparente.
             opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
-            textShadow: `0 0 20px ${carvao}`,
           },
           {
             [VARIAVEL_DA_LINHA]: LINHA_FINAL,
             opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
-            textShadow: "0 0 0px rgba(0,0,0,0)",
+            // A sombra não entra aqui de propósito: a pluma sobe sozinha,
+            // pela linha de fogo que esta tween já move.
             duration: DURACAO_DA_QUEIMA, ease: "power1.inOut",
             stagger: PASSO_DA_QUEIMA, delay,
             overwrite: true, onComplete: despirMascaras,

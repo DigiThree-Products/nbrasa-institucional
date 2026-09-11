@@ -113,7 +113,11 @@ Nenhum deles lança quando errado, só desenha diferente.
 - Não entra vermelho nesta seção. Na tinta ele some, porque `brasa` sobre o véu
   de carvão dá 1,1:1, a mesma armadilha que trocou a cor das estrelas. No
   brilho ele chegou a ficar e o cliente tirou em 2026-09-11, porque brigava com
-  a foto; hoje o halo é carvão.
+  a foto; hoje é carvão.
+- A pluma de fumaça do título **não pode voltar a ser animada por tween**. O
+  GSAP embaralha os deslocamentos das quatro cópias no meio do caminho, com
+  desfoque e alfa saindo certos, e ninguém é avisado. Ela é escrita uma vez e
+  sobe pela mesma `--linha-de-fogo` que move a máscara.
 
 Se o ritmo ficar errado ao olho do cliente, os botões são `DURACAO_DA_QUEIMA` e
 `PASSO_DA_QUEIMA` no `TextoQueAcende`, e `DURACAO_DA_QUEIMA` e

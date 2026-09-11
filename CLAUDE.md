@@ -547,11 +547,23 @@ acontecia antes. No telefone eles empilham e a própria rolagem já os separa.
 esbarra na mesma armadilha que trocou a cor das estrelas: sobre o véu de carvão
 o `brasa` dá 1,1:1 e some. No brilho ele chegou a ficar, e saiu em 2026-09-11,
 a pedido do cliente: esta é a única seção de fundo escuro que queima, e o halo
-vermelho brigava com a foto atrás do véu. O brilho é **carvão** desde então, um
-`text-shadow` que apaga enquanto a letra esfria e que, de quebra, dá borda à
-letra branca quando ela atravessa a parte clara da foto, que é o céu. A entrada
-de sempre, a da seção de horários, continua nascendo na brasa, porque lá o
-fundo é a página clara. A tinta, nas duas, é a cor de repouso lida do DOM.
+vermelho brigava com a foto atrás do véu. O brilho é **carvão** desde então, e
+de quebra dá borda à letra branca quando ela atravessa a parte clara da foto,
+que é o céu. A entrada de sempre, a da seção de horários, continua nascendo na
+brasa, porque lá o fundo é a página clara. A tinta, nas duas, é a cor de
+repouso lida do DOM.
+
+**E o brilho não é um halo, é uma pluma**, também a pedido do cliente no mesmo
+dia: halo simétrico não lê como fumaça. São quatro cópias empilhadas para cima
+pelo `text-shadow`, cada uma mais alta, mais borrada e mais fraca, e ela sobe e
+se desfaz conforme o fogo atravessa a letra. Quem a move **não é uma tween**:
+ela lê a mesma `--linha-de-fogo` da máscara, por duas propriedades derivadas
+que o navegador recalcula sozinho, então as duas não têm como dessincronizar.
+Isso não é preferência de estilo. Animar a sombra inteira pelo GSAP foi a
+primeira tentativa, e ele interpola bem o desfoque e o alfa e **embaralha os
+deslocamentos**: medido no navegador, uma cópia foi parar a 49px de altura,
+fora de qualquer estado válido, enquanto as vizinhas ficavam curtas. Nada
+lança, e a pluma vira um borrão trêmulo.
 
 ### Cache e revalidação
 

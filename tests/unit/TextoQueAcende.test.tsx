@@ -26,8 +26,11 @@ vi.mock("gsap/ScrollTrigger", () => ({
 /** Vermelho de marca, duplicado aqui de propósito, como em tokens.test.ts:
  *  o teste compara com o valor do spec, não com o que o CSS disser. */
 const BRASA = "#cf2434";
-/** Carvão, pelo mesmo motivo. É o brilho da queima desde 2026-09-11. */
-const CARVAO = "#241e1f";
+/** Carvão é o brilho da queima desde 2026-09-11, e a brasa segue sendo a da
+ *  entrada de sempre. Abertos em componentes porque é assim que a pluma
+ *  escreve a cor: ela precisa de alfa por cópia, e o token é hex sem alfa. */
+const CARVAO_RGB = "36, 30, 31";
+const BRASA_RGB = "207, 36, 52";
 
 const semMovimento = (matches: boolean) => {
   window.matchMedia = ((query: string) => ({
@@ -37,6 +40,14 @@ const semMovimento = (matches: boolean) => {
     dispatchEvent: () => false,
   })) as unknown as typeof window.matchMedia;
 };
+
+/** A sombra que o componente escreveu via `gsap.set`, e não pelo tween. */
+function sombraPosta(): string {
+  const comSombra = setMock.mock.calls
+    .map((c) => (c as unknown[])[1] as Record<string, unknown>)
+    .filter((v) => typeof v?.textShadow === "string");
+  return String(comSombra.at(-1)?.textShadow ?? "");
+}
 
 async function varsDoGatilho() {
   await waitFor(() => expect(createMock).toHaveBeenCalled());
@@ -169,9 +180,24 @@ describe("TextoQueAcende no modo queima", () => {
     const vars = await varsDoGatilho();
     vars.onEnter();
 
-    const de = (fromToMock.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
-    expect(String(de.textShadow)).toContain(CARVAO);
-    expect(String(de.textShadow)).not.toContain(BRASA);
+    // A pluma escreve a cor em `rgba`, porque precisa de alfa por cópia, então
+    // o que se procura aqui é o carvão aberto em componentes.
+    expect(sombraPosta()).toContain(CARVAO_RGB);
+    expect(sombraPosta()).not.toContain(BRASA_RGB);
+  });
+
+  it("acompanha a queima com uma pluma que sobe e se desfaz", async () => {
+    // Halo simétrico não lê como fumaça, e foi o que o cliente apontou em
+    // 2026-09-11. A pluma sobe pela mesma linha que move a máscara, então ela
+    // não é animada pelo tween: é escrita uma vez e o CSS a recalcula.
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+
+    const vars = await varsDoGatilho();
+    vars.onEnter();
+
+    expect(sombraPosta()).toContain("--altura-da-pluma");
+    const doTween = (fromToMock.mock.calls[0] as unknown[])[2] as Record<string, unknown>;
+    expect(doTween.textShadow).toBeUndefined();
   });
 
   it("ao entrar, sobe a linha de fogo da base ao topo do glifo", async () => {

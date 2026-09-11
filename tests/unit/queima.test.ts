@@ -6,7 +6,21 @@ import {
   VARIAVEL_DA_LINHA,
   mascaraDaQueima,
   escondeNaMontagem,
+  emRgba,
+  plumaDeFumaca,
+  estiloDaPluma,
+  PASSOS_DA_PLUMA,
 } from "@/lib/queima";
+
+/** Todos os números que um padrão captura na pluma, na ordem das cópias. */
+function numeros(padrao: RegExp): number[] {
+  return [...plumaDeFumaca("#241e1f").matchAll(padrao)].map((m) => Number(m[1]));
+}
+
+/** Os multiplicadores que jogam cada cópia para cima. */
+function deslocamentos(): number[] {
+  return numeros(/0 calc\(var\(--altura-da-pluma\) \* (-[\d.]+)\)/g);
+}
 
 /** Conta parênteses abertos e fechados de uma declaração de CSS. */
 function saldoDeParenteses(css: string): number {
@@ -65,6 +79,65 @@ describe("a queima que revela o texto de baixo para cima", () => {
     // inteira, a máscara some e a letra aparece pronta, sem queima nenhuma.
     expect(saldoDeParenteses(mascaraDaQueima("tinta"))).toBe(0);
     expect(saldoDeParenteses(mascaraDaQueima("fumaca"))).toBe(0);
+  });
+
+  it("escreve a cor com alfa a partir do hex do token", () => {
+    expect(emRgba("#241e1f", 0.5)).toBe("rgba(36, 30, 31, 0.5)");
+  });
+
+  it("aceita também a forma que o navegador devolve", () => {
+    // `getComputedStyle` pode entregar `rgb(...)` em vez do hex escrito no
+    // `@theme`, e a pluma não pode sair sem alfa por causa disso: sem alfa
+    // por cópia ela vira um borrão sólido, e não fumaça.
+    expect(emRgba("rgb(36, 30, 31)", 0.5)).toBe("rgba(36, 30, 31, 0.5)");
+  });
+
+  it("sobe a pluma inteira, sem cópia abaixo da letra", () => {
+    // Fumaça que desce lê como queda. O deslocamento de toda cópia multiplica
+    // a altura por um número negativo, que é o que a joga para cima.
+    expect(deslocamentos()).toHaveLength(PASSOS_DA_PLUMA);
+    for (const f of deslocamentos()) expect(f).toBeLessThan(0);
+  });
+
+  it("afasta, borra e enfraquece cada cópia mais que a anterior", () => {
+    // É o degradê que faz a pilha ler como pluma. Cópias iguais empilhadas
+    // viram uma mancha só, do mesmo jeito que o halo simétrico de antes.
+    const alturas = deslocamentos();
+    const desfoques = numeros(/\+ var\(--altura-da-pluma\) \* ([\d.]+)\)/g);
+    const forcas = numeros(/calc\(([\d.]+) \* \(1 -/g);
+    expect(desfoques).toHaveLength(PASSOS_DA_PLUMA);
+    expect(forcas).toHaveLength(PASSOS_DA_PLUMA);
+
+    for (let i = 1; i < PASSOS_DA_PLUMA; i++) {
+      expect(alturas[i]).toBeLessThan(alturas[i - 1]);
+      expect(desfoques[i]).toBeGreaterThan(desfoques[i - 1]);
+      expect(forcas[i]).toBeLessThan(forcas[i - 1]);
+    }
+  });
+
+  it("apaga a pluma exatamente quando o fogo acaba", () => {
+    // O alfa é a força vezes o que falta do avanço. Em avanço 1, que é o fim
+    // da queima, sobra zero: a fumaça não pode ficar pendurada na letra
+    // parada depois que a máscara sai.
+    const avanco = [...plumaDeFumaca("#241e1f").matchAll(/\(1 - var\(--avanco-da-queima\)\)/g)];
+    expect(avanco).toHaveLength(PASSOS_DA_PLUMA);
+  });
+
+  it("deriva o avanço da mesma linha que move a máscara", () => {
+    // As duas dessincronizariam no dia em que alguém mexesse num dos dois
+    // lugares, e a pluma passaria a subir antes ou depois do fogo.
+    const estilo = estiloDaPluma("#241e1f");
+    expect(estilo["--avanco-da-queima"]).toContain(VARIAVEL_DA_LINHA);
+    expect(estilo["--altura-da-pluma"]).toContain("--avanco-da-queima");
+    expect(estilo.textShadow).toContain("--altura-da-pluma");
+  });
+
+  it("fecha todos os parênteses que a pluma abre", () => {
+    // Mesmo perigo da máscara: `calc` mal fechado descarta a declaração e a
+    // sombra some inteira, sem nada lançar.
+    for (const valor of Object.values(estiloDaPluma("#241e1f"))) {
+      expect(saldoDeParenteses(valor)).toBe(0);
+    }
   });
 
   it("esconde na montagem o que ainda está abaixo da janela", () => {

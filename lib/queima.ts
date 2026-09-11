@@ -75,6 +75,110 @@ export function mascaraDaQueima(papel: Papel, maciez: number = MACIEZ): string {
 }
 
 /**
+ * Quantas cópias formam a pluma de fumaça.
+ *
+ * Quatro é o menor número em que a pilha lê como pluma e não como mancha: com
+ * duas, o salto de uma cópia para a outra aparece; acima de quatro, cada cópia
+ * nova custa uma pintura de sombra por letra e a diferença não se vê.
+ */
+export const PASSOS_DA_PLUMA = 4;
+
+/** Quanto o desfoque da cópia mais alta cresce em relação à subida dela. */
+const ESPALHAMENTO = 1.6;
+/** O desfoque mínimo, para a cópia mais baixa não sair com borda dura. */
+const DESFOQUE_BASE = 0.04;
+/** Quanto a cópia mais alta perde de opacidade em relação à mais baixa. */
+const QUEDA_DO_ALFA = 0.72;
+
+/**
+ * Devolve a cor com alfa.
+ *
+ * Existe porque a pluma precisa de uma opacidade por cópia, e o token de marca
+ * é um hex sem alfa. `tokens.test.ts` fixa esses hex, então o caminho normal é
+ * o primeiro; o segundo cobre o `rgb(...)` que `getComputedStyle` às vezes
+ * devolve no lugar do texto escrito no `@theme`.
+ */
+export function emRgba(cor: string, alfa: number | string): string {
+  const hex = cor.trim().match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (hex) {
+    const [r, g, b] = hex.slice(1, 4).map((par) => parseInt(par, 16));
+    return `rgba(${r}, ${g}, ${b}, ${alfa})`;
+  }
+  const rgb = cor.trim().match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
+  if (rgb) return `rgba(${Number(rgb[1])}, ${Number(rgb[2])}, ${Number(rgb[3])}, ${alfa})`;
+  // Cor em formato que não sei abrir. `color-mix` preserva o alfa em vez de
+  // devolver uma sombra sólida, que seria o erro calado aqui.
+  const porcento = typeof alfa === "number" ? `${(alfa * 100).toFixed(1)}%` : `calc(${alfa} * 100%)`;
+  return `color-mix(in srgb, ${cor} ${porcento}, transparent)`;
+}
+
+/** Onde a pluma começa e onde ela acaba, em `em`. */
+const SUBIDA_DA_PLUMA = { comeco: 0.08, fim: 0.34 };
+/** A força da pluma no nascimento. Ela termina sempre apagada. */
+const OPACIDADE_DA_PLUMA = 0.9;
+
+/** Nome das duas propriedades derivadas que a pluma consome. */
+export const VARIAVEL_DO_AVANCO = "--avanco-da-queima";
+export const VARIAVEL_DA_ALTURA = "--altura-da-pluma";
+
+/**
+ * As duas contas derivadas da linha de fogo, escritas como CSS.
+ *
+ * `avanco` é a queima de 0 a 1, e `altura` é o quanto a pluma já subiu. Como
+ * são propriedades personalizadas, o navegador as recalcula sozinho a cada
+ * mudança da linha: ninguém precisa reescrevê-las quadro a quadro.
+ */
+function contasDerivadas(): Record<string, string> {
+  const curso = LINHA_FINAL - LINHA_INICIAL;
+  const { comeco, fim } = SUBIDA_DA_PLUMA;
+  return {
+    [VARIAVEL_DO_AVANCO]: `calc((var(${VARIAVEL_DA_LINHA}) - ${LINHA_INICIAL}) / ${curso})`,
+    [VARIAVEL_DA_ALTURA]:
+      `calc(${comeco}em + ${(fim - comeco).toFixed(3)}em * var(${VARIAVEL_DO_AVANCO}))`,
+  };
+}
+
+/**
+ * Monta a pluma de fumaça que acompanha a linha de fogo.
+ *
+ * São cópias da letra empilhadas para cima, cada uma mais alta, mais borrada e
+ * mais fraca que a anterior. O halo simétrico que ela substituiu em 2026-09-11
+ * não lia como fumaça justamente por ser simétrico: fumaça sobe, e o que sobe
+ * precisa ser mais fraco em cima. As distâncias saem em `em` para acompanharem
+ * o corpo do título, que é um `clamp` e quase dobra entre o telefone e a tela
+ * grande.
+ *
+ * ── Por que a pluma se move por CSS, e não por tween ───────────────────────
+ * A primeira versão animava a sombra inteira pelo GSAP, de um estado a outro.
+ * Medido no navegador em 2026-09-11, ele interpola bem o desfoque e o alfa e
+ * **embaralha os deslocamentos**: uma cópia foi parar a 49px de altura, fora
+ * de qualquer estado válido, enquanto as vizinhas ficavam curtas. Nada lança,
+ * e a pluma vira um borrão trêmulo. Aqui ela é escrita uma vez e lê a mesma
+ * variável que move a máscara, então sobe exatamente junto com o fogo e as
+ * duas não têm como dessincronizar. É o mesmo motivo pelo qual o trilho da
+ * espiral refaz a projeção em vez de guardar o número em dois lugares.
+ */
+export function plumaDeFumaca(cor: string): string {
+  const altura = `var(${VARIAVEL_DA_ALTURA})`;
+  const avanco = `var(${VARIAVEL_DO_AVANCO})`;
+  return Array.from({ length: PASSOS_DA_PLUMA }, (_, i) => {
+    const passo = (i + 1) / PASSOS_DA_PLUMA;
+    const desfoque = `calc(${DESFOQUE_BASE}em + ${altura} * ${(passo * ESPALHAMENTO).toFixed(3)})`;
+    const forca = (OPACIDADE_DA_PLUMA * (1 - QUEDA_DO_ALFA * passo)).toFixed(3);
+    const alfa = `calc(${forca} * (1 - ${avanco}))`;
+    return `0 calc(${altura} * ${(-passo).toFixed(3)}) ${desfoque} ${emRgba(cor, alfa)}`;
+  }).join(", ");
+}
+
+/**
+ * Tudo o que a pluma precisa, pronto para um `gsap.set`: as duas contas
+ * derivadas e a sombra que as consome.
+ */
+export function estiloDaPluma(cor: string): Record<string, string> {
+  return { ...contasDerivadas(), textShadow: plumaDeFumaca(cor) };
+}
+
+/**
  * Diz se o elemento deve nascer escondido.
  *
  * Escondido na montagem, e não no instante do gatilho, é o que evita a
