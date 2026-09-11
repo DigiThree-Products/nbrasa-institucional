@@ -607,10 +607,28 @@ repouso lida do DOM.
 **E o brilho não é um halo, é uma pluma**, também a pedido do cliente no mesmo
 dia: halo simétrico não lê como fumaça. São seis cópias empilhadas para cima
 pelo `text-shadow`, cada uma mais alta, mais borrada e mais fraca, e ela sobe e
-se desfaz conforme o fogo atravessa a letra. Três detalhes fazem ela parecer
+se desfaz conforme o fogo atravessa a letra. Dois detalhes fazem ela parecer
 fumaça: cada cópia escora para o lado, e o lado cresce mais que a altura, o
 que abre a pluma em leque; e cada letra tem a **sua própria deriva**, por
 `derivaDaLetra`, senão as catorze saem idênticas e a palavra lê como padrão.
+Eram três até 2026-09-11, e o terceiro era o desfoque crescer mais depressa
+que a altura; ele saiu com o pedido de ver a letra dentro da fumaça, logo
+abaixo.
+
+A deriva é conta, e não sorteio, porque a pluma é remontada a cada entrada na
+seção: com `Math.random` ela pularia de lado na volta do visitante, sem motivo
+visível. Medido no navegador, a pluma inteira cabe em 60 quadros por segundo,
+com 1,9% dos quadros acima de 20 ms. Essa medição é das catorze letras do
+título das avaliações e **é anterior à troca da pluma**, que baixou o desfoque
+e portanto só pode ter ajudado.
+
+Quem a move **não é uma tween**: ela lê a mesma `--linha-de-fogo` da máscara,
+por duas propriedades derivadas que o navegador recalcula sozinho, então as
+duas não têm como dessincronizar. Isso não é preferência de estilo. Animar a
+sombra inteira pelo GSAP foi a primeira tentativa, e ele interpola bem o
+desfoque e o alfa e **embaralha os deslocamentos**: medido no navegador, uma
+cópia foi parar a 49px de altura, fora de qualquer estado válido, enquanto as
+vizinhas ficavam curtas. Nada lança, e a pluma vira um borrão trêmulo.
 
 **As cópias voltaram a ser letras legíveis em 2026-09-11**, a pedido do
 cliente, que pediu para enxergar a letra dentro da fumaça. Até então o
@@ -636,18 +654,7 @@ troca.** O valor inicial da propriedade é repetir, e o gradiente é medido pela
 caixa da letra, então acima dela o ladrilho recomeça. Com a pluma antiga, de
 0,34em, isso passava despercebido; com 0,72em o topo dela atravessaria uma
 cópia nova do gradiente e sairia recortado em faixa. As máscaras da costura do
-herói já declaravam o mesmo, em `globals.css`, e foi de lá que veio a pista. A deriva é conta, e não sorteio, porque
-a pluma é remontada a cada entrada na seção: com `Math.random` ela pularia de
-lado na volta do visitante, sem motivo visível. Medido no navegador, a pluma
-inteira cabe em 60 quadros por segundo, com 1,9% dos quadros acima de 20 ms.
-Quem a move **não é uma tween**:
-ela lê a mesma `--linha-de-fogo` da máscara, por duas propriedades derivadas
-que o navegador recalcula sozinho, então as duas não têm como dessincronizar.
-Isso não é preferência de estilo. Animar a sombra inteira pelo GSAP foi a
-primeira tentativa, e ele interpola bem o desfoque e o alfa e **embaralha os
-deslocamentos**: medido no navegador, uma cópia foi parar a 49px de altura,
-fora de qualquer estado válido, enquanto as vizinhas ficavam curtas. Nada
-lança, e a pluma vira um borrão trêmulo.
+herói já declaravam o mesmo, em `globals.css`, e foi de lá que veio a pista.
 
 ### Cache e revalidação
 
