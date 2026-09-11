@@ -451,20 +451,22 @@ comprimento dele.** Nome longo escrito no painel transborda a chama. É o
 mesmo tipo de dívida do orçamento de 130 kB: medido uma vez, cobrado por
 quem mexer.
 
-**Todo o texto da seção acende letra a letra e esfumaça**, por
-`components/motion/TextoQueAcende.tsx`, desde 2026-09-10. O gesto veio de uma
-referência de alfabeto animado em fogo que o cliente mandou; o que foi tomado
-emprestado é o movimento, e **não** a paleta, porque lá o fundo é preto com
-laranja e aqui a página é clara. A cor de repouso de cada letra é lida do DOM
-antes de qualquer animação: carvão no título do evento, brasa-escura ou
-creme-texto nos rótulos. Na saída ela sobe, desfoca e some, porque subir mais
-desfocar é o que lê como fumaça; descer leria como queda.
+**Todo o texto da seção revela na entrada e esfumaça na saída**, desde
+2026-09-10. O gesto veio de uma referência de alfabeto animado em fogo que o
+cliente mandou; o que foi tomado emprestado é o movimento, e **não** a paleta,
+porque lá o fundo é preto com laranja e aqui a página é clara. A cor de
+repouso de cada letra é lida do DOM antes de qualquer animação: carvão no
+título do evento, brasa-escura ou creme-texto nos rótulos. Na saída o texto
+sobe, desfoca e some, porque subir mais desfocar é o que lê como fumaça;
+descer leria como queda.
 
 **Desde 2026-09-11 a entrada aqui é a mesma queima das avaliações**, a pedido
 do cliente: a linha de fogo sobe por dentro do glifo, em vez de a letra subir
 inteira e esfriar. Ver "As avaliações são reveladas por uma linha de fogo que
-sobe", que descreve o mecanismo. **O custo dessa troca está medido e não é
-pequeno**, ver o parágrafo das 163 letras logo abaixo.
+sobe", que descreve o mecanismo. **Quem queima letra a letra é só o display**,
+por `components/motion/TextoQueAcende.tsx`: o resto usa o `Queima`, de bloco.
+A divisão é a mesma das avaliações, e o parágrafo do custo, logo abaixo,
+explica por que ela não é estilo.
 
 Duas coisas ali quebram calado. A frase inteira vai num `sr-only` e a versão
 quebrada leva `aria-hidden`, senão o leitor de tela **soletra** o título. E o
@@ -481,30 +483,48 @@ interface** em 2026-09-10, quando as avaliações passaram a queimar: era
 `Depoimentos` quem dependia dele. Segue exportado e testado, como o
 `agruparHorarios`.
 
-**São 163 letras animando, e com a queima elas custam caro. Está medido.** No
-desktop as quatro chamas estão na tela juntas e o pico é as 163; no telefone,
-com uma chama por linha, fica perto de 50, porque cada linha de texto tem
-gatilho próprio.
+**A queima letra a letra ficou só no display, e a razão é custo medido.** Ela
+vale no título da seção e nos quatro títulos de evento. O subtítulo, os
+rótulos de dia e as horas usam o `Queima`, que mascara o bloco inteiro de uma
+vez. São 71 letras animando, e não as 163 de antes.
 
-| Medida numa entrada inteira, em 1440x900 | Título das avaliações, 14 letras | Esta seção, 163 letras |
-|---|---|---|
-| Intervalo médio entre quadros | 17,0 ms | 24,4 ms |
-| Percentil 95 | 16,8 ms | 50,1 ms |
-| Quadros acima de 20 ms | 1,9% | 26,3% |
-| Pior quadro | 33 ms | 167 ms |
+A troca é de 2026-09-11, e o gatilho foi o cliente relatar a rolagem
+engasgando. Com tudo letra a letra a seção custava assim, numa entrada
+inteira em 1440x900, contra um trecho de controle de mesma distância dentro da
+Delivery, que não tem queima nenhuma:
 
-**Nem a pluma nem o desfoque explicam esse custo**, e os dois foram testados um
-a um: com duas cópias de pluma em vez de seis dá 22,1 ms, e sem o desfoque da
-cópia de fumaça dá 24,2 ms. O que pesa é o **repinte da máscara**, que muda de
-posição a cada quadro em quase 500 elementos, as 163 letras mais as duas
-camadas de cada uma. Reduzir o custo, então, é reduzir quantas letras queimam.
+| Entrada da seção, 1440x900 | Controle, sem queima | 163 letras | 71 letras |
+|---|---|---|---|
+| Intervalo médio entre quadros | 16,7 ms | 45,0 ms | 27,3 ms |
+| Quadros acima de 20 ms | 0% | 68,7% | 62,2% |
+| Pior quadro | 17,1 ms | 117,9 ms | 70,4 ms |
 
-O outro lado é de desenho: **em corpo pequeno a queima lê pior**. A cópia
-borrada vira borrão sujo em vez de fumaça nos rótulos de 11px e nas horas, e o
-gesto foi calibrado no display do título. O caminho, se o cliente topar, é
-deixar a queima no título da seção e nos títulos dos eventos, que são display,
-e devolver os rótulos e as horas à entrada de sempre. Isso corta as letras que
-queimam de 163 para cerca de 60. Não há teste que meça nada disso.
+Descontado o controle, o custo próprio da seção caiu de 28,3 ms por quadro
+para 10,6 ms, uma queda de 63%. **Ela ainda não segura 60 quadros por segundo
+nessa medição**, que foi feita num navegador sem tela, mais lento que o Chrome
+onde os números antigos desta tabela nasceram: lá as mesmas 163 letras davam
+24,4 ms de média e 26,3% de quadros lentos. Os três valores acima se comparam
+entre si, e não com medição de outra máquina.
+
+**Nem a pluma nem a máscara explicam o custo sozinhas**, e as duas foram
+desligadas uma a uma com as 163 letras: sem a pluma dá 37,1 ms, sem a máscara
+35,7 ms, contra 45,0 com tudo ligado. O que pesa é a **quantidade de alvos**:
+o GSAP escreve uma propriedade em cada letra a cada quadro, e cada escrita
+invalida o estilo das duas camadas filhas. Eram quase 500 elementos
+recalculando, hoje são 151. Reduzir o custo é reduzir quantos elementos
+animam, não o que cada um pinta.
+
+O outro lado é de desenho, e andou junto: **em corpo pequeno a queima lê
+pior**. A cópia borrada vira borrão sujo em vez de fumaça nos rótulos de 11px
+e nas horas, e o gesto foi calibrado no display do título.
+
+Há um caminho que preservaria a queima letra a letra em tudo, e ele foi
+considerado e recusado em 2026-09-11: mover a linha de fogo para uma
+propriedade única num ancestral e dar a cada letra o seu recuo em CSS. Isso
+corta a escrita do GSAP de 163 para 14, mas a invalidação de estilo continua
+descendo para os mesmos elementos, então o ganho é incerto e a mudança é bem
+maior. **Nenhum teste mede nada disso**; a medição é manual, e o trecho de
+controle na Delivery é como reproduzi-la.
 
 **`toggleActions: "play reverse play reverse"` não funciona neste site**, e
 essa é a armadilha que custa uma tarde. `SmoothScrollProvider` liga
@@ -588,11 +608,35 @@ repouso lida do DOM.
 dia: halo simétrico não lê como fumaça. São seis cópias empilhadas para cima
 pelo `text-shadow`, cada uma mais alta, mais borrada e mais fraca, e ela sobe e
 se desfaz conforme o fogo atravessa a letra. Três detalhes fazem ela parecer
-fumaça em vez de eco: o desfoque cresce **mais depressa que a altura**, senão
-seis letras legíveis empilhadas leem como carimbo; cada cópia escora para o
-lado, e o lado cresce mais que a altura, o que abre a pluma em leque; e cada
-letra tem a **sua própria deriva**, por `derivaDaLetra`, senão as catorze saem
-idênticas e a palavra lê como padrão. A deriva é conta, e não sorteio, porque
+fumaça: cada cópia escora para o lado, e o lado cresce mais que a altura, o
+que abre a pluma em leque; e cada letra tem a **sua própria deriva**, por
+`derivaDaLetra`, senão as catorze saem idênticas e a palavra lê como padrão.
+
+**As cópias voltaram a ser letras legíveis em 2026-09-11**, a pedido do
+cliente, que pediu para enxergar a letra dentro da fumaça. Até então o
+desfoque crescia mais depressa que a altura justamente para dissolver o
+glifo, e o comentário do código advertia que seis letras legíveis empilhadas
+leem como carimbo. O risco segue de pé e foi aceito vendo, não no papel.
+
+**O que separa as cópias é a altura da pluma, e não o desfoque.** Essa é a
+medição que o pedido obrigou a fazer, porque ele chegou como "só baixar o
+desfoque" e isso sozinho não funciona. O vão entre duas cópias vizinhas é
+`SUBIDA_DA_PLUMA` dividida por `PASSOS_DA_PLUMA`, e uma cópia só lê como
+letra enquanto esse vão for maior que o desfoque que ela carrega. Na pluma
+antiga, de 0,08 a 0,34em, as seis cabiam dentro de um oitavo de em e o vão
+dava um vigésimo do desfoque: zerar o espalhamento ainda deixava tudo fundido,
+porque o `DESFOQUE_BASE` de 0,04em sozinho já valia três vezes o vão. A pluma
+foi para 0,22 a 0,72em e a base para 0,01em. **O pior caso é o nascimento**,
+quando ela está mais baixa e mais forte ao mesmo tempo, e ali o vão dá 1,44
+vez o desfoque, contra 1,87 no meio da queima. Há teste que cobra o
+nascimento; abaixo de 1 as cópias se fundem e nada lança.
+
+**As máscaras da queima declaram `mask-repeat: no-repeat` desde essa mesma
+troca.** O valor inicial da propriedade é repetir, e o gradiente é medido pela
+caixa da letra, então acima dela o ladrilho recomeça. Com a pluma antiga, de
+0,34em, isso passava despercebido; com 0,72em o topo dela atravessaria uma
+cópia nova do gradiente e sairia recortado em faixa. As máscaras da costura do
+herói já declaravam o mesmo, em `globals.css`, e foi de lá que veio a pista. A deriva é conta, e não sorteio, porque
 a pluma é remontada a cada entrada na seção: com `Math.random` ela pularia de
 lado na volta do visitante, sem motivo visível. Medido no navegador, a pluma
 inteira cabe em 60 quadros por segundo, com 1,9% dos quadros acima de 20 ms.

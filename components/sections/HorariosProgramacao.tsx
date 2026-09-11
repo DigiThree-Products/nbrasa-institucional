@@ -3,6 +3,7 @@ import { diasAbertos, horarioDosDias } from "@/lib/horarios";
 import { D_SILHUETA } from "@/lib/marca";
 import { Reveal } from "@/components/motion/Reveal";
 import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
+import { Queima } from "@/components/motion/Queima";
 
 /**
  * viewBox da silhueta (100×116) com 3 unidades de folga de cada lado.
@@ -59,14 +60,28 @@ export async function HorariosProgramacao() {
          * que acontece da faixa de telefone para baixo.
          */}
         {/*
-         * Todo o texto da seção acende letra a letra na entrada e esfumaça na
-         * saída, a pedido do cliente em 2026-09-10, a partir de uma referência
-         * de alfabeto animado em fogo. Quem faz isso é `TextoQueAcende`; o
-         * contorno da chama de cada card continua no `Reveal`, com `saida`,
-         * e entra antes das letras para não brigar com elas.
+         * O texto da seção queima na entrada e esfumaça na saída, a pedido do
+         * cliente em 2026-09-10, a partir de uma referência de alfabeto
+         * animado em fogo. O contorno da chama de cada card continua no
+         * `Reveal`, com `saida`, e entra antes do texto para não brigar com
+         * ele.
+         *
+         * **A queima letra a letra ficou só no display**, desde 2026-09-11: o
+         * título da seção e os quatro títulos de evento. O subtítulo, os
+         * rótulos de dia e as horas passaram para o `Queima`, que mascara o
+         * bloco inteiro de uma vez.
+         *
+         * A troca tem duas razões, e as duas estão medidas. A de custo: com
+         * tudo letra a letra eram 163 letras animando e quase 500 elementos
+         * recalculando estilo a cada quadro, e o cliente relatou a rolagem
+         * engasgando. Desligar a pluma ou a máscara não resolvia, porque o que
+         * pesa é a quantidade de alvos, não o que cada um pinta. A de desenho:
+         * em corpo de 11px a cópia borrada lê como borrão sujo, e não como
+         * fumaça, porque o gesto foi calibrado no display.
          *
          * Os `delay` escalonam a cascata de cima para baixo, e dentro de cada
-         * card do rótulo para o horário.
+         * card do rótulo para o horário. Eles valem para os dois componentes,
+         * que têm o mesmo gatilho e o mesmo início.
          */}
         <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
           <TextoQueAcende queima>{c.horariosTitulo}</TextoQueAcende>
@@ -87,9 +102,15 @@ export async function HorariosProgramacao() {
          * Owners trial não desenha acento nenhum.
          */}
         {abertos !== "" && (
-          <p className="mt-4 text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
-            <TextoQueAcende queima delay={0.09}>{`Abrimos de ${abertos}.`}</TextoQueAcende>
-          </p>
+          /* O `Queima` é um `div`, então ele embrulha o parágrafo em vez de
+             morar dentro dele: `p` não pode conter `div`, e o navegador
+             fecharia o parágrafo sozinho no meio da frase. É o mesmo arranjo
+             que o subtítulo das avaliações já usa. */
+          <Queima delay={0.09}>
+            <p className="mt-4 text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
+              {`Abrimos de ${abertos}.`}
+            </p>
+          </Queima>
         )}
 
         {/*
@@ -161,16 +182,22 @@ export async function HorariosProgramacao() {
                   {/* Rótulo e horário em brasa-escura no card vermelho:
                       `brasa` puro reprova AA em texto pequeno, e é a mesma
                       troca que todo rótulo pequeno do site já faz. */}
-                  <span className={`text-[clamp(.62rem,4cqw,.82rem)] font-extrabold uppercase leading-tight tracking-[.14em] ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
-                    <TextoQueAcende queima delay={base + 0.06}>{p.diasLabel}</TextoQueAcende>
-                  </span>
+                  <Queima
+                    className={`text-[clamp(.62rem,4cqw,.82rem)] font-extrabold uppercase leading-tight tracking-[.14em] ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}
+                    delay={base + 0.06}
+                  >
+                    {p.diasLabel}
+                  </Queima>
                   <h3 className="font-display text-[clamp(1rem,8.6cqw,1.7rem)] uppercase leading-[1.02] text-carvao">
                     <TextoQueAcende queima delay={base + 0.12}>{p.titulo}</TextoQueAcende>
                   </h3>
                   {hora !== null && (
-                    <span className={`text-[clamp(.85rem,6.2cqw,1.25rem)] font-extrabold tabular-nums ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
-                      <TextoQueAcende queima delay={base + 0.18}>{hora}</TextoQueAcende>
-                    </span>
+                    <Queima
+                      className={`text-[clamp(.85rem,6.2cqw,1.25rem)] font-extrabold tabular-nums ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}
+                      delay={base + 0.18}
+                    >
+                      {hora}
+                    </Queima>
                   )}
                 </div>
               </article>
