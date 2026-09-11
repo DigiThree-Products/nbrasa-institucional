@@ -30,12 +30,12 @@ import {
  * que é a regra de todo o resto do site.
  */
 
-/** Vermelho de marca. Lido do token para não duplicar o hex; o literal é só
- *  a rede de segurança para ambiente sem CSS carregado (jsdom, por exemplo). */
-function vermelhoDeMarca(): string {
+/** Cor de marca lida do token, para não duplicar o hex. O literal é só a rede
+ *  de segurança para ambiente sem CSS carregado (jsdom, por exemplo). */
+function corDeMarca(token: string, reserva: string): string {
   const doToken = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-brasa").trim();
-  return doToken || "#cf2434";
+    .getPropertyValue(token).trim();
+  return doToken || reserva;
 }
 
 /**
@@ -98,7 +98,16 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
       const letras = Array.from(el.querySelectorAll<HTMLElement>("[data-letra]"));
       if (letras.length === 0) return;
 
-      const brasa = vermelhoDeMarca();
+      const brasa = corDeMarca("--color-brasa", "#cf2434");
+      /*
+       * O brilho da queima é carvão, e não brasa, a pedido do cliente em
+       * 2026-09-11. Esta é a única seção de fundo escuro que queima: o halo
+       * vermelho brigava com a foto atrás do véu, e em carvão ele vira sombra,
+       * que ainda dá borda à letra branca enquanto ela atravessa o céu claro
+       * da foto. A entrada de sempre, a da seção de horários, segue na brasa,
+       * porque lá o fundo é a página clara.
+       */
+      const carvao = corDeMarca("--color-carvao", "#241e1f");
       // A cor de repouso é lida ANTES de qualquer animação mexer na letra, e
       // é por letra porque cada linha da seção repousa numa cor diferente:
       // carvão no título do evento, brasa-escura e creme-texto nos rótulos.
@@ -158,7 +167,7 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
             // Desfaz o estado de fumaça em que a saída deixou a letra. Sem
             // isto ela voltaria borrada, deslocada e transparente.
             opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
-            textShadow: `0 0 20px ${brasa}`,
+            textShadow: `0 0 20px ${carvao}`,
           },
           {
             [VARIAVEL_DA_LINHA]: LINHA_FINAL,

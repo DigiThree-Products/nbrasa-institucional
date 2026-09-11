@@ -110,8 +110,10 @@ Nenhum deles lança quando errado, só desenha diferente.
   tempo todo, sem fronteira que se leia como chama.
 - `PASSO_ENTRE_CARDS`, em `Depoimentos.tsx`, é o que impede a fileira de
   acender de uma vez.
-- A cor do fogo não pode ir para a tinta: `brasa` sobre o véu de carvão dá
-  1,1:1 e some, a mesma armadilha que trocou a cor das estrelas.
+- Não entra vermelho nesta seção. Na tinta ele some, porque `brasa` sobre o véu
+  de carvão dá 1,1:1, a mesma armadilha que trocou a cor das estrelas. No
+  brilho ele chegou a ficar e o cliente tirou em 2026-09-11, porque brigava com
+  a foto; hoje o halo é carvão.
 
 Se o ritmo ficar errado ao olho do cliente, os botões são `DURACAO_DA_QUEIMA` e
 `PASSO_DA_QUEIMA` no `TextoQueAcende`, e `DURACAO_DA_QUEIMA` e

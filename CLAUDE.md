@@ -543,10 +543,15 @@ linha da grade e têm o mesmo topo, então os três gatilhos pegam no mesmo
 instante: sem atraso a fileira inteira acende de uma vez, que é o que
 acontecia antes. No telefone eles empilham e a própria rolagem já os separa.
 
-O fogo desta seção **não pode ser o `brasa` na tinta**, e é a mesma armadilha
-que trocou a cor das estrelas: sobre o véu de carvão o vermelho dá 1,1:1 e
-some. Aqui ele vive no brilho, um `text-shadow` que apaga enquanto a letra
-esfria, e a tinta continua sendo a cor de repouso lida do DOM.
+**Nada de vermelho nesta seção, nem na tinta nem no brilho.** Na tinta ele
+esbarra na mesma armadilha que trocou a cor das estrelas: sobre o véu de carvão
+o `brasa` dá 1,1:1 e some. No brilho ele chegou a ficar, e saiu em 2026-09-11,
+a pedido do cliente: esta é a única seção de fundo escuro que queima, e o halo
+vermelho brigava com a foto atrás do véu. O brilho é **carvão** desde então, um
+`text-shadow` que apaga enquanto a letra esfria e que, de quebra, dá borda à
+letra branca quando ela atravessa a parte clara da foto, que é o céu. A entrada
+de sempre, a da seção de horários, continua nascendo na brasa, porque lá o
+fundo é a página clara. A tinta, nas duas, é a cor de repouso lida do DOM.
 
 ### Cache e revalidação
 

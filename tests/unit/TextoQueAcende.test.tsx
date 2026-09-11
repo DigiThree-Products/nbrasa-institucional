@@ -26,6 +26,8 @@ vi.mock("gsap/ScrollTrigger", () => ({
 /** Vermelho de marca, duplicado aqui de propósito, como em tokens.test.ts:
  *  o teste compara com o valor do spec, não com o que o CSS disser. */
 const BRASA = "#cf2434";
+/** Carvão, pelo mesmo motivo. É o brilho da queima desde 2026-09-11. */
+const CARVAO = "#241e1f";
 
 const semMovimento = (matches: boolean) => {
   window.matchMedia = ((query: string) => ({
@@ -155,6 +157,21 @@ describe("TextoQueAcende no modo queima", () => {
     // em quem carregasse a página sem o GSAP.
     const { container } = render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
     expect(container.innerHTML).not.toContain("linear-gradient");
+  });
+
+  it("acende o brilho em carvão, e não na brasa", async () => {
+    // Pedido do cliente em 2026-09-11. A seção é a única de fundo escuro com
+    // queima, e o halo vermelho sobre o véu de carvão brigava com a foto; em
+    // carvão ele vira sombra e ainda dá borda à letra branca. A entrada de
+    // sempre, a da seção de horários, continua na brasa.
+    render(<TextoQueAcende queima>Fogo</TextoQueAcende>);
+
+    const vars = await varsDoGatilho();
+    vars.onEnter();
+
+    const de = (fromToMock.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    expect(String(de.textShadow)).toContain(CARVAO);
+    expect(String(de.textShadow)).not.toContain(BRASA);
   });
 
   it("ao entrar, sobe a linha de fogo da base ao topo do glifo", async () => {
