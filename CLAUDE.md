@@ -22,6 +22,8 @@ traz a chama no glifo. `docs/handoff-espiral-do-cardapio.md` é **transitório**
 foi escrito para retomar a branch `espiral-no-cardapio` em outra máquina, cita
 commits e contagens que envelhecem sozinhos, e some quando a branch entrar em
 `main`. Não tire fato de lá sem conferir no código.
+`docs/handoff-queima-das-avaliacoes.md` é da mesma espécie, para a branch
+`fundo-quem-veio-volta`, e vale a mesma ressalva.
 
 **Idioma do código:** tudo em português, incluindo nomes de arquivo, funções,
 variáveis, colunas do banco, comentários e mensagens de teste. Mantenha assim.
@@ -488,15 +490,22 @@ comprimento dele.** Nome longo escrito no painel transborda a chama. É o
 mesmo tipo de dívida do orçamento de 130 kB: medido uma vez, cobrado por
 quem mexer.
 
-**Todo o texto da seção acende letra a letra e esfumaça**, por
-`components/motion/TextoQueAcende.tsx`, desde 2026-09-10. O gesto veio de uma
-referência de alfabeto animado em fogo que o cliente mandou; o que foi tomado
-emprestado é o movimento, e **não** a paleta, porque lá o fundo é preto com
-laranja e aqui a página é clara. A letra nasce em brasa com brilho e esfria
-até a cor de repouso **dela**, que é lida do DOM antes de qualquer animação:
-carvão no título do evento, brasa-escura ou creme-texto nos rótulos. Na saída
-ela sobe, desfoca e some, porque subir mais desfocar é o que lê como fumaça;
+**Todo o texto da seção revela na entrada e esfumaça na saída**, desde
+2026-09-10. O gesto veio de uma referência de alfabeto animado em fogo que o
+cliente mandou; o que foi tomado emprestado é o movimento, e **não** a paleta,
+porque lá o fundo é preto com laranja e aqui a página é clara. A cor de
+repouso de cada letra é lida do DOM antes de qualquer animação: carvão no
+título do evento, brasa-escura ou creme-texto nos rótulos. Na saída o texto
+sobe, desfoca e some, porque subir mais desfocar é o que lê como fumaça;
 descer leria como queda.
+
+**Desde 2026-09-11 a entrada aqui é a mesma queima das avaliações**, a pedido
+do cliente: a linha de fogo sobe por dentro do glifo, em vez de a letra subir
+inteira e esfriar. Ver "As avaliações são reveladas por uma linha de fogo que
+sobe", que descreve o mecanismo. **Quem queima letra a letra é só o display**,
+por `components/motion/TextoQueAcende.tsx`: o resto usa o `Queima`, de bloco.
+A divisão é a mesma das avaliações, e o parágrafo do custo, logo abaixo,
+explica por que ela não é estilo.
 
 Duas coisas ali quebram calado. A frase inteira vai num `sr-only` e a versão
 quebrada leva `aria-hidden`, senão o leitor de tela **soletra** o título. E o
@@ -508,15 +517,53 @@ quebra que tem.
 Só o contorno da chama de cada card continua no `Reveal`, com `saida`, e o
 `Reveal` embrulha **apenas o SVG**, não o card inteiro: embrulhando tudo, a
 opacidade dele multiplicaria a das letras e o acender sairia lavado.
-`Depoimentos` segue no comportamento antigo, de revelar e ficar, e é por isso
-que `saida` é opcional em vez de virar o padrão.
+O `Reveal` sem `saida`, que revela uma vez e fica, **ficou sem consumidor na
+interface** em 2026-09-10, quando as avaliações passaram a queimar: era
+`Depoimentos` quem dependia dele. Segue exportado e testado, como o
+`agruparHorarios`.
 
-**São 163 letras animando, e o desfoque da saída é o item caro.** No desktop
-as quatro chamas estão na tela juntas e o pico é as 163; no telefone, com uma
-chama por linha, fica perto de 50, porque cada linha de texto tem gatilho
-próprio. Não há teste que meça isso. Se engasgar em máquina fraca, o caminho
-é mover o desfoque para a palavra em vez da letra, que corta o número de
-camadas filtradas de 163 para cerca de 35.
+**A queima letra a letra ficou só no display, e a razão é custo medido.** Ela
+vale no título da seção e nos quatro títulos de evento. O subtítulo, os
+rótulos de dia e as horas usam o `Queima`, que mascara o bloco inteiro de uma
+vez. São 71 letras animando, e não as 163 de antes.
+
+A troca é de 2026-09-11, e o gatilho foi o cliente relatar a rolagem
+engasgando. Com tudo letra a letra a seção custava assim, numa entrada
+inteira em 1440x900, contra um trecho de controle de mesma distância dentro da
+Delivery, que não tem queima nenhuma:
+
+| Entrada da seção, 1440x900 | Controle, sem queima | 163 letras | 71 letras |
+|---|---|---|---|
+| Intervalo médio entre quadros | 16,7 ms | 45,0 ms | 27,3 ms |
+| Quadros acima de 20 ms | 0% | 68,7% | 62,2% |
+| Pior quadro | 17,1 ms | 117,9 ms | 70,4 ms |
+
+Descontado o controle, o custo próprio da seção caiu de 28,3 ms por quadro
+para 10,6 ms, uma queda de 63%. **Ela ainda não segura 60 quadros por segundo
+nessa medição**, que foi feita num navegador sem tela, mais lento que o Chrome
+onde os números antigos desta tabela nasceram: lá as mesmas 163 letras davam
+24,4 ms de média e 26,3% de quadros lentos. Os três valores acima se comparam
+entre si, e não com medição de outra máquina.
+
+**Nem a pluma nem a máscara explicam o custo sozinhas**, e as duas foram
+desligadas uma a uma com as 163 letras: sem a pluma dá 37,1 ms, sem a máscara
+35,7 ms, contra 45,0 com tudo ligado. O que pesa é a **quantidade de alvos**:
+o GSAP escreve uma propriedade em cada letra a cada quadro, e cada escrita
+invalida o estilo das duas camadas filhas. Eram quase 500 elementos
+recalculando, hoje são 151. Reduzir o custo é reduzir quantos elementos
+animam, não o que cada um pinta.
+
+O outro lado é de desenho, e andou junto: **em corpo pequeno a queima lê
+pior**. A cópia borrada vira borrão sujo em vez de fumaça nos rótulos de 11px
+e nas horas, e o gesto foi calibrado no display do título.
+
+Há um caminho que preservaria a queima letra a letra em tudo, e ele foi
+considerado e recusado em 2026-09-11: mover a linha de fogo para uma
+propriedade única num ancestral e dar a cada letra o seu recuo em CSS. Isso
+corta a escrita do GSAP de 163 para 14, mas a invalidação de estilo continua
+descendo para os mesmos elementos, então o ganho é incerto e a mudança é bem
+maior. **Nenhum teste mede nada disso**; a medição é manual, e o trecho de
+controle na Delivery é como reproduzi-la.
 
 **`toggleActions: "play reverse play reverse"` não funciona neste site**, e
 essa é a armadilha que custa uma tarde. `SmoothScrollProvider` liga
@@ -529,6 +576,124 @@ cria uma **tween nova a cada travessia** em vez de reverter, o que também dá
 à saída uma duração e uma curva próprias. Só a primeira entrada usa `fromTo`:
 nas voltas o conteúdo já está escondido, e refazer o estado inicial daria um
 salto.
+
+### As avaliações são reveladas por uma linha de fogo que sobe
+
+Desde 2026-09-10 a seção "Quem veio, volta" não usa mais o `Reveal`. O cliente
+pediu que ela ficasse fiel à mesma referência de tipografia em fogo que deu
+origem ao `TextoQueAcende`, e apontou as duas coisas que faltavam: a fumaça e
+a revelação de baixo para cima. A conta mora em `lib/queima.ts`, com teste.
+
+**O que sobe é uma máscara dentro do glifo, e não o glifo.** A letra fica
+parada e um gradiente de máscara atravessa a caixa dela de baixo a cima:
+abaixo da linha de fogo o glifo é tinta, acima dela ainda é fumaça. É a
+diferença para o `TextoQueAcende`, onde a letra inteira sobe e esfria. A banda
+de transição, `MACIEZ`, é o que faz a fronteira ler como chama; recorte de
+borda dura no lugar dela leria como papel rasgado.
+
+Três números erram calados. `LINHA_INICIAL` precisa estar uma `MACIEZ` inteira
+**abaixo** de zero, senão a base da letra nasce já acesa, porque a transição
+começa na linha e termina acima dela. `LINHA_FINAL` abaixo de 100 deixa o topo
+do glifo sem tinta para sempre. E `calc` mal fechado não lança: o navegador
+descarta a declaração inteira, a máscara some, e a letra aparece pronta, sem
+queima nenhuma.
+
+**A máscara é escrita por JavaScript, e nunca na marcação.** Ela é o que
+esconde o texto, então só pode existir onde há quem a mova: escrita na JSX,
+deixaria a seção invisível para sempre em quem carregasse a página sem o GSAP.
+Pelo mesmo motivo ela é **retirada** quando o fogo acaba, e o texto parado
+volta a ser texto puro, sem camada de composição.
+
+**O estado inicial é aplicado na montagem, e não no instante do gatilho**, o
+que é a diferença para todo o resto do site. `escondeNaMontagem` decide, e a
+pergunta é sobre posição: o que ainda está abaixo da janela nasce escondido, o
+que já está à vista não é tocado. Sem isso o texto sobe a tela em opacidade
+cheia, é visto por volta de cem pixels de rolagem, e só então salta para
+escondido, que era a piscada que a seção tinha com o `Reveal`. Esconder o que
+já está à vista seria pior, porque apagaria na frente de quem está lendo.
+
+**São dois componentes, e a divisão é de orçamento.** O título usa
+`TextoQueAcende` com a prop `queima`: são 14 letras, cada uma com duas camadas
+sobrepostas, e a de cima, borrada, é a fumaça. O subtítulo e os três cards
+usam o `Queima`, irmão dele, que põe **uma máscara só** no bloco inteiro e
+troca a cópia borrada por um desfoque que limpa junto com a subida. Letra a
+letra nos cards seriam mais de trezentos elementos mascarados, contra as 163
+letras que a seção de horários já custa, e duplicaria o texto do card no DOM.
+
+**A cópia de fumaça do título não é branca, e também não é carvão.** Ela
+herdava a cor da letra e ficava branca, o que lia como letra fora de foco. O
+cliente pediu mais carvão em 2026-09-11, e carvão puro **some**: o véu da seção
+também é carvão, e escuro sobre escuro não aparece. Medido no navegador, com
+carvão o título desaparecia no começo da queima. Ela parou no `creme-texto`,
+que é o mais escuro que ainda lê como fumaça sobre o véu. Quem carrega o carvão
+de verdade é a pluma, que é sombra e por isso escurece o que está atrás dela.
+
+**Os três cards precisam do `delay` escalonado.** Eles são irmãos da mesma
+linha da grade e têm o mesmo topo, então os três gatilhos pegam no mesmo
+instante: sem atraso a fileira inteira acende de uma vez, que é o que
+acontecia antes. No telefone eles empilham e a própria rolagem já os separa.
+
+**Nada de vermelho nesta seção, nem na tinta nem no brilho.** Na tinta ele
+esbarra na mesma armadilha que trocou a cor das estrelas: sobre o véu de carvão
+o `brasa` dá 1,1:1 e some. No brilho ele chegou a ficar, e saiu em 2026-09-11,
+a pedido do cliente: esta é a única seção de fundo escuro que queima, e o halo
+vermelho brigava com a foto atrás do véu. O brilho é **carvão** desde então, e
+de quebra dá borda à letra branca quando ela atravessa a parte clara da foto,
+que é o céu. A entrada de sempre, a da seção de horários, continua nascendo na
+brasa, porque lá o fundo é a página clara. A tinta, nas duas, é a cor de
+repouso lida do DOM.
+
+**E o brilho não é um halo, é uma pluma**, também a pedido do cliente no mesmo
+dia: halo simétrico não lê como fumaça. São seis cópias empilhadas para cima
+pelo `text-shadow`, cada uma mais alta, mais borrada e mais fraca, e ela sobe e
+se desfaz conforme o fogo atravessa a letra. Dois detalhes fazem ela parecer
+fumaça: cada cópia escora para o lado, e o lado cresce mais que a altura, o
+que abre a pluma em leque; e cada letra tem a **sua própria deriva**, por
+`derivaDaLetra`, senão as catorze saem idênticas e a palavra lê como padrão.
+Eram três até 2026-09-11, e o terceiro era o desfoque crescer mais depressa
+que a altura; ele saiu com o pedido de ver a letra dentro da fumaça, logo
+abaixo.
+
+A deriva é conta, e não sorteio, porque a pluma é remontada a cada entrada na
+seção: com `Math.random` ela pularia de lado na volta do visitante, sem motivo
+visível. Medido no navegador, a pluma inteira cabe em 60 quadros por segundo,
+com 1,9% dos quadros acima de 20 ms. Essa medição é das catorze letras do
+título das avaliações e **é anterior à troca da pluma**, que baixou o desfoque
+e portanto só pode ter ajudado.
+
+Quem a move **não é uma tween**: ela lê a mesma `--linha-de-fogo` da máscara,
+por duas propriedades derivadas que o navegador recalcula sozinho, então as
+duas não têm como dessincronizar. Isso não é preferência de estilo. Animar a
+sombra inteira pelo GSAP foi a primeira tentativa, e ele interpola bem o
+desfoque e o alfa e **embaralha os deslocamentos**: medido no navegador, uma
+cópia foi parar a 49px de altura, fora de qualquer estado válido, enquanto as
+vizinhas ficavam curtas. Nada lança, e a pluma vira um borrão trêmulo.
+
+**As cópias voltaram a ser letras legíveis em 2026-09-11**, a pedido do
+cliente, que pediu para enxergar a letra dentro da fumaça. Até então o
+desfoque crescia mais depressa que a altura justamente para dissolver o
+glifo, e o comentário do código advertia que seis letras legíveis empilhadas
+leem como carimbo. O risco segue de pé e foi aceito vendo, não no papel.
+
+**O que separa as cópias é a altura da pluma, e não o desfoque.** Essa é a
+medição que o pedido obrigou a fazer, porque ele chegou como "só baixar o
+desfoque" e isso sozinho não funciona. O vão entre duas cópias vizinhas é
+`SUBIDA_DA_PLUMA` dividida por `PASSOS_DA_PLUMA`, e uma cópia só lê como
+letra enquanto esse vão for maior que o desfoque que ela carrega. Na pluma
+antiga, de 0,08 a 0,34em, as seis cabiam dentro de um oitavo de em e o vão
+dava um vigésimo do desfoque: zerar o espalhamento ainda deixava tudo fundido,
+porque o `DESFOQUE_BASE` de 0,04em sozinho já valia três vezes o vão. A pluma
+foi para 0,22 a 0,72em e a base para 0,01em. **O pior caso é o nascimento**,
+quando ela está mais baixa e mais forte ao mesmo tempo, e ali o vão dá 1,44
+vez o desfoque, contra 1,87 no meio da queima. Há teste que cobra o
+nascimento; abaixo de 1 as cópias se fundem e nada lança.
+
+**As máscaras da queima declaram `mask-repeat: no-repeat` desde essa mesma
+troca.** O valor inicial da propriedade é repetir, e o gradiente é medido pela
+caixa da letra, então acima dela o ladrilho recomeça. Com a pluma antiga, de
+0,34em, isso passava despercebido; com 0,72em o topo dela atravessaria uma
+cópia nova do gradiente e sairia recortado em faixa. As máscaras da costura do
+herói já declaravam o mesmo, em `globals.css`, e foi de lá que veio a pista.
 
 ### Cache e revalidação
 
@@ -591,9 +756,9 @@ O seed inclui de propósito linhas **inativas** (categoria `chopp`, depoimento
 
 ### Fronteira cliente/servidor
 
-Nove arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
-`Reveal`, `TextoQueAcende`, `RotaMascote`, `RolagemDoCabecalho`,
-`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só oito chegam à
+Dez arquivos carregam `"use client"`: `SmoothScrollProvider`, `MenuMobile`,
+`Reveal`, `TextoQueAcende`, `Queima`, `RotaMascote`, `RolagemDoCabecalho`,
+`FileiraEmEspiral`, `VideoFachada` e `app/error.tsx`, **mas só nove chegam à
 página**:
 `VideoFachada` está órfão, ver logo abaixo. Todo o resto é Server Component
 `async` que aguarda a fachada. GSAP, ScrollTrigger e Lenis entram por

@@ -20,8 +20,12 @@ type Props = {
    * na volta, em vez de revelar uma vez e ficar. Existe desde 2026-09-10 para
    * a seção de horários, onde o cliente pediu entrada e saída.
    *
-   * É opcional, e não o padrão, porque `Depoimentos` depende do comportamento
-   * antigo: lá o conteúdo revela e fica.
+   * Continua opcional, e não padrão, mas o motivo mudou em 2026-09-10: era
+   * `Depoimentos` que dependia do revelar e ficar, e a seção passou a queimar
+   * de baixo para cima, pelo `Queima`. **Hoje o caminho sem `saida` não tem
+   * consumidor na interface**, com os testes de pé, como o `agruparHorarios`.
+   * Ele fica porque revelar uma vez e ficar é o que qualquer seção nova de
+   * conteúdo estático vai querer.
    */
   saida?: boolean;
 };

@@ -1,5 +1,17 @@
 import { getConteudo, getDepoimentos } from "@/lib/conteudo";
-import { Reveal } from "@/components/motion/Reveal";
+import { Queima } from "@/components/motion/Queima";
+import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
+
+/**
+ * Distância entre a queima de um card e a do vizinho.
+ *
+ * Ela existe porque os três cards são irmãos da mesma linha da grade e têm o
+ * mesmo topo: sem atraso, os três gatilhos pegam no mesmo instante e a seção
+ * inteira acende de uma vez só, que era o que acontecia com o `Reveal`. No
+ * telefone eles empilham e o próprio scroll já os separa, então o atraso só
+ * soma um respiro.
+ */
+const PASSO_ENTRE_CARDS = 0.24;
 
 export async function Depoimentos() {
   const [c, itens] = await Promise.all([getConteudo(), getDepoimentos()]);
@@ -69,9 +81,14 @@ export async function Depoimentos() {
        * Escrito na JSX, e não vindo do seed, ele precisa de uma linha em
        * `LITERAIS_DE_DISPLAY`, em `tests/unit/owners.test.ts`: a Owners trial
        * não desenha acento, e é aquele teste que cobra o glifo.
+       *
+       * A queima letra a letra é daqui, e só daqui na seção: são 14 letras,
+       * cada uma com a cópia de fumaça e a máscara, e é o único texto grande
+       * o bastante para a linha de fogo ser vista subir dentro do glifo. O
+       * subtítulo e os cards queimam em bloco, pelo `Queima`.
        */}
       <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86] text-branco">
-        Quem veio, volta
+        <TextoQueAcende queima>Quem veio, volta</TextoQueAcende>
       </h2>
 
       {/*
@@ -88,12 +105,14 @@ export async function Depoimentos() {
        * `max-w-[52ch]` porque linha de leitura larga demais perde o começo da
        * seguinte, e aqui a coluna vai a 1280px.
        */}
-      <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)] text-creme">
-        {c.depoimentosTitulo}
-      </p>
+      <Queima>
+        <p className="mb-10 mt-4 max-w-[52ch] text-[clamp(1rem,2.1vw,1.32rem)] text-creme">
+          {c.depoimentosTitulo}
+        </p>
+      </Queima>
       <div className="grid gap-[18px] md:grid-cols-3">
-        {itens.map((d) => (
-          <Reveal key={d.id} className="h-full">
+        {itens.map((d, i) => (
+          <Queima key={d.id} className="h-full" delay={i * PASSO_ENTRE_CARDS}>
             {/*
              * Sem fundo e sem borda desde 2026-09-10, a pedido do cliente: o
              * card agora é só texto sobre a foto, e quem separa uma avaliação
@@ -114,7 +133,7 @@ export async function Depoimentos() {
                 {d.autor}
               </figcaption>
             </figure>
-          </Reveal>
+          </Queima>
         ))}
       </div>
       </div>
