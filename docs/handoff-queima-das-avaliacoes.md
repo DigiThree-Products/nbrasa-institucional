@@ -114,6 +114,10 @@ Nenhum deles lança quando errado, só desenha diferente.
   de carvão dá 1,1:1, a mesma armadilha que trocou a cor das estrelas. No
   brilho ele chegou a ficar e o cliente tirou em 2026-09-11, porque brigava com
   a foto; hoje é carvão.
+- A cópia borrada que faz a fumaça do título **não pode ser carvão**, por mais
+  que a cor peça. O véu da seção também é carvão, e escuro sobre escuro some:
+  medido no navegador, o título desaparecia no começo da queima. Ela fica no
+  `creme-texto`, o mais escuro que ainda lê sobre o véu.
 - A pluma de fumaça do título **não pode voltar a ser animada por tween**. O
   GSAP embaralha os deslocamentos das quatro cópias no meio do caminho, com
   desfoque e alfa saindo certos, e ninguém é avisado. Ela é escrita uma vez e

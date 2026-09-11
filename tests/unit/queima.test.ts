@@ -8,7 +8,8 @@ import {
   escondeNaMontagem,
   emRgba,
   plumaDeFumaca,
-  estiloDaPluma,
+  contasDaQueima,
+  derivaDaLetra,
   PASSOS_DA_PLUMA,
 } from "@/lib/queima";
 
@@ -17,9 +18,12 @@ function numeros(padrao: RegExp): number[] {
   return [...plumaDeFumaca("#241e1f").matchAll(padrao)].map((m) => Number(m[1]));
 }
 
-/** Os multiplicadores que jogam cada cópia para cima. */
+/**
+ * Os multiplicadores que jogam cada cópia para cima. São o segundo `calc` de
+ * cada sombra, logo antes do desfoque; o primeiro é a deriva lateral.
+ */
 function deslocamentos(): number[] {
-  return numeros(/0 calc\(var\(--altura-da-pluma\) \* (-[\d.]+)\)/g);
+  return numeros(/calc\(var\(--altura-da-pluma\) \* (-[\d.]+)\) calc\(0\.04em/g);
 }
 
 /** Conta parênteses abertos e fechados de uma declaração de CSS. */
@@ -115,6 +119,33 @@ describe("a queima que revela o texto de baixo para cima", () => {
     }
   });
 
+  it("dá a cada letra uma deriva própria, para a palavra não sair carimbada", () => {
+    // Fumaça idêntica em catorze letras lê como padrão, não como fumaça. A
+    // deriva é o que inclina a pluma de cada uma para um lado.
+    const derivas = Array.from({ length: 14 }, (_, i) => derivaDaLetra(i));
+    expect(new Set(derivas).size).toBe(derivas.length);
+    for (const d of derivas) {
+      expect(d).toBeGreaterThanOrEqual(-1);
+      expect(d).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("mantém a deriva estável entre chamadas", () => {
+    // Ela é recalculada a cada entrada na seção. Sorteio de verdade faria a
+    // pluma pular de lado quando o visitante voltasse, sem motivo visível.
+    expect(derivaDaLetra(7)).toBe(derivaDaLetra(7));
+  });
+
+  it("escora a pluma para o lado conforme ela sobe", () => {
+    // Coluna reta não lê como fumaça. O deslocamento lateral cresce com a
+    // altura da cópia, então a pluma inclina em vez de subir empilhada.
+    const lados = [...plumaDeFumaca("#241e1f", 3)
+      .matchAll(/calc\(var\(--altura-da-pluma\) \* (-?[\d.]+)\) calc\(var/g)]
+      .map((m) => Math.abs(Number(m[1])));
+    expect(lados).toHaveLength(PASSOS_DA_PLUMA);
+    expect(lados.at(-1)).toBeGreaterThan(lados[0]);
+  });
+
   it("apaga a pluma exatamente quando o fogo acaba", () => {
     // O alfa é a força vezes o que falta do avanço. Em avanço 1, que é o fim
     // da queima, sobra zero: a fumaça não pode ficar pendurada na letra
@@ -126,16 +157,16 @@ describe("a queima que revela o texto de baixo para cima", () => {
   it("deriva o avanço da mesma linha que move a máscara", () => {
     // As duas dessincronizariam no dia em que alguém mexesse num dos dois
     // lugares, e a pluma passaria a subir antes ou depois do fogo.
-    const estilo = estiloDaPluma("#241e1f");
-    expect(estilo["--avanco-da-queima"]).toContain(VARIAVEL_DA_LINHA);
-    expect(estilo["--altura-da-pluma"]).toContain("--avanco-da-queima");
-    expect(estilo.textShadow).toContain("--altura-da-pluma");
+    const contas = contasDaQueima();
+    expect(contas["--avanco-da-queima"]).toContain(VARIAVEL_DA_LINHA);
+    expect(contas["--altura-da-pluma"]).toContain("--avanco-da-queima");
+    expect(plumaDeFumaca("#241e1f")).toContain("--altura-da-pluma");
   });
 
   it("fecha todos os parênteses que a pluma abre", () => {
     // Mesmo perigo da máscara: `calc` mal fechado descarta a declaração e a
     // sombra some inteira, sem nada lançar.
-    for (const valor of Object.values(estiloDaPluma("#241e1f"))) {
+    for (const valor of [...Object.values(contasDaQueima()), plumaDeFumaca("#241e1f", 5)]) {
       expect(saldoDeParenteses(valor)).toBe(0);
     }
   });

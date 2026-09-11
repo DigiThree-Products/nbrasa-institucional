@@ -41,12 +41,17 @@ const semMovimento = (matches: boolean) => {
   })) as unknown as typeof window.matchMedia;
 };
 
-/** A sombra que o componente escreveu via `gsap.set`, e não pelo tween. */
-function sombraPosta(): string {
+/**
+ * A sombra que o componente escreveu via `gsap.set`, e não pelo tween. Ela vai
+ * como função porque cada letra recebe uma deriva própria, e é o GSAP que a
+ * chama com o índice do alvo.
+ */
+function sombraPosta(indice = 0): string {
   const comSombra = setMock.mock.calls
     .map((c) => (c as unknown[])[1] as Record<string, unknown>)
-    .filter((v) => typeof v?.textShadow === "string");
-  return String(comSombra.at(-1)?.textShadow ?? "");
+    .filter((v) => v?.textShadow !== undefined);
+  const sombra = comSombra.at(-1)?.textShadow;
+  return typeof sombra === "function" ? String(sombra(indice)) : String(sombra ?? "");
 }
 
 async function varsDoGatilho() {

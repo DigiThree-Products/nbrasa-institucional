@@ -538,6 +538,14 @@ troca a cópia borrada por um desfoque que limpa junto com a subida. Letra a
 letra nos cards seriam mais de trezentos elementos mascarados, contra as 163
 letras que a seção de horários já custa, e duplicaria o texto do card no DOM.
 
+**A cópia de fumaça do título não é branca, e também não é carvão.** Ela
+herdava a cor da letra e ficava branca, o que lia como letra fora de foco. O
+cliente pediu mais carvão em 2026-09-11, e carvão puro **some**: o véu da seção
+também é carvão, e escuro sobre escuro não aparece. Medido no navegador, com
+carvão o título desaparecia no começo da queima. Ela parou no `creme-texto`,
+que é o mais escuro que ainda lê como fumaça sobre o véu. Quem carrega o carvão
+de verdade é a pluma, que é sombra e por isso escurece o que está atrás dela.
+
 **Os três cards precisam do `delay` escalonado.** Eles são irmãos da mesma
 linha da grade e têm o mesmo topo, então os três gatilhos pegam no mesmo
 instante: sem atraso a fileira inteira acende de uma vez, que é o que
@@ -554,9 +562,18 @@ brasa, porque lá o fundo é a página clara. A tinta, nas duas, é a cor de
 repouso lida do DOM.
 
 **E o brilho não é um halo, é uma pluma**, também a pedido do cliente no mesmo
-dia: halo simétrico não lê como fumaça. São quatro cópias empilhadas para cima
+dia: halo simétrico não lê como fumaça. São seis cópias empilhadas para cima
 pelo `text-shadow`, cada uma mais alta, mais borrada e mais fraca, e ela sobe e
-se desfaz conforme o fogo atravessa a letra. Quem a move **não é uma tween**:
+se desfaz conforme o fogo atravessa a letra. Três detalhes fazem ela parecer
+fumaça em vez de eco: o desfoque cresce **mais depressa que a altura**, senão
+seis letras legíveis empilhadas leem como carimbo; cada cópia escora para o
+lado, e o lado cresce mais que a altura, o que abre a pluma em leque; e cada
+letra tem a **sua própria deriva**, por `derivaDaLetra`, senão as catorze saem
+idênticas e a palavra lê como padrão. A deriva é conta, e não sorteio, porque
+a pluma é remontada a cada entrada na seção: com `Math.random` ela pularia de
+lado na volta do visitante, sem motivo visível. Medido no navegador, a pluma
+inteira cabe em 60 quadros por segundo, com 1,9% dos quadros acima de 20 ms.
+Quem a move **não é uma tween**:
 ela lê a mesma `--linha-de-fogo` da máscara, por duas propriedades derivadas
 que o navegador recalcula sozinho, então as duas não têm como dessincronizar.
 Isso não é preferência de estilo. Animar a sombra inteira pelo GSAP foi a

@@ -81,14 +81,37 @@ export function mascaraDaQueima(papel: Papel, maciez: number = MACIEZ): string {
  * duas, o salto de uma cópia para a outra aparece; acima de quatro, cada cópia
  * nova custa uma pintura de sombra por letra e a diferença não se vê.
  */
-export const PASSOS_DA_PLUMA = 4;
+export const PASSOS_DA_PLUMA = 6;
 
 /** Quanto o desfoque da cópia mais alta cresce em relação à subida dela. */
-const ESPALHAMENTO = 1.6;
+const ESPALHAMENTO = 2.4;
+/**
+ * Com que rapidez o desfoque cresce de uma cópia para a seguinte.
+ *
+ * Acima de 1 ele cresce mais depressa que a altura, e é isso que faz a cópia
+ * de cima perder a forma da letra. Crescimento linear mantém seis letras
+ * legíveis empilhadas, que lê como eco, não como fumaça.
+ */
+const CURVA_DO_DESFOQUE = 1.5;
 /** O desfoque mínimo, para a cópia mais baixa não sair com borda dura. */
 const DESFOQUE_BASE = 0.04;
 /** Quanto a cópia mais alta perde de opacidade em relação à mais baixa. */
-const QUEDA_DO_ALFA = 0.72;
+const QUEDA_DO_ALFA = 0.78;
+/** O quanto a cópia mais alta pode escorar para o lado, em fração da altura. */
+const DERIVA_MAXIMA = 0.42;
+
+/**
+ * A inclinação da pluma de uma letra, entre -1 e 1.
+ *
+ * Fumaça idêntica em catorze letras lê como padrão, não como fumaça, e é a
+ * deriva que quebra isso. Ela é uma conta, e não um sorteio, porque a pluma é
+ * remontada a cada entrada na seção: com `Math.random` ela pularia de lado
+ * quando o visitante voltasse, sem motivo visível.
+ */
+export function derivaDaLetra(semente: number): number {
+  const bruto = Math.sin((semente + 1) * 12.9898) * 43758.5453;
+  return (bruto - Math.floor(bruto)) * 2 - 1;
+}
 
 /**
  * Devolve a cor com alfa.
@@ -128,7 +151,7 @@ export const VARIAVEL_DA_ALTURA = "--altura-da-pluma";
  * são propriedades personalizadas, o navegador as recalcula sozinho a cada
  * mudança da linha: ninguém precisa reescrevê-las quadro a quadro.
  */
-function contasDerivadas(): Record<string, string> {
+export function contasDaQueima(): Record<string, string> {
   const curso = LINHA_FINAL - LINHA_INICIAL;
   const { comeco, fim } = SUBIDA_DA_PLUMA;
   return {
@@ -158,25 +181,24 @@ function contasDerivadas(): Record<string, string> {
  * duas não têm como dessincronizar. É o mesmo motivo pelo qual o trilho da
  * espiral refaz a projeção em vez de guardar o número em dois lugares.
  */
-export function plumaDeFumaca(cor: string): string {
+export function plumaDeFumaca(cor: string, semente = 0): string {
   const altura = `var(${VARIAVEL_DA_ALTURA})`;
   const avanco = `var(${VARIAVEL_DO_AVANCO})`;
+  const deriva = derivaDaLetra(semente) * DERIVA_MAXIMA;
   return Array.from({ length: PASSOS_DA_PLUMA }, (_, i) => {
     const passo = (i + 1) / PASSOS_DA_PLUMA;
-    const desfoque = `calc(${DESFOQUE_BASE}em + ${altura} * ${(passo * ESPALHAMENTO).toFixed(3)})`;
+    // O lado cresce mais que a altura, então a pluma abre em leque em vez de
+    // subir inclinada como um bloco só.
+    const lado = (deriva * passo ** 1.7).toFixed(4);
+    const espalha = (ESPALHAMENTO * passo ** CURVA_DO_DESFOQUE).toFixed(3);
+    const desfoque = `calc(${DESFOQUE_BASE}em + ${altura} * ${espalha})`;
     const forca = (OPACIDADE_DA_PLUMA * (1 - QUEDA_DO_ALFA * passo)).toFixed(3);
     const alfa = `calc(${forca} * (1 - ${avanco}))`;
-    return `0 calc(${altura} * ${(-passo).toFixed(3)}) ${desfoque} ${emRgba(cor, alfa)}`;
+    return `calc(${altura} * ${lado}) calc(${altura} * ${(-passo).toFixed(3)})`
+      + ` ${desfoque} ${emRgba(cor, alfa)}`;
   }).join(", ");
 }
 
-/**
- * Tudo o que a pluma precisa, pronto para um `gsap.set`: as duas contas
- * derivadas e a sombra que as consome.
- */
-export function estiloDaPluma(cor: string): Record<string, string> {
-  return { ...contasDerivadas(), textShadow: plumaDeFumaca(cor) };
-}
 
 /**
  * Diz se o elemento deve nascer escondido.

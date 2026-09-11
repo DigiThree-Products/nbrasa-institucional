@@ -7,7 +7,8 @@ import {
   VARIAVEL_DA_LINHA,
   mascaraDaQueima,
   escondeNaMontagem,
-  estiloDaPluma,
+  contasDaQueima,
+  plumaDeFumaca,
 } from "@/lib/queima";
 
 /**
@@ -154,7 +155,14 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
         // que a máscara, e quem a recalcula a cada quadro é o navegador. A
         // sombra herda para as duas camadas, então cada uma pinta a sua parte
         // da pluma com a própria máscara aplicada.
-        gsap.set(letras, estiloDaPluma(carvao));
+        //
+        // O índice da letra entra como semente para cada pluma escorar para um
+        // lado diferente. Sem isso as catorze saem idênticas e a palavra lê
+        // como padrão carimbado, não como fumaça.
+        gsap.set(letras, {
+          ...contasDaQueima(),
+          textShadow: (i: number) => plumaDeFumaca(carvao, i),
+        });
       };
 
       // Passado o fogo, não sobra nada para mascarar: a letra parada volta a
@@ -251,10 +259,18 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
                       <span data-tinta="" className="inline-block">{letra}</span>
                       {/* A mesma letra por cima, borrada, é a fumaça. Fica
                           absoluta para não medir nada no layout, e o borrão
-                          vai em `em` para acompanhar o corpo do texto. */}
+                          vai em `em` para acompanhar o corpo do texto.
+
+                          A cor saiu do branco herdado e foi para o lado do
+                          carvão em 2026-09-11, a pedido do cliente, mas parou
+                          no `creme-texto`: carvão puro some, porque o véu da
+                          seção também é carvão e escuro sobre escuro não
+                          aparece. Medido no navegador, com carvão o título
+                          sumia no começo da queima. Este cinza quente é o mais
+                          escuro que ainda lê como fumaça sobre o véu. */}
                       <span
                         data-fumaca=""
-                        className="absolute inset-0 opacity-0 blur-[0.07em]"
+                        className="absolute inset-0 text-creme-texto opacity-0 blur-[0.07em]"
                       >
                         {letra}
                       </span>
