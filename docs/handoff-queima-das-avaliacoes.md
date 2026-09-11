@@ -78,8 +78,11 @@ npx tsc --noEmit
 
 ## Como olhar o gesto
 
-Ele dura pouco mais de um segundo e acontece enquanto a seção chega, então
-parar a rolagem no lugar errado não mostra nada. O caminho é rolar até o fim da
+Ele leva cerca de 3,5 segundos da primeira faísca do título ao último card, e
+acontece enquanto a seção chega, então parar a rolagem no lugar errado não
+mostra nada. Cada glifo do título gasta 1,5 s sozinho, e o cliente pediu essa
+lentidão em 2026-09-11, depois de ver a primeira versão, que fazia o mesmo
+percurso em 2,1 s. O caminho é rolar até o fim da
 página em velocidade normal; a seção fecha o site, logo acima do rodapé. Para
 rever, suba umas duas telas e desça de novo, porque a queima refaz a cada
 travessia.

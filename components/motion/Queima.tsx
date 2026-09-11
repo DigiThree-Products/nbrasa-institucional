@@ -28,8 +28,15 @@ import {
  * depende dela para ser lido.
  */
 
-/** Quanto tempo o fogo leva para atravessar o bloco de baixo a cima. */
-const DURACAO_DA_QUEIMA = 1;
+/**
+ * Quanto tempo o fogo leva para atravessar o bloco de baixo a cima.
+ *
+ * Era 1 até 2026-09-11, quando o cliente pediu a revelação mais lenta. Vale
+ * um pouco mais que a travessia de um glifo no título, e não menos: o bloco é
+ * bem mais alto que uma letra, e no mesmo tempo a linha de fogo correria mais
+ * depressa aqui do que lá.
+ */
+const DURACAO_DA_QUEIMA = 1.7;
 /** O desfoque de entrada, que é a fumaça saindo da frente do conteúdo. */
 const DESFOQUE_INICIAL = 7;
 /** A saída é mais curta e acelera, para não segurar a rolagem. */

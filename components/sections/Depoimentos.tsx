@@ -11,7 +11,7 @@ import { TextoQueAcende } from "@/components/motion/TextoQueAcende";
  * telefone eles empilham e o próprio scroll já os separa, então o atraso só
  * soma um respiro.
  */
-const PASSO_ENTRE_CARDS = 0.14;
+const PASSO_ENTRE_CARDS = 0.24;
 
 export async function Depoimentos() {
   const [c, itens] = await Promise.all([getConteudo(), getDepoimentos()]);

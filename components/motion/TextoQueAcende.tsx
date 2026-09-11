@@ -38,10 +38,17 @@ function vermelhoDeMarca(): string {
   return doToken || "#cf2434";
 }
 
-/** Quanto tempo o fogo leva para atravessar um glifo de baixo a cima. */
-const DURACAO_DA_QUEIMA = 0.9;
+/**
+ * Quanto tempo o fogo leva para atravessar um glifo de baixo a cima.
+ *
+ * Era 0,9 até 2026-09-11, quando o cliente pediu a revelação mais lenta. O
+ * passo entre letras subiu na mesma proporção, senão a onda encavalaria: com
+ * a travessia mais longa e o passo antigo, meia palavra queimaria junto e o
+ * gesto voltaria a ler como bloco só.
+ */
+const DURACAO_DA_QUEIMA = 1.5;
 /** Distância entre uma letra e a vizinha, que é o que faz a onda correr. */
-const PASSO_DA_QUEIMA = 0.045;
+const PASSO_DA_QUEIMA = 0.075;
 /**
  * A fumaça não chega a opaca.
  *
