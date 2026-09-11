@@ -69,12 +69,25 @@ export const AJUSTES = {
   altura: "80%",
 
   /**
-   * Onde a coluna da foto começa, na prática, onde fica a barriga da chama,
-   * porque a máscara alinha a chama pela esquerda do contêiner.
-   * Menor = mais foto à vista e mordida mais funda no texto. Abaixo de ~40% a
-   * curva encosta no fim das linhas do parágrafo e atrapalha a leitura.
+   * Onde a coluna da foto começa. **A borda que se vê não é aqui**: é a
+   * barriga da chama, 4,8% da altura do herói à direita deste ponto, porque a
+   * máscara encosta a chama na borda esquerda do contêiner e o ponto mais
+   * gordo da silhueta fica a algumas unidades do zero do viewBox. Medido em
+   * 1920x900: a coluna começa em 912 e a foto aparece a partir de 956.
    *
-   * **Quem manda no piso é o header, e bem antes desses 40%.** Quatro lugares
+   * Menor = mais foto à vista e mordida mais funda no texto. Quem encosta
+   * primeiro **não é o parágrafo**, é a linha do "Aqui.", que tem 88px de
+   * folga contra os 199px do parágrafo e encostaria por volta de 44%. Versões
+   * anteriores deste comentário diziam ~40% e o parágrafo, medida de antes do
+   * título virar três linhas.
+   *
+   * Alargar a chama **não** serve para trazer a borda para cá: ampliar o
+   * desenho afasta a barriga da coluna. Medido em 1920, com a coluna parada:
+   * escala 1,02 põe a borda em 968, 1,15 em 974 e 1,45 em 987. Chama maior
+   * mostra MENOS foto, e encolher rende 6px em território que o degrau do
+   * rodapé proíbe.
+   *
+   * **Quem manda no piso é o header, e bem antes desses 44%.** Quatro lugares
    * leem este valor por `--costura-inicio`, e três deles são do header: a
    * largura de `.cabecalho-conteudo`, a largura do retângulo branco (`::before`)
    * e a divisa onde começa a metade mascarada (`::after`), todos em
@@ -82,24 +95,33 @@ export const AJUSTES = {
    * mascarada alinha a chama pela própria borda esquerda, então essa borda tem
    * que cair exatamente onde a foto começa.
    *
-   * A conta do piso: o conteúdo do header precisa de 657px (logo 115, os
+   * A conta do piso: o conteúdo do header precisa de 637px (logo 115, os
    * quatro links 453, mais o vão de 20 e os recuos de 24), e a área clara
    * disponível é `inicio * largura + 6dvh` MENOS `(100vw - 1280px) / 2`, o
    * recuo esquerdo que a logo divide com o herói. O pior caso é a janela larga
    * e baixa, porque a largura entra dividida por dois no recuo e a altura
-   * entra inteira nos 6dvh: em 1920x900 sobram 665px com `49%` e 684px com os
-   * `50%` de antes. Ou seja, **o número já nascia a 27px do limite**, e é por
-   * isso que aqui a mudança é de um ponto percentual: 19px de foto a mais em
-   * 1920, e não mais que isso.
+   * entra inteira nos 6dvh: em 1920x900 a barra oferece 646px contra os 637
+   * necessários.
    *
-   * Andar de verdade para a esquerda exige decidir o header antes, e são dois
-   * caminhos, os dois visíveis: soltar o recuo esquerdo da logo no estado do
-   * herói, que hoje existe para ela não pular quando a barra se estende e para
-   * alinhar com a primeira linha do título, ou subir de 1280px a faixa em que
-   * a navegação vira hambúrguer, o que tira os quatro links de telas onde eles
-   * cabem hoje.
+   * **Os 637 já foram 657**, e a diferença comprou este ponto percentual: o
+   * invólucro do hambúrguer ficava no desktop com largura zero, mas seguia
+   * sendo item do flex e cobrando os 20px de `gap-5` que o separavam da
+   * navegação. Ver o `md:hidden` em `Header.tsx`.
+   *
+   * Em 1920x700, a janela mais apertada que existe, a barra fica 3px abaixo do
+   * necessário e a navegação passa a comer o próprio recuo de 24px. Não vaza
+   * para cima da foto: sobram 11px entre o último link e a borda, medidos em
+   * pixel. É a folga mais fina de todas e é o que este `48%` gasta.
+   *
+   * Andar de verdade para a esquerda exige decidir o header antes, e o caminho
+   * que mais rende é soltar o recuo esquerdo da logo no estado do herói, que
+   * hoje existe para ela não pular quando a barra se estende e para alinhar
+   * com a primeira linha do título. Subir a faixa do hambúrguer **não** ajuda:
+   * o piso é ditado por 1920, que é justamente onde o recuo é maior. O que
+   * ajuda de verdade é encurtar a navegação, e o candidato é "Onde estamos",
+   * 141px com o vão, que desde 2026-09-10 só aponta para o rodapé.
    */
-  inicioDaFoto: "49%",
+  inicioDaFoto: "48%",
 
   /**
    * Recorte da foto dentro do quadro (`object-position`). Sobe/desce e

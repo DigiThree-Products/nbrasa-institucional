@@ -78,7 +78,13 @@ export async function Header() {
           {c.campanhaAtiva && <Botao href="/campanha">{c.campanhaTitulo}</Botao>}
         </nav>
 
-        <div className="cabecalho-menu ml-auto md:ml-0">
+        {/* `md:hidden` no invólucro, e não só no botão lá dentro. Escondendo
+            apenas o botão, esta `div` continua sendo item do flex com largura
+            zero, e um item de largura zero ainda cobra o `gap-5` que o separa
+            da navegação: 20px da área clara gastos com nada, justo no lado em
+            que ela é disputada com a foto. A faixa de 1024 a 1279, onde o
+            hambúrguer volta, devolve o `display` em `globals.css`. */}
+        <div className="cabecalho-menu ml-auto md:ml-0 md:hidden">
           <MenuMobile links={LINKS} />
         </div>
       </div>

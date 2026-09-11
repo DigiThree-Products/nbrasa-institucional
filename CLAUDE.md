@@ -667,12 +667,12 @@ tem que cair exatamente onde a foto começa. Movido só um deles, o recorte do
 header descola do da foto e o retângulo branco passa a pintar por cima da foto
 dentro da faixa.
 
-Medido, o conteúdo precisa de 657px (logo 115, os quatro links 453, mais o vão
+Medido, o conteúdo precisa de 637px (logo 115, os quatro links 453, mais o vão
 de 20 e os recuos de 24) e a área clara disponível é
 `inicio * largura + 6dvh` menos `(100vw - 1280px) / 2`, o recuo esquerdo que a
 logo divide com o herói. O pior caso é a **janela larga e baixa**, porque a
 largura entra dividida por dois no recuo e a altura entra inteira nos 6dvh: em
-1920x900 sobram 665px. Por isso **entre 1024px e 1279px a navegação de desktop
+1920x900 a barra oferece 646px. Por isso **entre 1024px e 1279px a navegação de desktop
 dá lugar ao hambúrguer**, numa regra própria em `globals.css`, inclusive com a
 barra já estendida, onde caberia: aparecer e sumir conforme a rolagem seria
 pior que ficar recolhida nessa faixa. O e2e "a navegação do header nunca cai em
@@ -685,14 +685,32 @@ ENCOLHE quando a área clara aperta: "Onde estamos" vira duas linhas dentro de
 uma barra de 74px, e nenhuma medida de borda acusa isso, porque nada vazou.
 Foi o que apareceu ao tentar `48%` em 2026-09-10. Por isso o `<nav>` leva
 `shrink-0` e `whitespace-nowrap`: sem encolher, faltar espaço vira invasão da
-foto, que é justamente o que o e2e mede. O valor foi de `50%` para `49%`, a
-pedido do cliente, que queria mais foto à vista, e **19px em 1920 é tudo o que
-cabe** sem decidir o header antes. Os dois caminhos para andar de verdade, os
-dois visíveis: soltar o recuo esquerdo da logo no estado do herói, que existe
-para ela não pular quando a barra se estende e para alinhar com a primeira
-linha do título, ou subir de 1280px a faixa do hambúrguer, o que tira os quatro
-links de telas onde eles cabem hoje. O botão de campanha ligado no banco come
-a folga que sobra, como sempre coube.
+foto, que é justamente o que o e2e mede.
+
+**O invólucro do hambúrguer cobrava 20px da área clara sem aparecer.** No
+desktop o botão dentro dele era `display: none`, mas a `div` seguia sendo item
+do flex, com largura zero, e um item de largura zero ainda cobra o `gap-5` que
+o separa da navegação. Desde 2026-09-11 o invólucro leva `md:hidden` e a faixa
+de 1024 a 1279 devolve o `display` em `globals.css`. Foram esses 20px que
+pagaram a ida de `49%` para `48%`, no mesmo dia: a navegação não mudou de
+tamanho, de posição relativa nem de aparência.
+
+O valor saiu de `50%` a pedido do cliente, que queria mais foto à vista, e está
+em `48%`, o que dá 37px de foto a mais em 1920 que o original. **Daqui não sai
+mais sem decidir o header.** Em 1920x900 a folga é de 9px e em 1920x700 a barra
+fica 3px abaixo do necessário, quando a navegação passa a comer o próprio
+recuo, ainda sem vazar: restam 11px medidos em pixel entre o último link e a
+borda. O botão de campanha ligado no banco não cabe mais nessa folga.
+
+Dois enganos registrados, porque os dois já custaram tempo. **Alargar a chama
+não traz a borda para a esquerda**, empurra para a direita: medido em 1920 com
+a coluna parada, escala 1,02 põe a borda em 968, 1,15 em 974 e 1,45 em 987. E
+**subir a faixa do hambúrguer não libera espaço**, porque o piso é ditado por
+1920, que é justamente onde o recuo de `(100vw - 1280px) / 2` é maior. O que
+rende de verdade é soltar o recuo esquerdo da logo no estado do herói, que
+existe para ela não pular quando a barra se estende, ou encurtar a navegação,
+e aí o candidato é "Onde estamos", 141px com o vão, que desde 2026-09-10 só
+aponta para o rodapé.
 
 ### Tokens de marca
 

@@ -211,11 +211,16 @@ body {
   .cabecalho-nav { display: none; }
 
   /* Sem a navegação ao lado, o hambúrguer precisa do `ml-auto` de volta para
-     ir à direita da caixa, e precisa reaparecer. As duas regras vencem as
+     ir à direita da caixa, e precisa reaparecer. As três regras vencem as
      utilidades do próprio elemento (`md:ml-0` e `md:hidden`) sem
      `!important`: as utilidades do Tailwind vivem numa camada, e regra fora
-     de camada ganha delas. */
-  .cabecalho-menu { margin-left: auto; }
+     de camada ganha delas.
+
+     O `display` está aqui porque o invólucro leva `md:hidden` desde
+     2026-09-11: escondido só o botão, a `div` seguia cobrando o `gap-5` que a
+     separa da navegação, 20px da área clara gastos com um elemento invisível.
+     Nesta faixa ela volta a existir de verdade, então volta o `display`. */
+  .cabecalho-menu { display: block; margin-left: auto; }
   .cabecalho-menu button { display: flex; }
 }
 
