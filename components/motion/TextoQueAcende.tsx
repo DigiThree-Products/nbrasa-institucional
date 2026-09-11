@@ -22,9 +22,11 @@ import {
  * de repouso da própria letra.
  *
  * São dois modos de entrada, e a saída é a mesma nos dois. O padrão sobe a
- * letra inteira e a esfria, e é o que a seção de horários usa. O `queima`
- * deixa a letra parada e faz uma linha de fogo subir por dentro do glifo, e é
- * o que a seção de avaliações usa; ver a prop.
+ * letra inteira e a esfria. O `queima` deixa a letra parada e faz uma linha de
+ * fogo subir por dentro do glifo, e desde 2026-09-11 é o que as duas seções
+ * com texto animado usam, avaliações e horários. O padrão ficou **sem
+ * consumidor na interface**, com os testes de pé: ver a prop, que traz o custo
+ * medido de cada um.
  *
  * Acessibilidade: a frase inteira vai num `sr-only`, e a versão quebrada em
  * letras leva `aria-hidden`. Sem isso o leitor de tela soletraria o título.
@@ -70,11 +72,15 @@ type Props = {
    * por dentro dela, deixando tinta abaixo e fumaça acima. Pedido do cliente
    * em 2026-09-10 para a seção de avaliações ficar mais fiel à referência.
    *
-   * É opcional, e não o padrão, pelo mesmo motivo do `saida` do `Reveal`: a
-   * seção de horários já tinha sido aprovada com a entrada de sempre, e a
-   * queima custa duas camadas e uma máscara por letra. Ela paga isso em texto
-   * de display, que é grande o bastante para o gesto ser visto, e não em
-   * parágrafo. Bloco inteiro usa o `Queima`, que é irmão deste.
+   * Continua opcional, e não padrão, porque **custa por letra**: são duas
+   * camadas, uma máscara e seis sombras em cada uma, e a máscara é repintada a
+   * cada quadro. Medido no navegador em 2026-09-11: 14 letras do título das
+   * avaliações rodam a 60 quadros por segundo, e as 163 da seção de horários
+   * derrubam para cerca de 40, com engasgos de até 167 ms. Nem a pluma nem o
+   * desfoque explicam esse custo, testados um a um; é o repinte da máscara em
+   * quase 500 elementos. Em corpo pequeno o gesto também lê pior, porque a
+   * fumaça vira borrão sujo em vez de fumaça. Bloco inteiro usa o `Queima`,
+   * que é irmão deste.
    */
   queima?: boolean;
 };
@@ -103,11 +109,11 @@ export function TextoQueAcende({ children, className, delay = 0, queima = false 
       const brasa = corDeMarca("--color-brasa", "#cf2434");
       /*
        * O brilho da queima é carvão, e não brasa, a pedido do cliente em
-       * 2026-09-11. Esta é a única seção de fundo escuro que queima: o halo
-       * vermelho brigava com a foto atrás do véu, e em carvão ele vira sombra,
-       * que ainda dá borda à letra branca enquanto ela atravessa o céu claro
-       * da foto. A entrada de sempre, a da seção de horários, segue na brasa,
-       * porque lá o fundo é a página clara.
+       * 2026-09-11: nas avaliações o halo vermelho brigava com a foto atrás do
+       * véu. Em carvão ele vira sombra, que dá borda à letra branca sobre o
+       * céu claro da foto e lê como fumaça escura sobre o branco da página, na
+       * seção de horários. Quem continua nascendo na brasa é a entrada de
+       * sempre, o modo sem `queima`.
        */
       const carvao = corDeMarca("--color-carvao", "#241e1f");
       // A cor de repouso é lida ANTES de qualquer animação mexer na letra, e

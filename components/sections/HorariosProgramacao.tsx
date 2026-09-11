@@ -69,7 +69,7 @@ export async function HorariosProgramacao() {
          * card do rótulo para o horário.
          */}
         <h2 className="text-balance font-display text-[clamp(2.82rem,6.87vw,5.4rem)] uppercase leading-[.86]">
-          <TextoQueAcende>{c.horariosTitulo}</TextoQueAcende>
+          <TextoQueAcende queima>{c.horariosTitulo}</TextoQueAcende>
         </h2>
 
         {/*
@@ -88,7 +88,7 @@ export async function HorariosProgramacao() {
          */}
         {abertos !== "" && (
           <p className="mt-4 text-[clamp(1rem,2.1vw,1.32rem)] text-creme-texto">
-            <TextoQueAcende delay={0.09}>{`Abrimos de ${abertos}.`}</TextoQueAcende>
+            <TextoQueAcende queima delay={0.09}>{`Abrimos de ${abertos}.`}</TextoQueAcende>
           </p>
         )}
 
@@ -162,14 +162,14 @@ export async function HorariosProgramacao() {
                       `brasa` puro reprova AA em texto pequeno, e é a mesma
                       troca que todo rótulo pequeno do site já faz. */}
                   <span className={`text-[clamp(.62rem,4cqw,.82rem)] font-extrabold uppercase leading-tight tracking-[.14em] ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
-                    <TextoQueAcende delay={base + 0.06}>{p.diasLabel}</TextoQueAcende>
+                    <TextoQueAcende queima delay={base + 0.06}>{p.diasLabel}</TextoQueAcende>
                   </span>
                   <h3 className="font-display text-[clamp(1rem,8.6cqw,1.7rem)] uppercase leading-[1.02] text-carvao">
-                    <TextoQueAcende delay={base + 0.12}>{p.titulo}</TextoQueAcende>
+                    <TextoQueAcende queima delay={base + 0.12}>{p.titulo}</TextoQueAcende>
                   </h3>
                   {hora !== null && (
                     <span className={`text-[clamp(.85rem,6.2cqw,1.25rem)] font-extrabold tabular-nums ${vermelho ? "text-brasa-escura" : "text-creme-texto"}`}>
-                      <TextoQueAcende delay={base + 0.18}>{hora}</TextoQueAcende>
+                      <TextoQueAcende queima delay={base + 0.18}>{hora}</TextoQueAcende>
                     </span>
                   )}
                 </div>

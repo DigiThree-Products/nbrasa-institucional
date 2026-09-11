@@ -455,11 +455,16 @@ quem mexer.
 `components/motion/TextoQueAcende.tsx`, desde 2026-09-10. O gesto veio de uma
 referência de alfabeto animado em fogo que o cliente mandou; o que foi tomado
 emprestado é o movimento, e **não** a paleta, porque lá o fundo é preto com
-laranja e aqui a página é clara. A letra nasce em brasa com brilho e esfria
-até a cor de repouso **dela**, que é lida do DOM antes de qualquer animação:
-carvão no título do evento, brasa-escura ou creme-texto nos rótulos. Na saída
-ela sobe, desfoca e some, porque subir mais desfocar é o que lê como fumaça;
-descer leria como queda.
+laranja e aqui a página é clara. A cor de repouso de cada letra é lida do DOM
+antes de qualquer animação: carvão no título do evento, brasa-escura ou
+creme-texto nos rótulos. Na saída ela sobe, desfoca e some, porque subir mais
+desfocar é o que lê como fumaça; descer leria como queda.
+
+**Desde 2026-09-11 a entrada aqui é a mesma queima das avaliações**, a pedido
+do cliente: a linha de fogo sobe por dentro do glifo, em vez de a letra subir
+inteira e esfriar. Ver "As avaliações são reveladas por uma linha de fogo que
+sobe", que descreve o mecanismo. **O custo dessa troca está medido e não é
+pequeno**, ver o parágrafo das 163 letras logo abaixo.
 
 Duas coisas ali quebram calado. A frase inteira vai num `sr-only` e a versão
 quebrada leva `aria-hidden`, senão o leitor de tela **soletra** o título. E o
@@ -476,12 +481,30 @@ interface** em 2026-09-10, quando as avaliações passaram a queimar: era
 `Depoimentos` quem dependia dele. Segue exportado e testado, como o
 `agruparHorarios`.
 
-**São 163 letras animando, e o desfoque da saída é o item caro.** No desktop
-as quatro chamas estão na tela juntas e o pico é as 163; no telefone, com uma
-chama por linha, fica perto de 50, porque cada linha de texto tem gatilho
-próprio. Não há teste que meça isso. Se engasgar em máquina fraca, o caminho
-é mover o desfoque para a palavra em vez da letra, que corta o número de
-camadas filtradas de 163 para cerca de 35.
+**São 163 letras animando, e com a queima elas custam caro. Está medido.** No
+desktop as quatro chamas estão na tela juntas e o pico é as 163; no telefone,
+com uma chama por linha, fica perto de 50, porque cada linha de texto tem
+gatilho próprio.
+
+| Medida numa entrada inteira, em 1440x900 | Título das avaliações, 14 letras | Esta seção, 163 letras |
+|---|---|---|
+| Intervalo médio entre quadros | 17,0 ms | 24,4 ms |
+| Percentil 95 | 16,8 ms | 50,1 ms |
+| Quadros acima de 20 ms | 1,9% | 26,3% |
+| Pior quadro | 33 ms | 167 ms |
+
+**Nem a pluma nem o desfoque explicam esse custo**, e os dois foram testados um
+a um: com duas cópias de pluma em vez de seis dá 22,1 ms, e sem o desfoque da
+cópia de fumaça dá 24,2 ms. O que pesa é o **repinte da máscara**, que muda de
+posição a cada quadro em quase 500 elementos, as 163 letras mais as duas
+camadas de cada uma. Reduzir o custo, então, é reduzir quantas letras queimam.
+
+O outro lado é de desenho: **em corpo pequeno a queima lê pior**. A cópia
+borrada vira borrão sujo em vez de fumaça nos rótulos de 11px e nas horas, e o
+gesto foi calibrado no display do título. O caminho, se o cliente topar, é
+deixar a queima no título da seção e nos títulos dos eventos, que são display,
+e devolver os rótulos e as horas à entrada de sempre. Isso corta as letras que
+queimam de 163 para cerca de 60. Não há teste que meça nada disso.
 
 **`toggleActions: "play reverse play reverse"` não funciona neste site**, e
 essa é a armadilha que custa uma tarde. `SmoothScrollProvider` liga
